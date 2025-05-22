@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\User;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -44,4 +44,48 @@ class AuthController extends Controller
         ], 409);
     }
 
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->post(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ]);
+        }
+
+        $credentials = $validator->validated();
+
+        // Coba login dan dapatkan token JWT
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Email atau password salah!'
+            ], 401);
+        }
+
+        return response()->json([
+            'status' => true,
+            'user' => auth()->user(),
+            'token' => $token // Ini string token JWT
+        ]);
+    }
+
+
+    public function logout(Request $request)
+    {
+        $removeToken = JWTAuth::invalidate(JWTAuth::getToken());
+
+        if ($removeToken) {
+            //return response JSON
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout Berhasil!',
+            ]);
+        }
+    }
 }
