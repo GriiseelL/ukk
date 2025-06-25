@@ -36,11 +36,13 @@ class AuthController extends Controller
                 'message' => 'successfully',
                 'success' => true,
                 'user' => $user,
+                'status' => 201
             ], 201);
         }
 
         return response()->json([
             'success' => false,
+            'status' => 409
         ], 409);
     }
 
@@ -64,7 +66,8 @@ class AuthController extends Controller
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Email atau password salah!'
+                'message' => 'Email atau password salah!',
+                'status' => 401
             ], 401);
         }
 
