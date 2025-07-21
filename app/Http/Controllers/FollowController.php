@@ -7,6 +7,18 @@ use Illuminate\Http\Request;
 
 class FollowController extends Controller
 {
+
+    public function index()
+    {
+        // $data = User::get();
+
+        // view()->share([
+        //     'user' => $data
+        // ]);
+
+        return view('akunPrib');
+    }
+    
     public function store($followingId)
     {
 

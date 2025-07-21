@@ -4,12 +4,36 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
 use App\Models\Posts;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 
 class PostController extends Controller
 {
+
+    public function index() {
+        $data = Posts::get();
+
+        view()->share([
+            'posts' => $data
+        ]);
+
+        return view('homepage');
+    }
+
+
+    // public function index()
+    // {
+    //     $user = JWTAuth::parseToken()->authenticate();
+
+    //     return response()->json([
+    //         'message' => 'Berhasil ambil homepage',
+    //         'user' => $user,
+    //     ]);
+    // }
+
+
     public function store(StorePostRequest $request)
     {
         $validatedData = $request->validated();

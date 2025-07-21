@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'regis'])->name('register');
-    Route::post('login', [AuthController::class, 'login'])->name('login');
+    Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 });
 
@@ -47,3 +47,16 @@ Route::prefix('comentrep')->middleware('jwt.auth')->group(function(){
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/check', function (Request $request) {
+    $user = auth()->user();
+
+    if (!$user) {
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    return response()->json([
+        'message' => 'Token valid',
+        'user' => $user
+    ]);
+})->middleware('auth:api');

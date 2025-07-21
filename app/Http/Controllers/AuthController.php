@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\Validator;
 class AuthController extends Controller
 {
 
+    // public function index() {
+    //     $data = User::get();
+
+    //     view()->share([
+    //         'user' => $data
+    //     ]);
+
+    //     return view('login');
+    // }
+    
     public function regis(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -62,21 +72,19 @@ class AuthController extends Controller
 
         $credentials = $validator->validated();
 
-        // Coba login dan dapatkan token JWT
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Email atau password salah!',
-                'status' => 401
             ], 401);
         }
 
         return response()->json([
             'status' => true,
-            'user' => auth()->user(),
-            'token' => $token // Ini string token JWT
+            'token' => $token
         ]);
     }
+
 
 
     public function logout(Request $request)
