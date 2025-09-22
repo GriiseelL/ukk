@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 
 class AuthController extends Controller
 {
@@ -18,85 +19,51 @@ class AuthController extends Controller
 
     //     return view('login');
     // }
-    
-    public function regis(Request $request)
+
+   function regis(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'username' => 'required|string|max:50|unique:users,username',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:6',
+    ]);
+
+    $data = new User();
+    $data->name = $request->name;
+    $data->username = $request->username;
+    $data->email = $request->email;
+    $data->password = Hash::make($request->password);
+    $data->save();
+
+    return redirect()->route('login')->with('success', 'Akun berhasil dibuat, silakan login!');
+}
+
+    function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8'
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
 
-        //create user
-        // $otp = rand(10000, 99999);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            // 'otp' => $otp,
-            // 'otp_expires_at' => now()->addMinutes(10),
-        ]);
-
-        // Mail::to($request->email)->send(new sendMail($otp));
-
-
-        if ($user) {
-            return response()->json([
-                'message' => 'successfully',
-                'success' => true,
-                'user' => $user,
-                'status' => 201
-            ], 201);
+            return redirect()->route('homepage');
         }
 
-        return response()->json([
-            'success' => false,
-            'status' => 409
-        ], 409);
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+
     }
-
-    public function login(Request $request)
-    {
-        $validator = Validator::make($request->post(), [
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ]);
-        }
-
-        $credentials = $validator->validated();
-
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Email atau password salah!',
-            ], 401);
-        }
-
-        return response()->json([
-            'status' => true,
-            'token' => $token
-        ]);
-    }
-
-
 
     public function logout(Request $request)
     {
-        $removeToken = JWTAuth::invalidate(JWTAuth::getToken());
 
-        if ($removeToken) {
-            //return response JSON
-            return response()->json([
-                'success' => true,
-                'message' => 'Logout Berhasil!',
-            ]);
-        }
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 }

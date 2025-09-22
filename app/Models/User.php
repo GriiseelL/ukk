@@ -21,6 +21,7 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
@@ -62,5 +63,22 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+
+    public function likedPosts()
+    {
+        return $this->belongsToMany(Posts::class, 'likes', 'user_id', 'post_id');
+    }
+
+    protected $appends = ['profile_image_url'];
+
+    public function getProfileImageUrlAttribute()
+    {
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        }
+        return asset('images/default-avatar.png'); // fallback kalau ga ada foto
+    }
+
 
 }

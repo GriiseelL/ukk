@@ -7,11 +7,27 @@ use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
+
+    public function index($id)
+    {
+        $comments = Comments::with(['user:id,name,avatar'])
+            ->where('post_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'data' => $comments
+        ]);
+    }
+
+
+
+
     public function store(Request $request)
     {
-
         $request->validate([
-            'post_id' => 'required',
+            'post_id' => 'required|exists:posts,id',
             'content' => 'required'
         ]);
 
@@ -23,10 +39,11 @@ class CommentController extends Controller
 
         return response()->json([
             'message' => 'Komentar ditambahkan',
-            'data' => $comment,
-            'status' => 200
-        ], 405);
+            'data' => $comment->load('user'),
+            'status' => 201
+        ], 201);
     }
+
 
     public function destroy($commentId)
     {

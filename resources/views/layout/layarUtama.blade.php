@@ -4,8 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Telava</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/png" />
+
 
 
     <!-- Bootstrap CSS -->
@@ -23,7 +25,7 @@
         }
 
         body {
-            background-color: #f8f9fa;
+            background-color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
                 sans-serif;
         }
@@ -42,10 +44,7 @@
             color: var(--primary-color) !important;
         }
 
-        .main-content {
-            margin-top: 70px;
-            padding-bottom: 80px;
-        }
+
 
         .sidebar {
             background-color: var(--card-bg);
@@ -222,72 +221,6 @@
         .desktop-only {
             display: block;
         }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-
-            .main-content {
-                margin-top: 56px;
-                padding-bottom: 80px;
-            }
-
-            .mobile-only {
-                display: block;
-            }
-
-            .desktop-only {
-                display: none;
-            }
-
-            .post-card {
-                border-radius: 12px;
-                margin-bottom: 12px;
-            }
-
-            .story-container {
-                border-radius: 12px;
-                margin-bottom: 12px;
-            }
-
-            .explore-grid {
-                gap: 3px;
-            }
-
-            .explore-item {
-                border-radius: 6px;
-            }
-        }
-
-        .explore-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2px;
-            margin-top: 20px;
-        }
-
-        .explore-item {
-            aspect-ratio: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .explore-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .explore-item:hover::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
-        }
     </style>
 </head>
 
@@ -296,7 +229,7 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
-                <i class="fab fa-twitter"></i> SocialApp
+                Telava
             </a>
 
             <div class="d-flex mx-auto" style="width: 300px">
@@ -317,12 +250,17 @@
                         <i class="far fa-user-circle"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Profil</a></li>
+                        <li><a class="dropdown-item" href="{{ route('profile') }}">Profil</a></li>
                         <li><a class="dropdown-item" href="#">Pengaturan</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="#">Keluar</a></li>
+                        <li>
+                            <a class="dropdown-item" href="#"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                Keluar
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -332,10 +270,10 @@
     <!-- Desktop Sidebar -->
     <div class="sidebar d-none d-lg-block" style="width: 250px">
         <nav class="nav flex-column">
-            <a class="nav-link active" href="#">
+            <a class="nav-link active" href="{{ route('homepage') }}">
                 <i class="fas fa-home me-3"></i>Beranda
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{{ route('jelajahi') }}">
                 <i class="fas fa-search me-3"></i>Jelajah
             </a>
             <a class="nav-link" href="#">
@@ -347,7 +285,7 @@
             <a class="nav-link" href="#">
                 <i class="far fa-bookmark me-3"></i>Tersimpan
             </a>
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{{ route('profile') }}">
                 <i class="far fa-user me-3"></i>Profil
             </a>
         </nav>
@@ -384,7 +322,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col">
-                    <a class="nav-link active" href="#">
+                    <a class="nav-link active" href="{{ route('homepage') }}">
                         <i class="fas fa-home"></i>
                     </a>
                 </div>
@@ -399,7 +337,7 @@
                     </a>
                 </div>
                 <div class="col">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('profile') }}">
                         <i class="far fa-user-circle"></i>
                     </a>
                 </div>
@@ -409,7 +347,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
+    {{-- <script>
         document.querySelectorAll(".post-card .fa-heart").forEach((icon) => {
             icon.addEventListener("click", function () {
                 const btn = this.closest("button");
@@ -431,7 +369,12 @@
                 }
             });
         });
-    </script>
+    </script> --}}
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
 </body>
 
 </body>

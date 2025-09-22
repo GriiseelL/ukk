@@ -10,33 +10,7 @@ use App\Models\Likes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'regis'])->name('register');
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
-});
 
-Route::prefix('posts')->middleware('jwt.auth')->group(function () {
-    Route::post('store', [PostController::class, 'store'])->name('store');
-    Route::put('update/{posts}', [PostController::class, 'update'])->name('update');
-    Route::delete('destroy/{posts}', [PostController::class, 'destroy'])->name('destroy');
-});
-
-Route::prefix('like')->middleware('jwt.auth')->group(function() {
-   Route::post('store/{id}', [LikeController::class, 'store'])->name('store'); 
-   Route::delete('destroy/{id}', [LikeController::class, 'destroy'])->name('destroy');
-   Route::get('cost/{id}', [LikeController::class, 'cost'])->name('cost');
-});
-
-Route::prefix('follow')->middleware('jwt.auth')->group(function() {
-    Route::post('store/{id}', [FollowController::class, 'store'])->name('store');
-    Route::delete('destroy/{id}', [FollowController::class, 'destroy'])->name('destroy');
-});
-
-Route::prefix('comment')->middleware('jwt.auth')->group(function() {
-    Route::post('store', [CommentController::class, 'store'])->name('store');
-    Route::delete('destroy/{id}', [CommentController::class, 'destroy'])->name('destroy');
-});
 
 Route::prefix('comentrep')->middleware('jwt.auth')->group(function(){
     Route::post('store/{id}', [CommentRepController::class, 'store'])->name('store');
@@ -48,15 +22,15 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/check', function (Request $request) {
-    $user = auth()->user();
+// Route::get('/check', function (Request $request) {
+//     $user = auth()->user();
 
-    if (!$user) {
-        return response()->json(['message' => 'Unauthorized'], 401);
-    }
+//     if (!$user) {
+//         return response()->json(['message' => 'Unauthorized'], 401);
+//     }
 
-    return response()->json([
-        'message' => 'Token valid',
-        'user' => $user
-    ]);
-})->middleware('auth:api');
+//     return response()->json([
+//         'message' => 'Token valid',
+//         'user' => $user
+//     ]);
+// })->middleware('auth:api');

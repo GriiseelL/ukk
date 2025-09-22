@@ -3,91 +3,84 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
+use App\Models\Friends;
 use App\Models\Posts;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-
 
 class PostController extends Controller
 {
+    public function index()
+    {
+        $user = Auth::user();
 
-    public function index() {
-        $data = Posts::get();
+        // ambil semua teman yang di-follow
+        $friends = Friends::where('user_id', $user->id)->pluck('user_following')->toArray();
 
-        view()->share([
+        // ambil post dari user yang di-follow + user sendiri
+        $data = Posts::with('user')
+            ->withCount('likes')
+            ->withExists([
+                'likes as is_liked_by_auth_user' => function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }
+            ])
+            ->whereIn('user_id', $friends)   // post teman
+            ->orWhere('user_id', $user->id)  // post user sendiri
+            ->latest()
+            ->get();
+
+
+        return view('homepage', [
             'posts' => $data
         ]);
-
-        return view('homepage');
     }
-
-
-    // public function index()
-    // {
-    //     $user = JWTAuth::parseToken()->authenticate();
-
-    //     return response()->json([
-    //         'message' => 'Berhasil ambil homepage',
-    //         'user' => $user,
-    //     ]);
-    // }
-
 
     public function store(StorePostRequest $request)
     {
-        $validatedData = $request->validated();
-
-        if ($request->hasFile('image')) {
-            $validatedData['image'] = $request->file('image')->store('image', 'public');
-        }
-
-        $user = auth()->user(); // atau Auth::guard('api')->user();
+        $user = auth()->user();
 
         if (!$user) {
-            return response()->json([
-                'message' => 'User not authenticated',
-                'status' => 401
-            ], 401);
+            return redirect()->route('login')->with('error', 'User not authenticated');
         }
 
+        $data = $request->validated();
 
-        $posts = Posts::create([
-            'user_id' => auth()->user()->id,
-            'caption' => $validatedData['caption'],
-            'image' => $validatedData['image'],
-        ]);
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('posts', 'public');
+        } else {
+            $data['image'] = null;
+        }
 
-        return response()->json([
-            'success' => true,
-            'posts' => $posts
-        ]);
+        $data['user_id'] = $user->id;
+
+        Posts::create($data);
+
+        return redirect()->route('homepage')->with('success', 'Post berhasil dibuat');
     }
 
-    public function update(StorePostRequest $request, Posts $posts)
+    public function update(StorePostRequest $request, Posts $post)
     {
         $validatedData = $request->validated();
 
-
-        unset($validatedData['image']);
-
-        $posts->update([
+        $post->update([
             'caption' => $validatedData['caption'],
         ]);
 
         return response()->json([
             'success' => true,
-            'product' => $posts
+            'post' => $post
         ]);
     }
 
-    public function destroy(Posts $posts)
+    public function destroy(Posts $post)
     {
-
-        if ($posts->image) {
-            Storage::disk('public')->delete($posts->image);
+        if ($post->image) {
+            Storage::disk('public')->delete($post->image);
         }
-        $posts->delete();
+
+        $post->delete();
 
         return response()->json([
             'success' => true,

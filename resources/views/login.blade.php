@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialConnect - Login</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    {{--
+    <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
+
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,6 +17,8 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+
+
 
     <style>
         body {
@@ -346,6 +351,7 @@
             });
     });
 </script> --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <body>
 
@@ -401,7 +407,7 @@
 
                                 <!-- Login Form -->
                                 <div id="login-tab" class="tab-content active">
-                                    <form id="loginForm">
+                                    <form action="{{ route('auth.login') }}" method="POST">
                                         @csrf
                                         <div class="input-group">
                                             <span class="input-group-text">
@@ -442,36 +448,47 @@
 
                                 <!-- Register Form -->
                                 <div id="register-tab" class="tab-content">
-                                    <form id="registerForm">
+                                    <form action="{{ route('auth.regis') }}" method="POST">
+                                        @csrf
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user-circle"></i>
+                                            </span>
+                                            <input name="username" type="text" class="form-control"
+                                                placeholder="username" required>
+                                        </div>
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-user"></i>
                                             </span>
-                                            <input type="text" class="form-control" placeholder="Full Name" required>
+                                            <input name="name" type="text" class="form-control" placeholder="Name"
+                                                required>
                                         </div>
 
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-envelope"></i>
                                             </span>
-                                            <input type="email" class="form-control" placeholder="Email Address"
-                                                required>
+                                            <input name="email" type="email" class="form-control"
+                                                placeholder="Email Address" required>
                                         </div>
 
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-lock"></i>
                                             </span>
-                                            <input type="password" class="form-control" placeholder="Password" required>
+                                            <input name="password" type="password" class="form-control"
+                                                placeholder="Password" required>
                                         </div>
 
-                                        <div class="input-group">
+
+                                        {{-- <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-lock"></i>
                                             </span>
                                             <input type="password" class="form-control" placeholder="Confirm Password"
                                                 required>
-                                        </div>
+                                        </div> --}}
 
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="terms" required>
@@ -486,7 +503,40 @@
                                             Create Account
                                         </button>
                                     </form>
+
+                                    {{-- Error dari validation --}}
+                                    @if ($errors->any())
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function () {
+                                                // Aktifkan tab register
+                                                var regisTab = document.getElementById('register-tab');
+                                                var loginTab = document.getElementById('login-tab');
+
+                                                if (regisTab && loginTab) {
+                                                    regisTab.classList.add('active', 'show');
+                                                    loginTab.classList.remove('active', 'show');
+                                                }
+
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Oops...',
+                                                    html: `{!! implode('<br>', $errors->all()) !!}`,
+                                                })
+                                            });
+                                        </script>
+                                    @endif
+                                    {{-- Success setelah register berhasil --}}
+                                    @if (session('success'))
+                                        <script>
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Berhasil!',
+                                                text: "{{ session('success') }}",
+                                            })
+                                        </script>
+                                    @endif
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -550,68 +600,100 @@
         //         showToast('Login berhasil! Selamat datang kembali.', 'success');
         //     }, 2000);
         // });
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+        // document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        //     e.preventDefault();
 
-            const btn = this.querySelector('.btn-primary');
-            const originalHTML = btn.innerHTML;
+        //     const btn = this.querySelector('.btn-primary');
+        //     const originalHTML = btn.innerHTML;
 
-            btn.innerHTML = '<div class="loading"></div> Signing In...';
-            btn.classList.add('btn-loading');
+        //     btn.innerHTML = '<div class="loading"></div> Signing In...';
+        //     btn.classList.add('btn-loading');
 
-            const email = this.querySelector('[name="email"]').value;
-            const password = this.querySelector('[name="password"]').value;
+        //     const email = this.querySelector('[name="email"]').value;
+        //     const password = this.querySelector('[name="password"]').value;
 
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password }),
-                });
+        //     try {
+        //         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                const data = await response.json();
+        //         const response = await fetch('/auth/login', {
+        //             method: 'POST',
+        //             headers: {
+        //                 'Content-Type': 'application/json',
+        //                 'Accept': 'application/json',
+        //                 'X-CSRF-TOKEN': csrfToken,
+        //             },
+        //             body: JSON.stringify({ email, password }),
+        //         });
 
-                if (response.ok && data.token) {
-                    // Simpan token ke localStorage
-                    localStorage.setItem('jwt_token', data.token);
+        //         const data = await response.json();
 
-                    showToast('Login berhasil! Mengarahkan...', 'success');
+        //         if (response.ok && data.token) {
+        //             // Simpan token ke localStorage
+        //             localStorage.setItem('jwt_token', data.token);
 
-                    // 🔥 Redirect ke HALAMAN web, bukan API
-                    setTimeout(() => {
-                        window.location.href = '/homepage';
-                    }, 1500);
+        //             showToast('Login berhasil! Mengarahkan...', 'success');
 
-                } else {
-                    showToast(data.message || 'Login gagal. Periksa kredensial.', 'info');
-                }
-            } catch (error) {
-                console.error(error);
-                showToast('Terjadi kesalahan saat login.', 'info');
-            } finally {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('btn-loading');
-            }
-        });
+        //             // 🔥 Redirect ke HALAMAN web, bukan API
+        //             setTimeout(() => {
+        //                 window.location.href = '/homepage';
+        //             }, 1500);
+
+        //         } else {
+        //             showToast(data.message || 'Login gagal. Periksa kredensial.', 'info');
+        //         }
+        //     } catch (error) {
+        //         console.error(error);
+        //         showToast('Terjadi kesalahan saat login.', 'info');
+        //     } finally {
+        //         btn.innerHTML = originalHTML;
+        //         btn.classList.remove('btn-loading');
+        //     }
+        // });
 
 
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const btn = this.querySelector('.btn-primary');
-            const originalHTML = btn.innerHTML;
+        // document.getElementById("registerForm").addEventListener("submit", async function (e) {
+        //     e.preventDefault();
 
-            btn.innerHTML = '<div class="loading"></div>Creating Account...';
-            btn.classList.add('btn-loading');
+        //     const btn = this.querySelector(".btn-primary");
+        //     const originalHTML = btn.innerHTML;
 
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('btn-loading');
-                showToast('Akun berhasil dibuat! Selamat bergabung.', 'success');
-            }, 2000);
-        });
+        //     btn.innerHTML = '<div class="loading"></div> Registering...';
+        //     btn.classList.add("btn-loading");
+
+        //     const name = this.querySelector('[name="name"]').value;
+        //     const email = this.querySelector('[name="email"]').value;
+        //     const password = this.querySelector('[name="password"]').value;
+
+        //     try {
+        //         const response = await fetch("/api/auth/register", {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json",
+        //                 "Accept": "application/json",
+        //             },
+        //             body: JSON.stringify({ name, email, password }),
+        //         });
+
+        //         const data = await response.json();
+
+        //         if (response.ok && data.success) {
+        //             showToast("Register berhasil! Silakan login.", "success");
+        //             // kalau mau redirect:
+        //             setTimeout(() => {
+        //                 window.location.href = "/";
+        //             }, 1500);
+        //         } else {
+        //             showToast(data.message || "Gagal register. Cek input.", "info");
+        //         }
+        //     } catch (err) {
+        //         console.error(err);
+        //         showToast("Terjadi error saat register.", "info");
+        //     } finally {
+        //         btn.innerHTML = originalHTML;
+        //         btn.classList.remove("btn-loading");
+        //     }
+        // });
+
 
         // Show forgot password
         function showForgotPassword() {
@@ -668,5 +750,6 @@
         });
     </script>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </html>
