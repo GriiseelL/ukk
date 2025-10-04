@@ -7,6 +7,7 @@ use App\Http\Controllers\JelajahController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StoriesController;
 use App\Http\Middleware\loginMiddleware;
 use App\Http\Middleware\UserMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -23,10 +24,11 @@ Route::prefix('auth')->middleware(loginMiddleware::class)->group(function () {
 Route::delete('logout', [AuthController::class, 'logout'])->name('logout');
 
 // POSTS (hanya bisa diakses user yang login)
-Route::prefix('posts')->middleware(UserMiddleware::class)->name('posts.')->group(function () {
+Route::prefix('posts')->name('posts.')->group(function () {
     Route::post('store', [PostController::class, 'store'])->name('store');
     Route::put('update/{posts}', [PostController::class, 'update'])->name('update');
     Route::delete('destroy/{posts}', [PostController::class, 'destroy'])->name('destroy');
+    Route::get('show/{id}', [PostController::class, 'show'])->name('show');
 });
 
 // LIKE
@@ -70,6 +72,15 @@ Route::post('/profile/update-bio', [ProfileController::class, 'updateBio'])->nam
 Route::post('/profile/update-avatar', [ProfileController::class, 'updateAvatar'])->name('profile.updateAvatar');
 Route::post('/profile/update-cover', [ProfileController::class, 'updateCover'])->name('profile.updateCover');
 
+
+Route::get('stories', [StoriesController::class, 'index'])->name('stories');
+Route::get('/stories/create', [StoriesController::class, 'create'])->name('stories.create');
+Route::post('stories/store', [StoriesController::class, 'store'])->name('stories.store');
+
+
+Route::get('/notifikasi', function () {
+    return view('notifikasi');
+})->name('notifikasi');
 
 
 // Route::middleware(['userauth'])->group(function () {

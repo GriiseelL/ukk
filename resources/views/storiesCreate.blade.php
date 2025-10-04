@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Buat Story Baru</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1da1f2;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f8fa;
+            padding: 20px;
+        }
+
+        .main-content {
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .story-header {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .story-type-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .type-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .type-option {
+            border: 2px solid rgba(29, 161, 242, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            background: rgba(29, 161, 242, 0.02);
+        }
+
+        .type-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(29, 161, 242, 0.15);
+        }
+
+        .type-option.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(29, 161, 242, 0.1), rgba(29, 161, 242, 0.05));
+        }
+
+        .type-option.active::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .type-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+        }
+
+        .type-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .type-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .story-editor {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .editor-main {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .story-preview {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .preview-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .story-simulator {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .story-simulator.text-story {
+            background: var(--selected-bg, linear-gradient(135deg, #667eea, #764ba2));
+        }
+
+        .story-simulator.image-story,
+        .story-simulator.video-story {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .story-text-content {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        .placeholder-content {
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .uploaded-media {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(29, 161, 242, 0.1);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(29, 161, 242, 0.02);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+            background: white;
+        }
+
+        .form-control.large {
+            padding: 16px;
+            font-size: 16px;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-upload-area {
+            border: 2px dashed rgba(29, 161, 242, 0.3);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(29, 161, 242, 0.02);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(29, 161, 242, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+        }
+
+        .background-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .bg-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .bg-option:hover {
+            transform: scale(1.1);
+        }
+
+        .bg-option.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3);
+        }
+
+        .story-actions {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #0d8bd9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(29, 161, 242, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.05);
+            color: #666;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        /* Crop Modal */
+        .crop-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .crop-modal.active {
+            display: flex;
+        }
+
+        .crop-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+        }
+
+        .crop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .crop-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .close-crop {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-crop:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .crop-image-container {
+            max-width: 700px;
+            max-height: 500px;
+            margin: 0 auto 20px;
+        }
+
+        #cropImage {
+            max-width: 100%;
+            display: block;
+        }
+
+        .crop-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .crop-btn {
+            padding: 10px 16px;
+            border: 2px solid rgba(29, 161, 242, 0.2);
+            background: rgba(29, 161, 242, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .crop-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .crop-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10001;
+            background: #2ed573;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            animation: slideInRight 0.3s ease;
+            max-width: 300px;
+        }
+
+        .toast-notification.error {
+            background: #ff4757;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .story-editor {
+                grid-template-columns: 1fr;
+            }
+
+            .story-preview {
+                position: static;
+            }
+
+            .type-options {
+                grid-template-columns: 1fr;
+            }
+
+            .story-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .crop-container {
+                max-width: 95%;
+                padding: 20px;
+            }
+
+            .crop-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="story-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle" style="color: #ff6b6b;"></i>
+                Buat Story Baru
+            </h1>
+        </div>
+
+        <form id="storyForm">
+            <div class="story-type-section">
+                <h2 class="section-title">
+                    <i class="fas fa-palette"></i>
+                    Pilih Tipe Story
+                </h2>
+                <div class="type-options">
+                    <div class="type-option active" data-type="text">
+                        <div class="type-icon">
+                            <i class="fas fa-font"></i>
+                        </div>
+                        <div class="type-title">Text Story</div>
+                        <div class="type-description">Buat story dengan teks dan background menarik</div>
+                    </div>
+                    <div class="type-option" data-type="image">
+                        <div class="type-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="type-title">Image Story</div>
+                        <div class="type-description">Upload foto dengan caption (bisa di-crop)</div>
+                    </div>
+                    <div class="type-option" data-type="video">
+                        <div class="type-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div class="type-title">Video Story</div>
+                        <div class="type-description">Share video pendek yang menarik</div>
+                    </div>
+                </div>
+                <input type="hidden" id="storyType" value="text">
+            </div>
+
+            <div class="story-editor">
+                <div class="editor-main">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-pen"></i>
+                            Caption Story
+                        </label>
+                        <input type="text" id="captionInput" class="form-control" 
+                               placeholder="Tulis caption untuk story Anda..." maxlength="255">
+                    </div>
+
+                    <div id="textStoryFields">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-quote-right"></i>
+                                Text Content
+                            </label>
+                            <textarea id="textInput" class="form-control large" 
+                                     placeholder="Tulis pesan Anda di sini..." maxlength="255"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-palette"></i>
+                                Background
+                            </label>
+                            <input type="hidden" id="backgroundInput" value="linear-gradient(135deg, #667eea, #764ba2)">
+                            <div class="background-picker">
+                                <div class="bg-option active" data-bg="linear-gradient(135deg, #667eea, #764ba2)" 
+                                     style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #ff6b6b, #feca57)" 
+                                     style="background: linear-gradient(135deg, #ff6b6b, #feca57);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #4ecdc4, #44a08d)" 
+                                     style="background: linear-gradient(135deg, #4ecdc4, #44a08d);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #a8edea, #fed6e3)" 
+                                     style="background: linear-gradient(135deg, #a8edea, #fed6e3);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #ff9a9e, #fecfef)" 
+                                     style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #a1c4fd, #c2e9fb)" 
+                                     style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #ffecd2, #fcb69f)" 
+                                     style="background: linear-gradient(135deg, #ffecd2, #fcb69f);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #89f7fe, #66a6ff)" 
+                                     style="background: linear-gradient(135deg, #89f7fe, #66a6ff);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mediaStoryFields" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-upload"></i>
+                                Upload Media
+                            </label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <input type="file" id="mediaInput" class="file-input" accept="image/*,video/*">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="upload-text">Drag & drop file atau klik untuk upload</div>
+                                <div class="upload-hint">Maksimal 10MB • JPG, PNG, MP4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="story-preview">
+                    <div class="preview-title">
+                        <i class="fas fa-eye"></i>
+                        Preview Story
+                    </div>
+                    <div class="story-simulator text-story" id="storyPreview">
+                        <div class="story-text-content">
+                            <div class="placeholder-content">Tulis sesuatu untuk melihat preview...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="story-actions">
+                <button type="button" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Batal
+                </button>
+                <button type="submit" class="btn btn-primary" id="publishBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    Publikasikan Story
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Crop Modal -->
+    <div class="crop-modal" id="cropModal">
+        <div class="crop-container">
+            <div class="crop-header">
+                <h3 class="crop-title">
+                    <i class="fas fa-crop"></i>
+                    Crop Gambar
+                </h3>
+                <button class="close-crop" id="closeCrop">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="crop-image-container">
+                <img id="cropImage" src="" alt="Crop Image">
+            </div>
+
+            <div class="crop-controls">
+                <button type="button" class="crop-btn" id="zoomIn">
+                    <i class="fas fa-search-plus"></i>
+                    Zoom In
+                </button>
+                <button type="button" class="crop-btn" id="zoomOut">
+                    <i class="fas fa-search-minus"></i>
+                    Zoom Out
+                </button>
+                <button type="button" class="crop-btn" id="rotateLeft">
+                    <i class="fas fa-undo"></i>
+                    Putar Kiri
+                </button>
+                <button type="button" class="crop-btn" id="rotateRight">
+                    <i class="fas fa-redo"></i>
+                    Putar Kanan
+                </button>
+                <button type="button" class="crop-btn" id="flipH">
+                    <i class="fas fa-arrows-alt-h"></i>
+                    Flip Horizontal
+                </button>
+                <button type="button" class="crop-btn" id="flipV">
+                    <i class="fas fa-arrows-alt-v"></i>
+                    Flip Vertikal
+                </button>
+                <button type="button" class="crop-btn" id="resetCrop">
+                    <i class="fas fa-sync"></i>
+                    Reset
+                </button>
+            </div>
+
+            <div class="crop-actions">
+                <button type="button" class="btn btn-secondary" id="cancelCrop">
+                    <i class="fas fa-times"></i>
+                    Batal
+                </button>
+                <button type="button" class="btn btn-secondary" id="skipCrop">
+                    <i class="fas fa-forward"></i>
+                    Skip Crop
+                </button>
+                <button type="button" class="btn btn-primary" id="applyCrop">
+                    <i class="fas fa-check"></i>
+                    Terapkan Crop
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script>
+        let currentType = 'text';
+        let selectedBackground = 'linear-gradient(135deg, #667eea, #764ba2)';
+        let cropper = null;
+        let originalImageFile = null;
+        let croppedImageBlob = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Story type selection
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectStoryType(this.dataset.type);
+                });
+            });
+
+            // Background selection
+            document.querySelectorAll('.bg-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectBackground(this.dataset.bg);
+                });
+            });
+
+            // Text input
+            document.getElementById('textInput').addEventListener('input', updateTextPreview);
+
+            // File upload
+            const fileInput = document.getElementById('mediaInput');
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Crop controls
+            document.getElementById('closeCrop').addEventListener('click', closeCropModal);
+            document.getElementById('cancelCrop').addEventListener('click', closeCropModal);
+            document.getElementById('skipCrop').addEventListener('click', skipCrop);
+            document.getElementById('applyCrop').addEventListener('click', applyCrop);
+            document.getElementById('zoomIn').addEventListener('click', () => cropper && cropper.zoom(0.1));
+            document.getElementById('zoomOut').addEventListener('click', () => cropper && cropper.zoom(-0.1));
+            document.getElementById('rotateLeft').addEventListener('click', () => cropper && cropper.rotate(-45));
+            document.getElementById('rotateRight').addEventListener('click', () => cropper && cropper.rotate(45));
+            document.getElementById('flipH').addEventListener('click', () => cropper && cropper.scaleX(-cropper.getData().scaleX || -1));
+            document.getElementById('flipV').addEventListener('click', () => cropper && cropper.scaleY(-cropper.getData().scaleY || -1));
+            document.getElementById('resetCrop').addEventListener('click', () => cropper && cropper.reset());
+
+            // Form submission
+            document.getElementById('storyForm').addEventListener('submit', handleFormSubmit);
+        }
+
+        function selectStoryType(type) {
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+            document.getElementById('storyType').value = type;
+            currentType = type;
+
+            const textFields = document.getElementById('textStoryFields');
+            const mediaFields = document.getElementById('mediaStoryFields');
+
+            if (type === 'text') {
+                textFields.style.display = 'block';
+                mediaFields.style.display = 'none';
+                updateTextPreview();
+            } else {
+                textFields.style.display = 'none';
+                mediaFields.style.display = 'block';
+                updateMediaPreview();
+            }
+
+            updatePreview();
+        }
+
+        function selectBackground(bg) {
+            document.querySelectorAll('.bg-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-bg="${bg}"]`).classList.add('active');
+
+            selectedBackground = bg;
+            document.getElementById('backgroundInput').value = bg;
+            updateTextPreview();
+        }
+
+        function updatePreview() {
+            const preview = document.getElementById('storyPreview');
+            
+            if (currentType === 'text') {
+                preview.className = 'story-simulator text-story';
+                updateTextPreview();
+            } else {
+                preview.className = `story-simulator ${currentType}-story`;
+                updateMediaPreview();
+            }
+        }
+
+        function updateTextPreview() {
+            const preview = document.getElementById('storyPreview');
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+
+            preview.style.setProperty('--selected-bg', selectedBackground);
+            
+            if (text) {
+                preview.innerHTML = `<div class="story-text-content">${text}</div>`;
+            } else {
+                preview.innerHTML = '<div class="story-text-content"><div class="placeholder-content">Tulis sesuatu untuk melihat preview...</div></div>';
+            }
+        }
+
+        function updateMediaPreview() {
+            const preview = document.getElementById('storyPreview');
+
+            if (croppedImageBlob && currentType === 'image') {
+                const url = URL.createObjectURL(croppedImageBlob);
+                preview.innerHTML = `<img src="${url}" class="uploaded-media" alt="Preview">`;
+            } else {
+                const icon = currentType === 'image' ? 'fa-image' : 'fa-video';
+                const text = currentType === 'image' ? 'Upload gambar untuk melihat preview' : 'Upload video untuk melihat preview';
+                preview.innerHTML = `
+                    <div class="placeholder-content">
+                        <i class="fas ${icon}" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                        ${text}
+                    </div>
+                `;
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            originalImageFile = file;
+
+            if (file.type.startsWith('image/') && currentType === 'image') {
+                // Open crop modal for images
+                openCropModal(file);
+            } else if (file.type.startsWith('video/')) {
+                // Direct preview for videos
+                showNotification('Video berhasil dipilih');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('storyPreview');
+                    preview.innerHTML = `<video src="${e.target.result}" class="uploaded-media" controls muted></video>`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function openCropModal(file) {
+            const modal = document.getElementById('cropModal');
+            const image = document.getElementById('cropImage');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                image.src = e.target.result;
+                modal.classList.add('active');
+
+                // Initialize Cropper
+                if (cropper) {
+                    cropper.destroy();
+                }
+
+                cropper = new Cropper(image, {
+                    aspectRatio: 9 / 16, // Story format
+                    viewMode: 1, // Changed from 2 to 1 for better crop control
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                    background: false, // Remove checkerboard background
+                });
+
+                showNotification('Sesuaikan crop gambar Anda');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function closeCropModal() {
+            const modal = document.getElementById('cropModal');
+            modal.classList.remove('active');
+            
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+
+            // Reset file input if no crop was applied
+            if (!croppedImageBlob) {
+                document.getElementById('mediaInput').value = '';
+                originalImageFile = null;
+            }
+        }
+
+        function skipCrop() {
+            if (!originalImageFile) return;
+
+            // Use original image without cropping
+            croppedImageBlob = originalImageFile;
+            closeCropModal();
+            updateMediaPreview();
+            showNotification('Gambar digunakan tanpa crop');
+        }
+
+        function applyCrop() {
+            if (!cropper) return;
+
+            // Get cropped canvas
+            const canvas = cropper.getCroppedCanvas({
+                width: 1080,
+                height: 1920,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            // Convert to blob
+            canvas.toBlob((blob) => {
+                croppedImageBlob = blob;
+                closeCropModal();
+                updateMediaPreview();
+                showNotification('Gambar berhasil di-crop!');
+            }, 'image/jpeg', 0.95);
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const textInput = document.getElementById('textInput');
+            const captionInput = document.getElementById('captionInput');
+
+            // Validation
+            if (currentType === 'text' && !textInput.value.trim()) {
+                showNotification('Mohon isi text content untuk story teks', 'error');
+                return;
+            }
+
+            if (currentType === 'image' && !croppedImageBlob) {
+                showNotification('Mohon upload dan crop gambar terlebih dahulu', 'error');
+                return;
+            }
+
+            if (currentType === 'video' && !originalImageFile) {
+                showNotification('Mohon upload video terlebih dahulu', 'error');
+                return;
+            }
+
+            // Show loading state
+            const btn = document.getElementById('publishBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mempublikasikan...';
+            btn.disabled = true;
+
+            // Prepare FormData
+            const formData = new FormData();
+            formData.append('caption', captionInput.value);
+
+            if (currentType === 'text') {
+                // For text story, create a temporary canvas image with text
+                const canvas = document.createElement('canvas');
+                canvas.width = 1080;
+                canvas.height = 1920;
+                const ctx = canvas.getContext('2d');
+
+                // Apply background gradient
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                
+                // Parse gradient colors from selectedBackground
+                if (selectedBackground.includes('#667eea')) {
+                    gradient.addColorStop(0, '#667eea');
+                    gradient.addColorStop(1, '#764ba2');
+                } else if (selectedBackground.includes('#ff6b6b')) {
+                    gradient.addColorStop(0, '#ff6b6b');
+                    gradient.addColorStop(1, '#feca57');
+                } else if (selectedBackground.includes('#4ecdc4')) {
+                    gradient.addColorStop(0, '#4ecdc4');
+                    gradient.addColorStop(1, '#44a08d');
+                } else if (selectedBackground.includes('#a8edea')) {
+                    gradient.addColorStop(0, '#a8edea');
+                    gradient.addColorStop(1, '#fed6e3');
+                } else if (selectedBackground.includes('#ff9a9e')) {
+                    gradient.addColorStop(0, '#ff9a9e');
+                    gradient.addColorStop(1, '#fecfef');
+                } else if (selectedBackground.includes('#a1c4fd')) {
+                    gradient.addColorStop(0, '#a1c4fd');
+                    gradient.addColorStop(1, '#c2e9fb');
+                } else if (selectedBackground.includes('#ffecd2')) {
+                    gradient.addColorStop(0, '#ffecd2');
+                    gradient.addColorStop(1, '#fcb69f');
+                } else if (selectedBackground.includes('#89f7fe')) {
+                    gradient.addColorStop(0, '#89f7fe');
+                    gradient.addColorStop(1, '#66a6ff');
+                }
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Add text
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 60px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Word wrap
+                const words = textInput.value.split(' ');
+                let line = '';
+                let y = canvas.height / 2;
+                const maxWidth = canvas.width - 200;
+                const lineHeight = 80;
+                const lines = [];
+
+                for (let word of words) {
+                    const testLine = line + word + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && line !== '') {
+                        lines.push(line);
+                        line = word + ' ';
+                    } else {
+                        line = testLine;
+                    }
+                }
+                lines.push(line);
+
+                // Center the text block
+                y = (canvas.height - (lines.length * lineHeight)) / 2;
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, canvas.width / 2, y + (i * lineHeight));
+                });
+
+                // Convert canvas to blob
+                await new Promise((resolve) => {
+                    canvas.toBlob((blob) => {
+                        const file = new File([blob], 'text-story.jpg', { type: 'image/jpeg' });
+                        formData.append('media', file);
+                        resolve();
+                    }, 'image/jpeg', 0.95);
+                });
+
+            } else if (currentType === 'image') {
+                // For image story with crop
+                if (!croppedImageBlob) {
+                    showNotification('Mohon upload dan crop gambar terlebih dahulu', 'error');
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan Story';
+                    btn.disabled = false;
+                    return;
+                }
+                const imageFile = new File([croppedImageBlob], 'story-image.jpg', { type: 'image/jpeg' });
+                formData.append('media', imageFile);
+
+            } else if (currentType === 'video') {
+                // For video story
+                if (!originalImageFile) {
+                    showNotification('Mohon upload video terlebih dahulu', 'error');
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan Story';
+                    btn.disabled = false;
+                    return;
+                }
+                formData.append('media', originalImageFile);
+            }
+
+            try {
+                // Get CSRF token - try multiple methods
+                let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                
+                // Fallback: try to get from cookie
+                if (!csrfToken) {
+                    const cookies = document.cookie.split(';');
+                    for (let cookie of cookies) {
+                        const [name, value] = cookie.trim().split('=');
+                        if (name === 'XSRF-TOKEN') {
+                            csrfToken = decodeURIComponent(value);
+                            break;
+                        }
+                    }
+                }
+
+                // Fallback: try to get from Laravel's default location
+                if (!csrfToken) {
+                    const tokenInput = document.querySelector('input[name="_token"]');
+                    if (tokenInput) {
+                        csrfToken = tokenInput.value;
+                    }
+                }
+
+                console.log('CSRF Token:', csrfToken); // Debug
+                console.log('Submitting to:', '{{ route("stories.store") }}'); // Debug route
+
+                const response = await fetch('{{ route("stories.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status); // Debug
+
+                // For redirect responses, just show success and redirect
+                if (response.redirected || response.status === 302) {
+                    showNotification('Story berhasil dipublikasikan!');
+                    setTimeout(() => {
+                        window.location.href = '{{ route("stories") }}';
+                    }, 1000);
+                    return;
+                }
+
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                
+                if (contentType && contentType.includes('application/json')) {
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        showNotification(result.message || 'Story berhasil dipublikasikan!');
+                        setTimeout(() => {
+                            window.location.href = '{{ route("stories") }}';
+                        }, 1000);
+                    } else {
+                        throw new Error(result.message || 'Gagal mempublikasikan story');
+                    }
+                } else if (response.ok) {
+                    // HTML response but status is OK - likely a redirect
+                    showNotification('Story berhasil dipublikasikan!');
+                    setTimeout(() => {
+                        window.location.href = '{{ route("stories") }}';
+                    }, 1000);
+                } else {
+                    throw new Error(`Server error (${response.status})`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Show detailed error
+                let errorMessage = 'Terjadi kesalahan saat mempublikasikan story';
+                
+                if (error.message.includes('CSRF')) {
+                    errorMessage = 'CSRF token tidak valid. Silakan refresh halaman.';
+                } else if (error.message.includes('HTML')) {
+                    errorMessage = 'Server error. Cek console browser untuk detail.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showNotification(errorMessage, 'error');
+                
+                // Reset button state
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan Story';
+                btn.disabled = false;
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const existing = document.querySelector('.toast-notification');
+            if (existing) existing.remove();
+
+            const notification = document.createElement('div');
+            notification.className = `toast-notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

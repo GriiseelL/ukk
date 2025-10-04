@@ -80,5 +80,8 @@ class User extends Authenticatable implements JWTSubject
         return asset('images/default-avatar.png'); // fallback kalau ga ada foto
     }
 
-
+    public function stories()
+    {
+        return $this->hasMany(Stories::class, 'user_id', 'id');
+    }
 }
