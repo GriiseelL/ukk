@@ -22,4 +22,8 @@ class Friends extends Model
         return $this->belongsTo(User::class, 'user_following');
     }
 
+    public function followerUser()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
 }

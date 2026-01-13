@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,8 +32,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .story-header {
@@ -317,6 +325,238 @@
             box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.3);
         }
 
+        .privacy-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .privacy-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .privacy-option {
+            background: rgba(29, 161, 242, 0.02);
+            border: 2px solid rgba(29, 161, 242, 0.1);
+            border-radius: 16px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .privacy-option:hover {
+            background: rgba(29, 161, 242, 0.05);
+            border-color: rgba(29, 161, 242, 0.3);
+            transform: translateX(3px);
+        }
+
+        .privacy-option.active {
+            background: linear-gradient(135deg, rgba(29, 161, 242, 0.15), rgba(29, 161, 242, 0.08));
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.2);
+        }
+
+        .privacy-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .privacy-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: rgba(29, 161, 242, 0.1);
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .privacy-option.active .privacy-icon {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .privacy-text h4 {
+            color: #1a1a1a;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .privacy-text p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .radio-check {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid rgba(29, 161, 242, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .privacy-option.active .radio-check {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+        }
+
+        .radio-check i {
+            font-size: 12px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .privacy-option.active .radio-check i {
+            opacity: 1;
+        }
+
+        .close-friends-section {
+            background: rgba(29, 161, 242, 0.03);
+            border: 2px solid rgba(29, 161, 242, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .close-friends-section.show {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .friends-header {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .friends-header i {
+            color: var(--primary-color);
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: white;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .friend-item:hover {
+            background: rgba(29, 161, 242, 0.05);
+            border-color: rgba(29, 161, 242, 0.2);
+            transform: translateX(3px);
+        }
+
+        .friend-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .friend-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .friend-name {
+            color: #1a1a1a;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .checkbox-wrapper {
+            position: relative;
+        }
+
+        .checkbox-custom {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(29, 161, 242, 0.3);
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .checkbox-custom.checked {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .checkbox-custom i {
+            font-size: 12px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .checkbox-custom.checked i {
+            opacity: 1;
+        }
+
+        .close-friends-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .close-friends-section::-webkit-scrollbar-track {
+            background: rgba(29, 161, 242, 0.05);
+            border-radius: 10px;
+        }
+
+        .close-friends-section::-webkit-scrollbar-thumb {
+            background: rgba(29, 161, 242, 0.3);
+            border-radius: 10px;
+        }
+
+        .close-friends-section::-webkit-scrollbar-thumb:hover {
+            background: rgba(29, 161, 242, 0.5);
+        }
+
         .story-actions {
             background: white;
             border-radius: 20px;
@@ -362,7 +602,6 @@
             color: #333;
         }
 
-        /* Crop Modal */
         .crop-modal {
             display: none;
             position: fixed;
@@ -491,6 +730,7 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -526,6 +766,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="main-content">
         <div class="story-header">
@@ -574,8 +815,8 @@
                             <i class="fas fa-pen"></i>
                             Caption Story
                         </label>
-                        <input type="text" id="captionInput" class="form-control" 
-                               placeholder="Tulis caption untuk story Anda..." maxlength="255">
+                        <input type="text" id="captionInput" class="form-control"
+                            placeholder="Tulis caption untuk story Anda..." maxlength="255">
                     </div>
 
                     <div id="textStoryFields">
@@ -584,8 +825,8 @@
                                 <i class="fas fa-quote-right"></i>
                                 Text Content
                             </label>
-                            <textarea id="textInput" class="form-control large" 
-                                     placeholder="Tulis pesan Anda di sini..." maxlength="255"></textarea>
+                            <textarea id="textInput" class="form-control large"
+                                placeholder="Tulis pesan Anda di sini..." maxlength="255"></textarea>
                         </div>
 
                         <div class="form-group">
@@ -595,22 +836,22 @@
                             </label>
                             <input type="hidden" id="backgroundInput" value="linear-gradient(135deg, #667eea, #764ba2)">
                             <div class="background-picker">
-                                <div class="bg-option active" data-bg="linear-gradient(135deg, #667eea, #764ba2)" 
-                                     style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #ff6b6b, #feca57)" 
-                                     style="background: linear-gradient(135deg, #ff6b6b, #feca57);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #4ecdc4, #44a08d)" 
-                                     style="background: linear-gradient(135deg, #4ecdc4, #44a08d);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #a8edea, #fed6e3)" 
-                                     style="background: linear-gradient(135deg, #a8edea, #fed6e3);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #ff9a9e, #fecfef)" 
-                                     style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #a1c4fd, #c2e9fb)" 
-                                     style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #ffecd2, #fcb69f)" 
-                                     style="background: linear-gradient(135deg, #ffecd2, #fcb69f);"></div>
-                                <div class="bg-option" data-bg="linear-gradient(135deg, #89f7fe, #66a6ff)" 
-                                     style="background: linear-gradient(135deg, #89f7fe, #66a6ff);"></div>
+                                <div class="bg-option active" data-bg="linear-gradient(135deg, #667eea, #764ba2)"
+                                    style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #ff6b6b, #feca57)"
+                                    style="background: linear-gradient(135deg, #ff6b6b, #feca57);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #4ecdc4, #44a08d)"
+                                    style="background: linear-gradient(135deg, #4ecdc4, #44a08d);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #a8edea, #fed6e3)"
+                                    style="background: linear-gradient(135deg, #a8edea, #fed6e3);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #ff9a9e, #fecfef)"
+                                    style="background: linear-gradient(135deg, #ff9a9e, #fecfef);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #a1c4fd, #c2e9fb)"
+                                    style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #ffecd2, #fcb69f)"
+                                    style="background: linear-gradient(135deg, #ffecd2, #fcb69f);"></div>
+                                <div class="bg-option" data-bg="linear-gradient(135deg, #89f7fe, #66a6ff)"
+                                    style="background: linear-gradient(135deg, #89f7fe, #66a6ff);"></div>
                             </div>
                         </div>
                     </div>
@@ -646,8 +887,70 @@
                 </div>
             </div>
 
+            <div class="privacy-section">
+                <h2 class="section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Pengaturan Privasi
+                </h2>
+                <div class="privacy-options">
+                    <div class="privacy-option active" onclick="selectPrivacy('everyone')">
+                        <div class="privacy-info">
+                            <div class="privacy-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <div class="privacy-text">
+                                <h4>Publik</h4>
+                                <p>Semua orang dapat melihat story ini</p>
+                            </div>
+                        </div>
+                        <div class="radio-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="privacy-option" onclick="selectPrivacy('close-friends')">
+                        <div class="privacy-info">
+                            <div class="privacy-icon">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                            <div class="privacy-text">
+                                <h4>Teman Dekat</h4>
+                                <p>Hanya teman terpilih yang dapat melihat</p>
+                            </div>
+                        </div>
+                        <div class="radio-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="privacy-option" onclick="selectPrivacy('private')">
+                        <div class="privacy-info">
+                            <div class="privacy-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="privacy-text">
+                                <h4>Hanya Saya</h4>
+                                <p>Hanya Anda yang dapat melihat story ini</p>
+                            </div>
+                        </div>
+                        <div class="radio-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="close-friends-section" id="closeFriendsSection">
+                    <div class="friends-header">
+                        <i class="fas fa-users"></i>
+                        Pilih Teman Dekat
+                    </div>
+                    <div id="friendsList"></div>
+                </div>
+            </div>
+            <input type="hidden" id="privacyInput" value="everyone">
+
             <div class="story-actions">
-                <button type="button" class="btn btn-secondary">
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">
                     <i class="fas fa-times"></i>
                     Batal
                 </button>
@@ -659,7 +962,6 @@
         </form>
     </div>
 
-    <!-- Crop Modal -->
     <div class="crop-modal" id="cropModal">
         <div class="crop-container">
             <div class="crop-header">
@@ -731,34 +1033,64 @@
         let cropper = null;
         let originalImageFile = null;
         let croppedImageBlob = null;
+        let selectedPrivacy = 'everyone';
+        let selectedFriends = new Set();
 
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
+            loadFriendsList();
         });
 
+        function loadFriendsList() {
+            let followers = [];
+
+            try {
+                followers = @json($followers ?? []);
+            } catch (e) {
+                console.log('No followers data available');
+                followers = [];
+            }
+
+            const list = document.getElementById('friendsList');
+
+            if (followers.length === 0) {
+                list.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Belum ada followers yang dapat dipilih</div>';
+                return;
+            }
+
+            list.innerHTML = followers.map(f => `
+                <div class="friend-item" onclick="toggleFriend(${f.id})">
+                    <div class="friend-info">
+                        <div class="friend-avatar">${(f.name || f.username || 'U').charAt(0).toUpperCase()}</div>
+                        <div class="friend-name">${f.name || f.username || 'Unknown'}</div>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox-custom" id="checkbox-${f.id}">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function setupEventListeners() {
-            // Story type selection
+            document.getElementById('storyForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('mediaInput').addEventListener('change', handleFileSelect);
+
             document.querySelectorAll('.type-option').forEach(option => {
                 option.addEventListener('click', function() {
                     selectStoryType(this.dataset.type);
                 });
             });
 
-            // Background selection
+            document.getElementById('textInput').addEventListener('input', updateTextPreview);
+
             document.querySelectorAll('.bg-option').forEach(option => {
                 option.addEventListener('click', function() {
                     selectBackground(this.dataset.bg);
                 });
             });
 
-            // Text input
-            document.getElementById('textInput').addEventListener('input', updateTextPreview);
-
-            // File upload
-            const fileInput = document.getElementById('mediaInput');
-            fileInput.addEventListener('change', handleFileSelect);
-
-            // Crop controls
             document.getElementById('closeCrop').addEventListener('click', closeCropModal);
             document.getElementById('cancelCrop').addEventListener('click', closeCropModal);
             document.getElementById('skipCrop').addEventListener('click', skipCrop);
@@ -770,88 +1102,78 @@
             document.getElementById('flipH').addEventListener('click', () => cropper && cropper.scaleX(-cropper.getData().scaleX || -1));
             document.getElementById('flipV').addEventListener('click', () => cropper && cropper.scaleY(-cropper.getData().scaleY || -1));
             document.getElementById('resetCrop').addEventListener('click', () => cropper && cropper.reset());
-
-            // Form submission
-            document.getElementById('storyForm').addEventListener('submit', handleFormSubmit);
         }
 
         function selectStoryType(type) {
-            document.querySelectorAll('.type-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            document.querySelector(`[data-type="${type}"]`).classList.add('active');
-
-            document.getElementById('storyType').value = type;
             currentType = type;
+            document.getElementById('storyType').value = type;
 
-            const textFields = document.getElementById('textStoryFields');
-            const mediaFields = document.getElementById('mediaStoryFields');
+            document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
+            event.currentTarget.classList.add('active');
 
             if (type === 'text') {
-                textFields.style.display = 'block';
-                mediaFields.style.display = 'none';
+                document.getElementById('textStoryFields').style.display = 'block';
+                document.getElementById('mediaStoryFields').style.display = 'none';
                 updateTextPreview();
             } else {
-                textFields.style.display = 'none';
-                mediaFields.style.display = 'block';
-                updateMediaPreview();
-            }
-
-            updatePreview();
-        }
-
-        function selectBackground(bg) {
-            document.querySelectorAll('.bg-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            document.querySelector(`[data-bg="${bg}"]`).classList.add('active');
-
-            selectedBackground = bg;
-            document.getElementById('backgroundInput').value = bg;
-            updateTextPreview();
-        }
-
-        function updatePreview() {
-            const preview = document.getElementById('storyPreview');
-            
-            if (currentType === 'text') {
-                preview.className = 'story-simulator text-story';
-                updateTextPreview();
-            } else {
-                preview.className = `story-simulator ${currentType}-story`;
-                updateMediaPreview();
+                document.getElementById('textStoryFields').style.display = 'none';
+                document.getElementById('mediaStoryFields').style.display = 'block';
+                document.getElementById('storyPreview').innerHTML =
+                    '<div class="placeholder-content">Upload gambar atau video...</div>';
             }
         }
 
         function updateTextPreview() {
+            const text = document.getElementById('textInput').value;
             const preview = document.getElementById('storyPreview');
-            const textInput = document.getElementById('textInput');
-            const text = textInput.value.trim();
 
-            preview.style.setProperty('--selected-bg', selectedBackground);
-            
-            if (text) {
+            if (text.trim()) {
                 preview.innerHTML = `<div class="story-text-content">${text}</div>`;
             } else {
                 preview.innerHTML = '<div class="story-text-content"><div class="placeholder-content">Tulis sesuatu untuk melihat preview...</div></div>';
             }
         }
 
-        function updateMediaPreview() {
-            const preview = document.getElementById('storyPreview');
+        function selectBackground(bg) {
+            selectedBackground = bg;
+            document.getElementById('backgroundInput').value = bg;
 
-            if (croppedImageBlob && currentType === 'image') {
-                const url = URL.createObjectURL(croppedImageBlob);
-                preview.innerHTML = `<img src="${url}" class="uploaded-media" alt="Preview">`;
+            document.querySelectorAll('.bg-option').forEach(opt => opt.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // ✅ Update background preview langsung
+            const preview = document.getElementById('storyPreview');
+            preview.style.background = bg;
+            preview.style.setProperty('--selected-bg', bg);
+        }
+
+        function selectPrivacy(type) {
+            selectedPrivacy = type;
+            document.getElementById('privacyInput').value = type;
+
+            document.querySelectorAll('.privacy-option').forEach(op => {
+                op.classList.remove('active');
+            });
+
+            event.currentTarget.classList.add('active');
+
+            const closeFriendsSection = document.getElementById('closeFriendsSection');
+            if (type === 'close-friends') {
+                closeFriendsSection.classList.add('show');
             } else {
-                const icon = currentType === 'image' ? 'fa-image' : 'fa-video';
-                const text = currentType === 'image' ? 'Upload gambar untuk melihat preview' : 'Upload video untuk melihat preview';
-                preview.innerHTML = `
-                    <div class="placeholder-content">
-                        <i class="fas ${icon}" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
-                        ${text}
-                    </div>
-                `;
+                closeFriendsSection.classList.remove('show');
+            }
+        }
+
+        function toggleFriend(id) {
+            const checkbox = document.getElementById('checkbox-' + id);
+
+            if (selectedFriends.has(id)) {
+                selectedFriends.delete(id);
+                checkbox.classList.remove('checked');
+            } else {
+                selectedFriends.add(id);
+                checkbox.classList.add('checked');
             }
         }
 
@@ -861,97 +1183,88 @@
 
             originalImageFile = file;
 
-            if (file.type.startsWith('image/') && currentType === 'image') {
-                // Open crop modal for images
-                openCropModal(file);
-            } else if (file.type.startsWith('video/')) {
-                // Direct preview for videos
-                showNotification('Video berhasil dipilih');
+            if (file.type.startsWith("image/")) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('storyPreview');
-                    preview.innerHTML = `<video src="${e.target.result}" class="uploaded-media" controls muted></video>`;
+                reader.onload = function(evt) {
+                    document.getElementById('cropImage').src = evt.target.result;
+                    document.getElementById('cropModal').classList.add('active');
+                    initCropper();
                 };
                 reader.readAsDataURL(file);
+            } else if (file.type.startsWith("video/")) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('storyPreview').innerHTML =
+                        `<video src="${evt.target.result}" class="uploaded-media" controls muted></video>`;
+                };
+                reader.readAsDataURL(file);
+                croppedImageBlob = file;
             }
         }
 
-        function openCropModal(file) {
-            const modal = document.getElementById('cropModal');
+        function initCropper() {
             const image = document.getElementById('cropImage');
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                image.src = e.target.result;
-                modal.classList.add('active');
+            if (cropper) {
+                cropper.destroy();
+            }
 
-                // Initialize Cropper
-                if (cropper) {
-                    cropper.destroy();
-                }
-
-                cropper = new Cropper(image, {
-                    aspectRatio: 9 / 16, // Story format
-                    viewMode: 1, // Changed from 2 to 1 for better crop control
-                    dragMode: 'move',
-                    autoCropArea: 1,
-                    restore: false,
-                    guides: true,
-                    center: true,
-                    highlight: false,
-                    cropBoxMovable: true,
-                    cropBoxResizable: true,
-                    toggleDragModeOnDblclick: false,
-                    background: false, // Remove checkerboard background
-                });
-
-                showNotification('Sesuaikan crop gambar Anda');
-            };
-            reader.readAsDataURL(file);
+            cropper = new Cropper(image, {
+                aspectRatio: 9 / 16,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
         }
 
         function closeCropModal() {
-            const modal = document.getElementById('cropModal');
-            modal.classList.remove('active');
-            
+            document.getElementById('cropModal').classList.remove('active');
             if (cropper) {
                 cropper.destroy();
                 cropper = null;
             }
-
-            // Reset file input if no crop was applied
-            if (!croppedImageBlob) {
-                document.getElementById('mediaInput').value = '';
-                originalImageFile = null;
-            }
+            document.getElementById('mediaInput').value = '';
         }
 
         function skipCrop() {
-            if (!originalImageFile) return;
-
-            // Use original image without cropping
             croppedImageBlob = originalImageFile;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById('storyPreview').innerHTML =
+                    `<img src="${evt.target.result}" class="uploaded-media">`;
+            };
+            reader.readAsDataURL(originalImageFile);
+
             closeCropModal();
-            updateMediaPreview();
-            showNotification('Gambar digunakan tanpa crop');
         }
 
         function applyCrop() {
             if (!cropper) return;
 
-            // Get cropped canvas
-            const canvas = cropper.getCroppedCanvas({
+            cropper.getCroppedCanvas({
                 width: 1080,
                 height: 1920,
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high',
-            });
-
-            // Convert to blob
-            canvas.toBlob((blob) => {
+            }).toBlob((blob) => {
                 croppedImageBlob = blob;
+
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('storyPreview').innerHTML =
+                        `<img src="${evt.target.result}" class="uploaded-media">`;
+                };
+                reader.readAsDataURL(blob);
+
                 closeCropModal();
-                updateMediaPreview();
                 showNotification('Gambar berhasil di-crop!');
             }, 'image/jpeg', 0.95);
         }
@@ -959,243 +1272,108 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
 
-            const textInput = document.getElementById('textInput');
-            const captionInput = document.getElementById('captionInput');
+            const caption = document.getElementById('captionInput').value;
+            const type = currentType;
 
-            // Validation
-            if (currentType === 'text' && !textInput.value.trim()) {
-                showNotification('Mohon isi text content untuk story teks', 'error');
-                return;
-            }
+            let formData = new FormData();
+            formData.append('type', type);
+            formData.append('privacy', selectedPrivacy);
 
-            if (currentType === 'image' && !croppedImageBlob) {
-                showNotification('Mohon upload dan crop gambar terlebih dahulu', 'error');
-                return;
-            }
+            if (type === 'text') {
+                const textContent = document.getElementById('textInput').value;
+                const background = selectedBackground;
 
-            if (currentType === 'video' && !originalImageFile) {
-                showNotification('Mohon upload video terlebih dahulu', 'error');
-                return;
-            }
-
-            // Show loading state
-            const btn = document.getElementById('publishBtn');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mempublikasikan...';
-            btn.disabled = true;
-
-            // Prepare FormData
-            const formData = new FormData();
-            formData.append('caption', captionInput.value);
-
-            if (currentType === 'text') {
-                // For text story, create a temporary canvas image with text
-                const canvas = document.createElement('canvas');
-                canvas.width = 1080;
-                canvas.height = 1920;
-                const ctx = canvas.getContext('2d');
-
-                // Apply background gradient
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                
-                // Parse gradient colors from selectedBackground
-                if (selectedBackground.includes('#667eea')) {
-                    gradient.addColorStop(0, '#667eea');
-                    gradient.addColorStop(1, '#764ba2');
-                } else if (selectedBackground.includes('#ff6b6b')) {
-                    gradient.addColorStop(0, '#ff6b6b');
-                    gradient.addColorStop(1, '#feca57');
-                } else if (selectedBackground.includes('#4ecdc4')) {
-                    gradient.addColorStop(0, '#4ecdc4');
-                    gradient.addColorStop(1, '#44a08d');
-                } else if (selectedBackground.includes('#a8edea')) {
-                    gradient.addColorStop(0, '#a8edea');
-                    gradient.addColorStop(1, '#fed6e3');
-                } else if (selectedBackground.includes('#ff9a9e')) {
-                    gradient.addColorStop(0, '#ff9a9e');
-                    gradient.addColorStop(1, '#fecfef');
-                } else if (selectedBackground.includes('#a1c4fd')) {
-                    gradient.addColorStop(0, '#a1c4fd');
-                    gradient.addColorStop(1, '#c2e9fb');
-                } else if (selectedBackground.includes('#ffecd2')) {
-                    gradient.addColorStop(0, '#ffecd2');
-                    gradient.addColorStop(1, '#fcb69f');
-                } else if (selectedBackground.includes('#89f7fe')) {
-                    gradient.addColorStop(0, '#89f7fe');
-                    gradient.addColorStop(1, '#66a6ff');
-                }
-
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Add text
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 60px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                // Word wrap
-                const words = textInput.value.split(' ');
-                let line = '';
-                let y = canvas.height / 2;
-                const maxWidth = canvas.width - 200;
-                const lineHeight = 80;
-                const lines = [];
-
-                for (let word of words) {
-                    const testLine = line + word + ' ';
-                    const metrics = ctx.measureText(testLine);
-                    if (metrics.width > maxWidth && line !== '') {
-                        lines.push(line);
-                        line = word + ' ';
-                    } else {
-                        line = testLine;
-                    }
-                }
-                lines.push(line);
-
-                // Center the text block
-                y = (canvas.height - (lines.length * lineHeight)) / 2;
-                lines.forEach((line, i) => {
-                    ctx.fillText(line, canvas.width / 2, y + (i * lineHeight));
-                });
-
-                // Convert canvas to blob
-                await new Promise((resolve) => {
-                    canvas.toBlob((blob) => {
-                        const file = new File([blob], 'text-story.jpg', { type: 'image/jpeg' });
-                        formData.append('media', file);
-                        resolve();
-                    }, 'image/jpeg', 0.95);
-                });
-
-            } else if (currentType === 'image') {
-                // For image story with crop
-                if (!croppedImageBlob) {
-                    showNotification('Mohon upload dan crop gambar terlebih dahulu', 'error');
-                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan Story';
-                    btn.disabled = false;
+                if (!textContent.trim()) {
+                    showNotification("Tulis teks untuk story!", 'error');
                     return;
                 }
-                const imageFile = new File([croppedImageBlob], 'story-image.jpg', { type: 'image/jpeg' });
-                formData.append('media', imageFile);
 
-            } else if (currentType === 'video') {
-                // For video story
-                if (!originalImageFile) {
-                    showNotification('Mohon upload video terlebih dahulu', 'error');
-                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan Story';
-                    btn.disabled = false;
+                formData.append('text_content', textContent);
+                formData.append('background', background);
+
+                if (caption && caption.trim()) {
+                    formData.append('caption', caption);
+                }
+
+            } else {
+                if (!croppedImageBlob && !originalImageFile) {
+                    showNotification("Pilih gambar atau video terlebih dahulu!", 'error');
                     return;
                 }
-                formData.append('media', originalImageFile);
+
+                formData.append('caption', caption);
+                formData.append('media', croppedImageBlob || originalImageFile);
+            }
+
+            // ✅ FIX: Kirim data close friends dengan benar
+            if (selectedPrivacy === "close-friends") {
+                if (selectedFriends.size === 0) {
+                    showNotification("Pilih minimal 1 teman untuk close friends!", 'error');
+                    return;
+                }
+
+                // Kirim sebagai array biasa, bukan JSON string
+                selectedFriends.forEach(friendId => {
+                    formData.append('close_friends[]', friendId);
+                });
+
+                // Debug log
+                console.log('Selected friends:', Array.from(selectedFriends));
+            }
+
+            // Debug: tampilkan semua data FormData
+            console.log('FormData contents:');
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
             }
 
             try {
-                // Get CSRF token - try multiple methods
-                let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                
-                // Fallback: try to get from cookie
-                if (!csrfToken) {
-                    const cookies = document.cookie.split(';');
-                    for (let cookie of cookies) {
-                        const [name, value] = cookie.trim().split('=');
-                        if (name === 'XSRF-TOKEN') {
-                            csrfToken = decodeURIComponent(value);
-                            break;
-                        }
-                    }
-                }
+                const csrf = document.querySelector('meta[name="csrf-token"]');
 
-                // Fallback: try to get from Laravel's default location
-                if (!csrfToken) {
-                    const tokenInput = document.querySelector('input[name="_token"]');
-                    if (tokenInput) {
-                        csrfToken = tokenInput.value;
-                    }
-                }
-
-                console.log('CSRF Token:', csrfToken); // Debug
-                console.log('Submitting to:', '{{ route("stories.store") }}'); // Debug route
-
-                const response = await fetch('{{ route("stories.store") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    credentials: 'same-origin',
-                    body: formData
-                });
-
-                console.log('Response status:', response.status); // Debug
-
-                // For redirect responses, just show success and redirect
-                if (response.redirected || response.status === 302) {
-                    showNotification('Story berhasil dipublikasikan!');
-                    setTimeout(() => {
-                        window.location.href = '{{ route("stories") }}';
-                    }, 1000);
+                if (!csrf) {
+                    showNotification("CSRF token tidak ditemukan!", "error");
                     return;
                 }
 
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                
-                if (contentType && contentType.includes('application/json')) {
-                    const result = await response.json();
-                    
-                    if (response.ok && result.success) {
-                        showNotification(result.message || 'Story berhasil dipublikasikan!');
-                        setTimeout(() => {
-                            window.location.href = '{{ route("stories") }}';
-                        }, 1000);
-                    } else {
-                        throw new Error(result.message || 'Gagal mempublikasikan story');
-                    }
-                } else if (response.ok) {
-                    // HTML response but status is OK - likely a redirect
-                    showNotification('Story berhasil dipublikasikan!');
-                    setTimeout(() => {
-                        window.location.href = '{{ route("stories") }}';
-                    }, 1000);
+                const response = await fetch("{{ route('stories.store') }}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrf.content,
+                        "Accept": "application/json",
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification("Story berhasil diupload!");
+                    setTimeout(() => window.location.href = "{{ route('stories') }}", 1000);
                 } else {
-                    throw new Error(`Server error (${response.status})`);
+                    showNotification(result.message || "Gagal upload story!", "error");
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                
-                // Show detailed error
-                let errorMessage = 'Terjadi kesalahan saat mempublikasikan story';
-                
-                if (error.message.includes('CSRF')) {
-                    errorMessage = 'CSRF token tidak valid. Silakan refresh halaman.';
-                } else if (error.message.includes('HTML')) {
-                    errorMessage = 'Server error. Cek console browser untuk detail.';
-                } else if (error.message) {
-                    errorMessage = error.message;
-                }
-                
-                showNotification(errorMessage, 'error');
-                
-                // Reset button state
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publikasikan Story';
-                btn.disabled = false;
+            } catch (err) {
+                console.error('Upload error:', err);
+                showNotification("Error: " + err.message, "error");
             }
         }
 
-        function showNotification(message, type = 'success') {
-            const existing = document.querySelector('.toast-notification');
-            if (existing) existing.remove();
+        function showNotification(msg, type = "success") {
+            const notif = document.createElement("div");
+            notif.className = `toast-notification ${type}`;
+            notif.innerText = msg;
 
-            const notification = document.createElement('div');
-            notification.className = `toast-notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
+            document.body.appendChild(notif);
 
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            setTimeout(() => notif.remove(), 3000);
         }
     </script>
+
 </body>
+
 </html>

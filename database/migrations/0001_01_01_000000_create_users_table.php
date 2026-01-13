@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('username')->unique(); // Tambahkan kolom username di sini
             $table->string('name');
             $table->string('email')->unique();
-            $table->string('profile_image')->nullable();
+            $table->string('avatar')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('role');
+            $table->string('cover')->nullable();
+            $table->boolean('is_flipside_enabled')->default(false); // Tambahkan fitur flipside
             $table->rememberToken();
             $table->timestamps();
         });

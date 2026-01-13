@@ -15,114 +15,139 @@
     }
 
 
+    .upload-preview video {
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .media-type-indicator {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
     /* Stories/Highlights Section */
     .highlights-section {
         background: white;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        border: 1px solid var(--border-color);
-    }
-
-    .highlights-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-
-    .highlights-header h6 {
-        margin: 0;
-        font-weight: 700;
-        color: var(--text-color);
+        border: 1px solid #dbdbdb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
     }
 
     .highlights-container {
-        display: flex;
-        gap: 15px;
-        overflow-x: auto;
-        padding-bottom: 5px;
+        gap: 16px;
+        padding: 4px 0;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 
     .highlights-container::-webkit-scrollbar {
-        height: 4px;
-    }
-
-    .highlights-container::-webkit-scrollbar-track {
-        background: #f7f9fa;
-        border-radius: 4px;
-    }
-
-    .highlights-container::-webkit-scrollbar-thumb {
-        background: #657786;
-        border-radius: 4px;
+        display: none;
     }
 
     .highlight-item {
-        min-width: 80px;
-        text-align: center;
         cursor: pointer;
-        transition: transform 0.3s ease;
+        flex-shrink: 0;
+        width: 80px;
     }
 
-    .highlight-item:hover {
-        transform: translateY(-3px);
+    .highlight-item:hover .highlight-ring {
+        transform: scale(1.05);
+    }
+
+    .highlight-ring {
+        position: relative;
+        width: 66px;
+        height: 66px;
+        margin: 0 auto 8px;
+        padding: 2px;
+        border-radius: 50%;
+        transition: transform 0.2s ease;
+    }
+
+    .highlight-ring.has-story {
+        background: #0095f6;
+    }
+
+    .highlight-ring.no-story {
+        background: transparent;
+        border: 2px dashed #dbdbdb;
     }
 
     .highlight-avatar {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        border: 3px solid var(--primary-color);
-        padding: 3px;
-        margin-bottom: 8px;
-        background: white;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .highlight-avatar.viewed {
-        border-color: #657786;
-    }
-
-    .highlight-avatar img,
-    .highlight-avatar .avatar-placeholder {
         width: 100%;
         height: 100%;
         border-radius: 50%;
+        overflow: hidden;
+        background: white;
+        padding: 2px;
+    }
+
+    .highlight-avatar img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 
     .avatar-placeholder {
-        background: linear-gradient(135deg, var(--primary-color), #0d8bd9);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: #0095f6;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-weight: bold;
-        font-size: 18px;
+        font-weight: 600;
+        font-size: 20px;
     }
 
-    .highlight-label {
+    .add-story-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 20px;
+        height: 20px;
+        background: #0095f6;
+        border: 2px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-story-btn i {
+        font-size: 10px;
+        color: white;
+    }
+
+    .highlight-name {
         font-size: 12px;
-        color: var(--text-color);
-        font-weight: 500;
-        white-space: nowrap;
+        color: #262626;
+        max-width: 74px;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 80px;
+        white-space: nowrap;
+        margin: 0 auto;
     }
 
-    .add-highlight {
-        border: 2px dashed var(--border-color);
-        background: #f7f9fa;
-        color: #657786;
-    }
-
-    .add-highlight:hover {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
+    /* Responsive */
+    @media (max-width: 768px) {
+        .highlights-section {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            padding: 12px 16px;
+        }
     }
 
     /* Post Composer */
@@ -152,7 +177,6 @@
         width: 48px;
         height: 48px;
         border-radius: 50%;
-        /* background: linear-gradient(135deg, var(--primary-color), #0d8bd9); */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -243,7 +267,7 @@
         color: #e74c3c;
     }
 
-    /* Feed Posts - Menggunakan style yang sudah ada dari layout */
+    /* Feed Posts */
     .feed-container {
         max-width: 600px;
         margin: 0 auto;
@@ -288,9 +312,7 @@
         width: 48px;
         height: 48px;
         min-width: 48px;
-        /* cegah flex grow */
         min-height: 48px;
-        /* cegah ketarik */
         border-radius: 50%;
         overflow: hidden;
         flex-shrink: 0;
@@ -481,7 +503,7 @@
         padding: 20px;
     }
 
-    /* Sidebar Widgets - Menggunakan class yang sudah ada */
+    /* Sidebar Widgets */
     .trending-sidebar h6 {
         display: flex;
         align-items: center;
@@ -520,6 +542,126 @@
         color: #657786;
     }
 
+    /* Image Modal */
+    .image-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        animation: fadeIn 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .image-modal-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px 20px;
+    }
+
+    .image-modal-content img {
+        max-width: 95%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 10px 60px rgba(0, 0, 0, 0.8);
+        animation: zoomIn 0.3s ease;
+    }
+
+    .image-modal-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 10000;
+        transition: all 0.3s ease;
+        background: rgba(0, 0, 0, 0.6);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        line-height: 1;
+    }
+
+    .image-modal-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+        border-color: rgba(255, 255, 255, 0.6);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    /* Comment Dropdown Styles */
+    .dropdown-menu {
+        min-width: 120px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+    }
+
+    .dropdown-item {
+        padding: 8px 16px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .dropdown-item.text-danger:hover {
+        background-color: #fff5f5;
+        color: #dc3545 !important;
+    }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
         .main-content {
@@ -547,6 +689,23 @@
             margin: 10px;
             border-radius: 12px;
         }
+
+        .image-modal-close {
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            font-size: 30px;
+        }
+
+        .image-modal-content {
+            padding: 50px 10px 10px;
+        }
+
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+        }
     }
 
     @media (min-width: 992px) {
@@ -563,79 +722,70 @@
         <div class="feed-container">
             <!-- Highlights Section -->
             <div class="highlights-section">
-                <div class="highlights-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0"><i class="fas fa-star text-primary"></i> Stories</h6>
-                    <small class="text-muted">Tap to view</small>
+                <div class="highlights-header d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0" style="font-size: 16px; font-weight: 600; color: #262626;">Stories</h6>
                 </div>
 
-                <div class="highlights-container d-flex overflow-auto mt-2">
-                    {{-- =========================
-        Your Story
-    ========================== --}}
+                <div class="highlights-container d-flex overflow-auto">
+                    {{-- Your Story --}}
                     @php
-                    // Ambil user login dari $stories (kalau ikut diload dengan relasi)
-                    $authUser = $stories->firstWhere('id', Auth::id());
+                    $authUser = $usersWithStories->firstWhere('id', Auth::id());
                     $hasUserStory = $authUser && $authUser->stories->isNotEmpty();
                     @endphp
 
-                    <div class="highlight-item text-center me-3"
-                        onclick="handleYourStory({{ $hasUserStory ? 'true' : 'false' }}, '{{ Auth::user()->username }}', {{ $hasUserStory ? $authUser->stories->first()->id : 'null' }})">
-                        <div class="highlight-avatar {{ $hasUserStory ? '' : 'add-highlight' }}">
-                            @if(Auth::user()->avatar)
-                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Your Story"
-                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; {{ $hasUserStory ? '' : 'opacity: 0.7;' }}">
-                            @else
-                            <div class="avatar-placeholder d-flex justify-content-center align-items-center"
-                                style="background: {{ $hasUserStory
-                        ? 'linear-gradient(135deg, #' . substr(md5(Auth::id()), 0, 6) . ', #' . substr(md5(Auth::id() + 1), 0, 6) . ')'
-                        : '#f7f9fa' }};
-                           color: {{ $hasUserStory ? 'white' : '#657786' }};">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                    <div class="highlight-item text-center"
+                        onclick="handleYourStory({{ $hasUserStory ? 'true' : 'false' }}, '{{ Auth::user()->username }}')">
+
+                        <div class="highlight-ring {{ $hasUserStory ? 'has-story' : 'no-story' }}">
+                            <div class="highlight-avatar">
+                                @if(Auth::user()->avatar)
+                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Your Story">
+                                @else
+                                <div class="avatar-placeholder">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                </div>
+                                @endif
+                            </div>
+
+                            @if(!$hasUserStory)
+                            <div class="add-story-btn">
+                                <i class="fas fa-plus"></i>
                             </div>
                             @endif
-
-                            {{-- Badge plus selalu ada untuk add story --}}
-                            <div style="position: absolute; bottom: -2px; right: -2px; background: #1da1f2; border: 2px solid white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-plus" style="font-size: 10px; color: white;"></i>
-                            </div>
                         </div>
-                        <div class="highlight-label small">Your Story</div>
+
+                        <div class="highlight-name">Your Story</div>
                     </div>
 
-                    {{-- =========================
-        Stories dari user lain
-    ========================== --}}
-                    @foreach($stories->where('id', '!=', Auth::id()) as $user)
-                    <div class="highlight-item text-center me-3"
-                        onclick="openStory('{{ $user->username }}', {{ $user->id }})">
+                    {{-- Stories dari user lain --}}
+                    @foreach($usersWithStories->where('id', '!=', Auth::id()) as $user)
+                    <div class="highlight-item text-center"
+                        onclick="openStory('{{ $user->username }}')">
 
-                        <div class="highlight-avatar">
-                            @if($user->avatar)
-                            <img src="{{ asset('storage/' . $user->avatar) }}"
-                                alt="{{ $user->name }}"
-                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                            @else
-                            <div class="avatar-placeholder d-flex justify-content-center align-items-center"
-                                style="background: linear-gradient(135deg,
-                            #{{ substr(md5($user->id), 0, 6) }},
-                            #{{ substr(md5($user->id + 1), 0, 6) }});">
-                                {{ strtoupper(substr($user->name, 0, 2)) }}
+                        <div class="highlight-ring has-story">
+                            <div class="highlight-avatar">
+                                @if($user->avatar)
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}">
+                                @else
+                                <div class="avatar-placeholder"
+                                    style="background: linear-gradient(135deg, #{{ substr(md5($user->id), 0, 6) }}, #{{ substr(md5($user->id + 1), 0, 6) }});">
+                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                </div>
+                                @endif
                             </div>
-                            @endif
                         </div>
 
-                        <div class="highlight-label small">
-                            {{ $user->name }}
+                        <div class="highlight-name">
+                            {{ Str::limit($user->name, 10) }}
                         </div>
                     </div>
                     @endforeach
                 </div>
-
             </div>
 
-
+            <!-- Post Composer -->
             <div class="post-composer">
-                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" id="postForm">
                     @csrf
 
                     <div class="composer-header">
@@ -653,22 +803,31 @@
                     </div>
 
                     <div class="upload-preview hidden" id="uploadPreview">
-                        <img id="previewImage" src="" alt="Preview">
-                        <button type="button" class="remove-image" onclick="removeImage()">
+                        <span class="media-type-indicator" id="mediaTypeIndicator"></span>
+                        <img id="previewImage" src="" alt="Preview" style="display: none;">
+                        <video id="previewVideo" controls style="display: none;"></video>
+                        <button type="button" class="remove-image" onclick="removeMedia()">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
 
-                    <input type="file" class="file-upload" id="imageUpload" name="image" accept="image/*"
-                        onchange="handleImageUpload(event)">
+                    <input type="file"
+                        class="file-upload"
+                        id="mediaUpload"
+                        name="media"
+                        accept="image/*,video/*"
+                        hidden
+                        onchange="handleMediaUpload(event)">
 
                     <div class="composer-tools">
                         <div class="composer-options">
-                            <button type="button" class="composer-option" onclick="triggerImageUpload()"
+                            <button type="button" class="composer-option" onclick="triggerMediaUpload('image')"
                                 title="Tambah foto">
                                 <i class="fas fa-image"></i>
                             </button>
-                            <button type="button" class="composer-option" title="Tambah GIF">
+                            <button type="button" class="composer-option"
+                                onclick="triggerMediaUpload('video')"
+                                title="Tambah video">
                                 <i class="fas fa-video"></i>
                             </button>
                             <button type="button" class="composer-option" title="Tambah poll">
@@ -687,58 +846,61 @@
                 </form>
             </div>
 
-
             <!-- Feed Posts -->
             <div id="feedContainer">
-                <!-- Posts will be rendered here -->
                 @forelse($posts as $post)
                 <div class="post-card card">
                     <div class="card-body">
                         <div class="d-flex">
                             <div class="post-avatar me-3">
-                                @if($post->user->avatar)
-                                <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="Avatar">
-                                @else
-                                <img src="https://picsum.photos/48/48?random=" alt="Avatar">
-                                @endif
+                                <a href="{{ $post->user->id === auth()->id() ? route('profile') : url('/profilePage/' . $post->user->username) }}"
+                                    class="text-decoration-none">
+                                    @if($post->user->avatar)
+                                    <img src="{{ asset('storage/' . $post->user->avatar) }}" alt="Avatar"
+                                        class="rounded-circle" width="50" height="50">
+                                    @else
+                                    <div class="avatar-placeholder rounded-circle d-flex justify-content-center align-items-center"
+                                        style="width: 50px; height: 50px; font-size: 18px; font-weight: 600; background: linear-gradient(135deg, #1e90ff, #007bff); color: white; text-decoration: none; line-height: 1;">
+                                        {{ strtoupper(substr($post->user->name, 0, 2)) }}
+                                    </div>
+                                    @endif
+                                </a>
                             </div>
+
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-2">
-                                    <strong class="me-2">{{ $post->user->name }}</strong>
+                                    <a href="{{ $post->user->id === auth()->id() ? route('profile') : url('/profilePage/' . $post->user->username) }}"
+                                        class="text-decoration-none text-dark">
+                                        <strong class="me-2">{{ $post->user->name }}</strong>
+                                    </a>
                                     <span class="text-muted">{{ '@' . $post->user->username }}</span>
                                     <span class="text-muted ms-2">• {{ $post->created_at->diffForHumans() }}</span>
                                 </div>
-                                <p class="mb-3">
-                                    {{ $post->caption }}
-                                </p>
+                                <p class="mb-3">{{ $post->caption }}</p>
                                 @if($post->image)
-                                <img src="{{ asset('storage/' . $post->image) }}" alt="Post" class="post-image mb-3" />
+                                <img src="{{ asset('storage/' . $post->image) }}"
+                                    alt="Post"
+                                    class="post-image mb-3"
+                                    onclick="openImageModal('{{ asset('storage/' . $post->image) }}')"
+                                    style="cursor: pointer;" />
                                 @endif
                                 <div class="d-flex justify-content-between">
-                                    <button class="btn btn-sm btn-light">
+                                    <button class="btn btn-sm btn-light" onclick="showComments({{ $post->id }})">
                                         <i class="far fa-comment"></i> {{ $post->comments_count ?? 0 }}
                                     </button>
                                     <button class="btn btn-sm btn-light">
-                                        <i class="fas fa-retweet"></i> {{ $post->shares_count ?? 0 }}
+                                        <i class="fas fa-bookmark"></i>
                                     </button>
-                                    {{-- <button
-                                                class="btn btn-sm like-btn {{ $post->is_liked_by_auth_user ? 'liked' : '' }}"
-                                    onclick="toggleLike({{ $post->id }})" data-post-id="{{ $post->id }}">
-                                    <i class="{{ $post->is_liked_by_auth_user ? 'fas' : 'far' }} fa-heart"></i>
-                                    <span id="like-count-{{ $post->id }}">{{ $post->likes_count }}</span>
-                                    </button> --}}
 
                                     <button class="btn btn-sm like-btn" onclick="toggleLike(this)"
                                         data-post-id="{{ $post->id }}"
                                         data-liked="{{ $post->is_liked_by_auth_user ? 'true' : 'false' }}">
-                                        <i
-                                            class="fa fa-heart {{ $post->is_liked_by_auth_user ? 'text-danger' : 'text-secondary' }}"></i>
+                                        <i class="fa fa-heart {{ $post->is_liked_by_auth_user ? 'text-danger' : 'text-secondary' }}"></i>
                                         <span class="like-count">{{ $post->likes_count }}</span>
                                     </button>
 
-
                                     <button class="btn btn-sm btn-light">
-                                        <i class="fas fa-share"></i>
+                                        <i class="fas fa-share"></i> {{ $post->shares_count ?? 0 }}
                                     </button>
                                 </div>
                             </div>
@@ -755,28 +917,8 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 d-none d-lg-block">
-        <!-- Right Sidebar menggunakan class yang sudah ada -->
-        <div class="trending-sidebar">
-            <h6><i class="fas fa-fire text-primary"></i> Trending</h6>
-            <div class="trending-item">
-                <div class="trending-topic">#TechIndonesia</div>
-                <div class="trending-count">15.2K Tweets</div>
-            </div>
-            <div class="trending-item">
-                <div class="trending-topic">#CodeLife</div>
-                <div class="trending-count">8.7K Tweets</div>
-            </div>
-            <div class="trending-item">
-                <div class="trending-topic">#WebDeveloper</div>
-                <div class="trending-count">5.3K Tweets</div>
-            </div>
-            <div class="trending-item">
-                <div class="trending-topic">#StartupLife</div>
-                <div class="trending-count">3.8K Tweets</div>
-            </div>
-        </div>
 
+    <div class="col-lg-3 d-none d-lg-block">
         <div class="trending-sidebar">
             <h6><i class="fas fa-users text-primary"></i> Suggested for you</h6>
             <div class="d-flex align-items-center gap-3 mb-3">
@@ -798,25 +940,6 @@
                 <button class="btn btn-outline-primary btn-sm">Follow</button>
             </div>
         </div>
-
-        <div class="trending-sidebar">
-            <h6><i class="fas fa-chart-line text-primary"></i> What's happening</h6>
-            <div class="trending-item">
-                <small class="text-muted">Trending in Technology</small>
-                <div class="trending-topic">ChatGPT Updates</div>
-                <div class="trending-count">25.8K Tweets</div>
-            </div>
-            <div class="trending-item">
-                <small class="text-muted">Trending in Sports</small>
-                <div class="trending-topic">World Cup 2024</div>
-                <div class="trending-count">18.3K Tweets</div>
-            </div>
-            <div class="trending-item">
-                <small class="text-muted">Entertainment</small>
-                <div class="trending-topic">New Movie Release</div>
-                <div class="trending-count">12.1K Tweets</div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -833,122 +956,60 @@
     </div>
 </div>
 
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+    <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
+    <div class="image-modal-content">
+        <img id="modalImage" src="" alt="Full size image">
+    </div>
+</div>
+
 <script>
-    function handleYourStory(hasStory, username, storyId) {
+    // ============================================================
+    // GLOBAL VARIABLES
+    // ============================================================
+    const currentUserId = Number("{{ auth()->id() }}");
+
+    let uploadedFiles = []; // Array untuk menyimpan multiple files
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+    const MAX_FILES = 4; // Maximum 4 files
+
+    // ============================================================
+    // IMMEDIATELY DEFINE GLOBAL FUNCTIONS (BEFORE DOMContentLoaded)
+    // ============================================================
+
+    // Story Functions
+    window.handleYourStory = function(hasStory, username) {
         if (hasStory) {
-            // Jika sudah ada story, tampilkan modal dengan opsi
-            const content = `
-            <div class="text-center py-3">
-                <div class="mb-4">
-                    <h5>Your Story</h5>
-                    <p class="text-muted">Choose what you want to do</p>
-                </div>
-                
-                <div class="d-grid gap-3">
-                    <button class="btn btn-primary btn-lg" onclick="openStory('${username}', ${storyId}); closeModal();">
-                        <i class="fas fa-eye me-2"></i>View Your Story
-                    </button>
-                    
-                    <button class="btn btn-outline-primary btn-lg" onclick="openCreateStory(); closeModal();">
-                        <i class="fas fa-plus me-2"></i>Add to Story
-                    </button>
-                    
-                   
-                </div>
-                
-                <hr class="my-4">
-                
-                <button class="btn btn-link text-muted" onclick="closeModal()">
-                    Cancel
-                </button>
-            </div>
-        `;
-            openModal('Your Story', content);
+            window.location.href = `/stories?user=${username}`;
         } else {
-            // Jika belum ada story, langsung ke create story
-            openCreateStory();
+            window.location.href = '/stories/create';
         }
-    }
+    };
 
-    // Feed data
-    // let feedPosts = [
-    //     {
-    //         id: 1,
-    //         user: { name: "Sarah Chen", username: "sarahchen", avatar: "SC", gradient: "linear-gradient(135deg, #ff6b6b, #4ecdc4)" },
-    //         content: "Just finished building my first React Native app! 🚀 The learning curve was steep but so rewarding. Mobile development is definitely the future.",
-    //         timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    //         likes: 45,
-    //         comments: 8,
-    //         shares: 3,
-    //         liked: false,
-    //         hasImage: false
-    //     },
-    //     {
-    //         id: 2,
-    //         user: { name: "Alex Smith", username: "alexsmith", avatar: "AS", gradient: "linear-gradient(135deg, #667eea, #764ba2)" },
-    //         content: "Beautiful sunset from my home office today 🌅 Sometimes the best inspiration comes from taking a moment to appreciate nature.",
-    //         timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    //         likes: 128,
-    //         comments: 24,
-    //         shares: 12,
-    //         liked: true,
-    //         hasImage: true,
-    //         imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop"
-    //     },
-    //     {
-    //         id: 3,
-    //         user: { name: "Maria Jose", username: "mariajose", avatar: "MJ", gradient: "linear-gradient(135deg, #4ecdc4, #44a08d)" },
-    //         content: "Coffee and code - the perfect combination for a productive morning ☕️💻 What does your workspace look like? #DevLife #MorningMotivation",
-    //         timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    //         likes: 67,
-    //         comments: 15,
-    //         shares: 8,
-    //         liked: false,
-    //         hasImage: true,
-    //         imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=400&fit=crop"
-    //     },
-    //     {
-    //         id: 4,
-    //         user: { name: "David Kim", username: "davidkim", avatar: "DK", gradient: "linear-gradient(135deg, #ffa726, #ff5722)" },
-    //         content: "Excited to announce that our startup just secured Series A funding! 🎉 Thank you to everyone who believed in our vision. This is just the beginning!",
-    //         timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-    //         likes: 234,
-    //         comments: 56,
-    //         shares: 89,
-    //         liked: true,
-    //         hasImage: false
-    //     },
-    //     {
-    //         id: 5,
-    //         user: { name: "Lisa Wang", username: "lisawang", avatar: "LW", gradient: "linear-gradient(135deg, #a8edea, #fed6e3)" },
-    //         content: "Working on some UI designs for a new project. Really loving these color combinations! 🎨 What do you think about the trend towards more vibrant interfaces?",
-    //         timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    //         likes: 91,
-    //         comments: 23,
-    //         shares: 14,
-    //         liked: false,
-    //         hasImage: true,
-    //         imageUrl: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=600&h=400&fit=crop"
-    //     }
-    // ];
+    window.openStory = function(username) {
+        window.location.href = `/stories?user=${username}`;
+    };
 
-    let postIdCounter = 6;
+    window.openCreateStory = function() {
+        window.location.href = "{{ route('stories.create') }}";
+    };
 
-    // Post composer functionality
-    const postContent = document.getElementById('postContent');
-    const charCount = document.getElementById('charCount');
-    const postBtn = document.getElementById('postBtn');
-    const imageUpload = document.getElementById('imageUpload');
-    const uploadPreview = document.getElementById('uploadPreview');
-    const previewImage = document.getElementById('previewImage');
+    // Character Count
+    window.updateCharCount = function() {
+        const postContent = document.getElementById('postContent');
+        const charCount = document.getElementById('charCount');
+        const postBtn = document.getElementById('postBtn');
 
-    // Character count and post button state
-    postContent.addEventListener('input', function() {
-        const length = this.value.length;
+        if (!postContent) return;
+
+        const length = postContent.value.length;
         charCount.textContent = `${length}/280`;
 
         if (length > 280) {
             charCount.classList.add('danger');
+            charCount.classList.remove('warning');
             postBtn.classList.remove('active');
         } else if (length > 250) {
             charCount.classList.add('warning');
@@ -956,464 +1017,723 @@
             postBtn.classList.add('active');
         } else {
             charCount.classList.remove('warning', 'danger');
-            if (length > 0) {
+            if (length > 0 || uploadedFiles.length > 0) {
                 postBtn.classList.add('active');
             } else {
                 postBtn.classList.remove('active');
             }
         }
-    });
+    };
 
-    // Auto-resize textarea
-    postContent.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
+    // Media Upload Functions
+    window.triggerMediaUpload = function(type) {
+        console.log('triggerMediaUpload called with type:', type);
+        const mediaUpload = document.getElementById('mediaUpload');
 
-    // Image upload functionality
-    function triggerImageUpload() {
-        imageUpload.click();
-    }
-
-    function openStory(username, storyId) {
-        window.location.href = `/stories?user=${username}&story=${storyId}`;
-    }
-
-    function openCreateStory() {
-        window.location.href = "{{ route('stories.create') }}";
-    }
-
-
-    function handleImageUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                uploadPreview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
+        if (!mediaUpload) {
+            console.error('Media upload input not found');
+            window.showNotification('⚠️ Upload input not found');
+            return;
         }
-    }
 
-    function removeImage() {
-        uploadPreview.classList.add('hidden');
-        imageUpload.value = '';
-        previewImage.src = '';
-    }
+        // Set accept attribute based on type
+        if (type === 'image') {
+            mediaUpload.setAttribute('accept', 'image/*');
+            mediaUpload.setAttribute('multiple', 'multiple');
+        } else if (type === 'video') {
+            mediaUpload.setAttribute('accept', 'video/*');
+            mediaUpload.removeAttribute('multiple');
+        }
 
-    // Create new post
-    function createPost() {
-        const content = postContent.value.trim();
-        if (content.length === 0 || content.length > 280) return;
+        mediaUpload.click();
+    };
 
-        const hasImage = !uploadPreview.classList.contains('hidden');
-        const newPost = {
-            id: postIdCounter++,
-            user: {
-                name: "John Doe",
-                username: "johndoe",
-                avatar: "JD",
-                gradient: "linear-gradient(135deg, #1da1f2, #0d8bd9)"
-            },
-            content: content,
-            timestamp: new Date(),
-            likes: 0,
-            comments: 0,
-            shares: 0,
-            liked: false,
-            hasImage: hasImage,
-            imageUrl: hasImage ? previewImage.src : null
-        };
+    window.handleMediaUpload = function(event) {
+        const files = Array.from(event.target.files);
 
-        feedPosts.unshift(newPost);
+        if (!files || files.length === 0) return;
 
-        // Clear composer
-        postContent.value = '';
-        postContent.style.height = 'auto';
-        removeImage();
-        charCount.textContent = '0/280';
-        charCount.classList.remove('warning', 'danger');
-        postBtn.classList.remove('active');
+        const uploadPreview = document.getElementById('uploadPreview');
+        const mediaTypeIndicator = document.getElementById('mediaTypeIndicator');
 
-        // Re-render feed
-        renderFeed();
-        showNotification('📝 Post berhasil dipublikasikan!');
-    }
+        if (!uploadPreview) {
+            console.error('Preview elements not found');
+            return;
+        }
 
-    // Render feed posts
-    // function renderFeed() {
-    //     const container = document.getElementById('feedContainer');
-    //     container.innerHTML = '';
+        // Check if adding video when images exist or vice versa
+        const hasImages = uploadedFiles.some(f => f.type.startsWith('image/'));
+        const hasVideos = uploadedFiles.some(f => f.type.startsWith('video/'));
+        const newHasImages = files.some(f => f.type.startsWith('image/'));
+        const newHasVideos = files.some(f => f.type.startsWith('video/'));
 
-    //     feedPosts.forEach((post, index) => {
-    //         const postElement = document.createElement('div');
-    //         postElement.className = 'post-card';
-    //         postElement.style.animationDelay = `${index * 0.1}s`;
+        if ((hasImages && newHasVideos) || (hasVideos && newHasImages)) {
+            window.showNotification('⚠️ Cannot mix images and videos');
+            event.target.value = '';
+            return;
+        }
 
-    //         const timeAgo = getTimeAgo(post.timestamp);
+        // Validate each file
+        for (const file of files) {
+            if (uploadedFiles.length >= MAX_FILES) {
+                window.showNotification(`⚠️ Maximum ${MAX_FILES} files allowed`);
+                break;
+            }
 
-    //         postElement.innerHTML = `
-    //                 <div class="post-header">
-    //                     <div class="post-avatar" style="background: ${post.user.gradient};" onclick="viewProfile('${post.user.username}')">
-    //                         ${post.user.avatar}
-    //                     </div>
-    //                     <div class="post-user-info flex-grow-1">
-    //                         <h6>${post.user.name} <small class="fw-normal">@${post.user.username} · ${timeAgo}</small></h6>
-    //                     </div>
-    //                     <div class="dropdown">
-    //                         <button class="btn btn-sm" data-bs-toggle="dropdown">
-    //                             <i class="fas fa-ellipsis-h text-muted"></i>
-    //                         </button>
-    //                         <ul class="dropdown-menu">
-    //                             <li><a class="dropdown-item" href="#" onclick="editPost(${post.id})"><i class="fas fa-edit me-2"></i>Edit</a></li>
-    //                             <li><a class="dropdown-item" href="#" onclick="deletePost(${post.id})"><i class="fas fa-trash me-2"></i>Delete</a></li>
-    //                             <li><hr class="dropdown-divider"></li>
-    //                             <li><a class="dropdown-item" href="#"><i class="fas fa-flag me-2"></i>Report</a></li>
-    //                         </ul>
-    //                     </div>
-    //                 </div>
+            if (file.type.startsWith('image/') && file.size > MAX_IMAGE_SIZE) {
+                window.showNotification(`⚠️ ${file.name} exceeds 5MB limit`);
+                continue;
+            }
 
-    //                 <div class="post-content">
-    //                     ${post.content}
-    //                 </div>
+            if (file.type.startsWith('video/') && file.size > MAX_VIDEO_SIZE) {
+                window.showNotification(`⚠️ ${file.name} exceeds 50MB limit`);
+                continue;
+            }
 
-    //                 ${post.hasImage ? `
-    //                     <div class="post-media">
-    //                         <img src="${post.imageUrl}" alt="Post image" onclick="openImageModal('${post.imageUrl}')">
-    //                     </div>
-    //                 ` : ''}
+            const isDuplicate = uploadedFiles.some(f =>
+                f.name === file.name && f.size === file.size
+            );
 
-    //                 <div class="post-actions">
-    //                     <button class="action-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-    //                         <i class="fas fa-heart"></i>
-    //                         <span>${post.likes}</span>
-    //                     </button>
-    //                     <button class="action-btn" onclick="showComments(${post.id})">
-    //                         <i class="fas fa-comment"></i>
-    //                         <span>${post.comments}</span>
-    //                     </button>
-    //                     <button class="action-btn" onclick="sharePost(${post.id})">
-    //                         <i class="fas fa-retweet"></i>
-    //                         <span>${post.shares}</span>
-    //                     </button>
-    //                     <button class="action-btn" onclick="bookmarkPost(${post.id})">
-    //                         <i class="fas fa-bookmark"></i>
-    //                     </button>
-    //                 </div>
-    //             `;
+            if (isDuplicate) {
+                window.showNotification(`⚠️ ${file.name} already added`);
+                continue;
+            }
 
-    //         container.appendChild(postElement);
-    //     });
-    // }
+            uploadedFiles.push(file);
+        }
 
-    // Post interactions
-    async function toggleLike(btn) {
+        window.renderMediaPreviews();
+        window.updateCharCount();
+        event.target.value = '';
+
+        const fileType = uploadedFiles[0]?.type.startsWith('image/') ? 'Image' : 'Video';
+        const count = uploadedFiles.length;
+        window.showNotification(`✅ ${count} ${fileType}${count > 1 ? 's' : ''} loaded!`);
+    };
+
+    window.renderMediaPreviews = function() {
+        const uploadPreview = document.getElementById('uploadPreview');
+        const mediaTypeIndicator = document.getElementById('mediaTypeIndicator');
+
+        if (uploadedFiles.length === 0) {
+            uploadPreview.classList.add('hidden');
+            return;
+        }
+
+        uploadPreview.classList.remove('hidden');
+
+        const existingPreviews = uploadPreview.querySelectorAll('.preview-item');
+        existingPreviews.forEach(p => p.remove());
+
+        const isImage = uploadedFiles[0].type.startsWith('image/');
+        const count = uploadedFiles.length;
+        mediaTypeIndicator.innerHTML = isImage ?
+            `<i class="fas fa-image"></i> ${count} Image${count > 1 ? 's' : ''}` :
+            `<i class="fas fa-video"></i> Video`;
+
+        uploadedFiles.forEach((file, index) => {
+            const fileURL = URL.createObjectURL(file);
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            previewItem.style.cssText = 'position: relative; margin-top: 10px;';
+
+            if (file.type.startsWith('image/')) {
+                previewItem.innerHTML = `
+                <img src="${fileURL}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;">
+                <button type="button" class="remove-media-btn" onclick="window.removeMediaAtIndex(${index})" 
+                    style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            } else if (file.type.startsWith('video/')) {
+                previewItem.innerHTML = `
+                <video src="${fileURL}" controls style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;"></video>
+                <button type="button" class="remove-media-btn" onclick="window.removeMediaAtIndex(${index})"
+                    style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            }
+
+            uploadPreview.appendChild(previewItem);
+        });
+    };
+
+    window.removeMediaAtIndex = function(index) {
+        if (index >= 0 && index < uploadedFiles.length) {
+            uploadedFiles.splice(index, 1);
+            window.renderMediaPreviews();
+            window.updateCharCount();
+            window.showNotification('🗑️ Media removed');
+        }
+    };
+
+    window.removeMedia = function() {
+        uploadedFiles = [];
+        const uploadPreview = document.getElementById('uploadPreview');
+
+        if (uploadPreview) {
+            const previews = uploadPreview.querySelectorAll('.preview-item');
+            previews.forEach(p => {
+                const img = p.querySelector('img');
+                const video = p.querySelector('video');
+                if (img && img.src) URL.revokeObjectURL(img.src);
+                if (video && video.src) URL.revokeObjectURL(video.src);
+            });
+
+            uploadPreview.classList.add('hidden');
+        }
+
+        window.updateCharCount();
+        window.showNotification('🗑️ All media removed');
+    };
+
+    // Like Functionality
+    window.toggleLike = async function(btn) {
         const postId = btn.dataset.postId;
         const isLiked = btn.dataset.liked === "true";
         const icon = btn.querySelector("i");
         const countSpan = btn.querySelector(".like-count");
         let count = parseInt(countSpan.textContent);
+        const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+        btn.disabled = true;
 
         try {
-            if (!isLiked) {
-                await fetch(`/like/store/${postId}`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    }
-                });
-                btn.dataset.liked = "true";
-                icon.classList.remove("text-secondary");
-                icon.classList.add("text-danger");
-                countSpan.textContent = count + 1;
+            const endpoint = isLiked ? `/like/destroy/${postId}/main` : `/like/store/${postId}/main`;
+
+            const response = await fetch(endpoint, {
+                method: isLiked ? "DELETE" : "POST",
+                headers: {
+                    "X-CSRF-TOKEN": csrf,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                if (!isLiked) {
+                    btn.dataset.liked = "true";
+                    icon.classList.remove("text-secondary");
+                    icon.classList.add("text-danger");
+                    countSpan.textContent = count + 1;
+                    window.showNotification("❤️ Post liked!");
+                } else {
+                    btn.dataset.liked = "false";
+                    icon.classList.remove("text-danger");
+                    icon.classList.add("text-secondary");
+                    countSpan.textContent = Math.max(0, count - 1);
+                    window.showNotification("💔 Post unliked");
+                }
             } else {
-                await fetch(`/like/destroy/${postId}`, {
-                    method: "DELETE",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    }
-                });
-                btn.dataset.liked = "false";
-                icon.classList.remove("text-danger");
-                icon.classList.add("text-secondary");
-                countSpan.textContent = count - 1;
+                if (response.status === 409) {
+                    window.showNotification(isLiked ? "⚠️ Already unliked" : "⚠️ Already liked");
+                } else {
+                    throw new Error(result.message || 'Failed to toggle like');
+                }
             }
         } catch (error) {
-            console.error("Error:", error);
+            console.error("Like error:", error);
+            window.showNotification("⚠️ Network error!");
+        } finally {
+            btn.disabled = false;
         }
-    }
+    };
 
+    // Comments Functionality
+    window.showComments = function(postId) {
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
 
+        modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading comments...</p>
+        </div>
+    `;
+        window.openModal('Comments', '');
 
-    function showComments(postId) {
-        const post = feedPosts.find(p => p.id === postId);
-        if (!post) return;
+        fetch(`/posts/show/${postId}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                let modalContent = `
+            <div class="d-flex align-items-center mb-3">
+                ${data.post.user.avatar ? 
+                    `<img src="/storage/${data.post.user.avatar}" class="rounded-circle me-3" width="50" height="50" alt="Avatar" style="object-fit: cover;">` :
+                    `<div class="rounded-circle me-3 d-flex align-items-center justify-content-center bg-primary text-white" style="width: 50px; height: 50px; font-weight: bold;">
+                        ${data.post.user.name.charAt(0).toUpperCase()}
+                    </div>`
+                }
+                <div>
+                    <h6 class="mb-1">
+                        <a href="/profilePage/${data.post.user.username}" class="text-decoration-none text-dark">
+                            ${data.post.user.name}
+                        </a>
+                    </h6>
+                    <small class="text-muted">@${data.post.user.username} • ${new Date(data.post.created_at).toLocaleDateString()}</small>
+                </div>
+            </div>
+        `;
 
-        const content = `
-                    <div class="text-center">
-                        <h5>Komentar</h5>
-                        <div class="mt-4">
-                            <div class="d-flex gap-3 mb-3">
-                                <div class="composer-avatar" style="width: 40px; height: 40px; font-size: 14px;">SC</div>
-                                <div class="flex-grow-1">
-                                    <div class="bg-light rounded p-3">
-                                        <strong>Sarah Chen</strong>
-                                        <p class="mb-0">Post yang bagus! Sangat menginspirasi melihat progress kamu.</p>
+                if (data.post.image) {
+                    modalContent += `
+                <div class="mb-3">
+                    <img src="/storage/${data.post.image}" class="img-fluid rounded shadow-sm" alt="Post image" style="max-height: 400px; width: 100%; object-fit: cover;">
+                </div>
+            `;
+                }
+
+                if (data.post.caption) {
+                    modalContent += `
+                <div class="mb-3">
+                    <p style="white-space: pre-line; font-size: 15px; line-height: 1.5;">${data.post.caption}</p>
+                </div>
+            `;
+                }
+
+                modalContent += `
+            <div class="d-flex justify-content-between align-items-center mb-3 py-2 border-top border-bottom">
+                <div class="d-flex gap-4">
+                    <span id="likesCount-${data.post.id}"><i class="fas fa-heart text-danger"></i> ${data.post.likes_count || 0} likes</span>
+                    <span id="commentsCount-${data.post.id}"><i class="fas fa-comment text-primary"></i> <span class="comment-count-number">${data.comments ? data.comments.length : 0}</span> comments</span>
+                </div>
+                <small class="text-muted">${new Date(data.post.created_at).toLocaleString()}</small>
+            </div>
+            <hr>
+            <h6>Comments</h6>
+            <div class="comments-list" id="commentsList-${data.post.id}" style="max-height: 300px; overflow-y: auto;">
+        `;
+
+                if (data.comments && data.comments.length > 0) {
+                    data.comments.forEach(comment => {
+                        const isOwnComment = comment.user.id === currentUserId;
+                        modalContent += `
+                    <div class="d-flex mb-3 comment-item" data-comment-id="${comment.id}">
+                        ${comment.user.avatar ? 
+                            `<img src="/storage/${comment.user.avatar}" class="rounded-circle me-2" width="32" height="32" alt="Avatar" style="object-fit: cover;">` :
+                            `<div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white" style="width: 32px; height: 32px; font-size: 12px; font-weight: bold;">
+                                ${comment.user.name.charAt(0).toUpperCase()}
+                            </div>`
+                        }
+                        <div class="flex-grow-1">
+                            <div class="bg-light rounded p-2 position-relative">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <strong class="small">${comment.user.name}</strong>
+                                        <p class="mb-0 small">${comment.content}</p>
                                     </div>
-                                    <small class="text-muted">2 jam yang lalu</small>
+                                    ${isOwnComment ? `
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-link text-muted p-0 ms-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); window.deleteComment(${comment.id}, ${data.post.id})">
+                                                        <i class="fas fa-trash me-2"></i>Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             </div>
-                            <div class="d-flex gap-3 mb-3">
-                                <div class="composer-avatar" style="width: 40px; height: 40px; font-size: 14px; background: linear-gradient(135deg, #667eea, #764ba2);">AS</div>
-                                <div class="flex-grow-1">
-                                    <div class="bg-light rounded p-3">
-                                        <strong>Alex Smith</strong>
-                                        <p class="mb-0">Terima kasih sudah share ini! Insight yang sangat membantu.</p>
-                                    </div>
-                                    <small class="text-muted">1 jam yang lalu</small>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-3">
-                                <div class="composer-avatar" style="width: 40px; height: 40px; font-size: 14px;">JD</div>
-                                <div class="flex-grow-1">
-                                    <textarea class="form-control" placeholder="Tulis komentar..." rows="2"></textarea>
-                                    <button class="btn btn-primary btn-sm mt-2">Kirim Komentar</button>
-                                </div>
-                            </div>
+                            <small class="text-muted ms-2">${new Date(comment.created_at).toLocaleString()}</small>
                         </div>
                     </div>
                 `;
-        openModal('Komentar', content);
-    }
+                    });
+                } else {
+                    modalContent += `<p class="text-muted text-center py-3" id="noCommentsMsg-${data.post.id}">No comments yet. Be the first to comment!</p>`;
+                }
 
-    function sharePost(postId) {
-        const post = feedPosts.find(p => p.id === postId);
-        if (!post) return;
+                modalContent += `
+            </div>
+            <div class="mt-3 border-top pt-3">
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="commentInput-${data.post.id}" placeholder="Write a comment..." onkeypress="window.handleCommentKeyPress(event, ${data.post.id})">
+                    <button class="btn btn-primary btn-sm" id="commentBtn-${data.post.id}" onclick="window.submitCommentFromModal(${data.post.id})">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="commentStatus-${data.post.id}" class="small mt-1" style="display: none;"></div>
+            </div>
+        `;
 
-        post.shares++;
-        renderFeed();
-        showNotification('🔄 Post dibagikan!');
-    }
+                modalBody.innerHTML = modalContent;
+            })
+            .catch(error => {
+                console.error('Error fetching post details:', error);
+                modalBody.innerHTML = `
+            <div class="text-center py-4">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p class="mb-0">Failed to load post details. Please try again.</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="location.reload()">Refresh Page</button>
+            </div>
+        `;
+            });
+    };
 
-    function bookmarkPost(postId) {
-        showNotification('🔖 Post disimpan!');
-    }
-
-    function editPost(postId) {
-        const post = feedPosts.find(p => p.id === postId);
-        if (!post) return;
-
-        const content = `
-                    <form onsubmit="updatePost(event, ${postId})">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Edit Post</label>
-                            <textarea class="form-control" rows="4" name="content" required>${post.content}</textarea>
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary me-2">
-                                <i class="fas fa-save"></i> Update Post
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="closeModal()">Batal</button>
-                        </div>
-                    </form>
-                `;
-        openModal('Edit Post', content);
-    }
-
-    function updatePost(event, postId) {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        const content = formData.get('content');
-
-        const post = feedPosts.find(p => p.id === postId);
-        if (post) {
-            post.content = content;
-            renderFeed();
-            closeModal();
-            showNotification('✅ Post berhasil diperbarui!');
+    window.handleCommentKeyPress = function(event, postId) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            window.submitCommentFromModal(postId);
         }
-    }
+    };
 
-    function deletePost(postId) {
-        if (confirm('Yakin ingin menghapus post ini?')) {
-            feedPosts = feedPosts.filter(p => p.id !== postId);
-            renderFeed();
-            showNotification('🗑️ Post berhasil dihapus!');
+    window.submitCommentFromModal = function(postId) {
+        const commentInput = document.getElementById(`commentInput-${postId}`);
+        const commentBtn = document.getElementById(`commentBtn-${postId}`);
+        const commentStatus = document.getElementById(`commentStatus-${postId}`);
+        const commentsList = document.getElementById(`commentsList-${postId}`);
+        const commentCountSpan = document.querySelector(`#commentsCount-${postId} .comment-count-number`);
+        const noCommentsMsg = document.getElementById(`noCommentsMsg-${postId}`);
+
+        const commentText = commentInput.value.trim();
+
+        if (!commentText) {
+            commentStatus.textContent = 'Please write a comment';
+            commentStatus.className = 'small mt-1 text-danger';
+            commentStatus.style.display = 'block';
+            return;
         }
-    }
 
-    function viewProfile(username) {
-        showNotification(`👤 Melihat profil @${username}`);
-    }
+        commentBtn.disabled = true;
+        commentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        commentStatus.textContent = 'Posting comment...';
+        commentStatus.className = 'small mt-1 text-muted';
+        commentStatus.style.display = 'block';
 
-    function openImageModal(imageUrl) {
-        const content = `
-                        <div class="text-center">
-                            <img src="${imageUrl}" alt="Gambar ukuran penuh" style="width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px;">
+        fetch(`/comment/store`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    post_id: postId,
+                    content: commentText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success || data.data) {
+                    if (noCommentsMsg) noCommentsMsg.remove();
+
+                    const newComment = data.data;
+                    const commentHtml = `
+                <div class="d-flex mb-3 comment-item" data-comment-id="${newComment.id}">
+                    ${newComment.user.active_avatar ? 
+                        `<img src="/storage/${newComment.user.active_avatar}" class="rounded-circle me-2" width="32" height="32" alt="Avatar" style="object-fit: cover;">` :
+                        `<div class="rounded-circle me-2 d-flex align-items-center justify-content-center bg-secondary text-white" style="width: 32px; height: 32px; font-size: 12px; font-weight: bold;">
+                            ${newComment.user.name.charAt(0).toUpperCase()}
+                        </div>`
+                    }
+                    <div class="flex-grow-1">
+                        <div class="bg-light rounded p-2 position-relative">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong class="small">${newComment.user.name}</strong>
+                                    <p class="mb-0 small">${newComment.content}</p>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link text-muted p-0 ms-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); window.deleteComment(${newComment.id}, ${postId})">
+                                                <i class="fas fa-trash me-2"></i>Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    `;
-        openModal('Gambar', content);
-    }
+                        <small class="text-muted ms-2">Just now</small>
+                    </div>
+                </div>
+            `;
 
-    // Time ago helper function
-    function getTimeAgo(timestamp) {
-        const now = new Date();
-        const diff = now - timestamp;
-        const seconds = Math.floor(diff / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
+                    commentsList.insertAdjacentHTML('beforeend', commentHtml);
+                    commentsList.scrollTop = commentsList.scrollHeight;
 
-        if (days > 0) return `${days}h`;
-        if (hours > 0) return `${hours}j`;
-        if (minutes > 0) return `${minutes}m`;
-        return 'sekarang';
-    }
+                    if (commentCountSpan) {
+                        commentCountSpan.textContent = parseInt(commentCountSpan.textContent) + 1;
+                    }
 
-    // Modal functionality
-    function openModal(title, content) {
+                    const feedCommentBtn = document.querySelector(`button[onclick="showComments(${postId})"]`);
+                    if (feedCommentBtn) {
+                        const currentCount = feedCommentBtn.textContent.match(/\d+/);
+                        const newCount = currentCount ? parseInt(currentCount[0]) + 1 : 1;
+                        feedCommentBtn.innerHTML = `<i class="far fa-comment"></i> ${newCount}`;
+                    }
+
+                    commentInput.value = '';
+                    commentStatus.textContent = 'Comment posted successfully!';
+                    commentStatus.className = 'small mt-1 text-success';
+
+                    setTimeout(() => {
+                        commentStatus.style.display = 'none';
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                commentStatus.textContent = 'Failed to post comment. Please try again.';
+                commentStatus.className = 'small mt-1 text-danger';
+            })
+            .finally(() => {
+                commentBtn.disabled = false;
+                commentBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            });
+    };
+
+    window.deleteComment = function(commentId, postId) {
+        if (!confirm('Apakah Anda yakin ingin menghapus komentar ini?')) return;
+
+        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
+        if (commentItem) commentItem.style.opacity = '0.5';
+
+        fetch(`/comment/destroy/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (commentItem) {
+                        commentItem.style.animation = 'slideOutRight 0.3s ease';
+                        setTimeout(() => {
+                            commentItem.remove();
+
+                            const commentCountSpan = document.querySelector(`#commentsCount-${postId} .comment-count-number`);
+                            if (commentCountSpan) {
+                                commentCountSpan.textContent = Math.max(0, parseInt(commentCountSpan.textContent) - 1);
+                            }
+
+                            const feedCommentBtn = document.querySelector(`button[onclick="showComments(${postId})"]`);
+                            if (feedCommentBtn) {
+                                const currentCount = feedCommentBtn.textContent.match(/\d+/);
+                                const newCount = currentCount ? Math.max(0, parseInt(currentCount[0]) - 1) : 0;
+                                feedCommentBtn.innerHTML = `<i class="far fa-comment"></i> ${newCount}`;
+                            }
+
+                            const commentsList = document.getElementById(`commentsList-${postId}`);
+                            if (commentsList && commentsList.children.length === 0) {
+                                commentsList.innerHTML = `<p class="text-muted text-center py-3" id="noCommentsMsg-${postId}">No comments yet. Be the first to comment!</p>`;
+                            }
+                        }, 300);
+                    }
+                    window.showNotification('🗑️ Comment deleted successfully!');
+                } else {
+                    throw new Error(data.message || 'Failed to delete comment');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (commentItem) commentItem.style.opacity = '1';
+                window.showNotification('⚠️ Failed to delete comment. Please try again.');
+            });
+    };
+
+    // Modal Functions
+    window.openModal = function(title, content) {
         document.getElementById('modal-title').textContent = title;
-        document.getElementById('modal-body').innerHTML = content;
+        if (content) {
+            document.getElementById('modal-body').innerHTML = content;
+        }
         document.getElementById('modal').style.display = 'block';
-    }
+    };
 
-    function closeModal() {
+    window.closeModal = function() {
         document.getElementById('modal').style.display = 'none';
-    }
+    };
 
-    function showNotification(message) {
+    window.openImageModal = function(imageSrc) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modal.style.display = 'block';
+        modalImg.src = imageSrc;
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeImageModal = function() {
+        const modal = document.getElementById('imageModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    };
+
+    // Notification Function
+    window.showNotification = function(message) {
+        const existingNotifications = document.querySelectorAll('.custom-notification');
+        existingNotifications.forEach(notification => notification.remove());
+
         const notification = document.createElement('div');
-        notification.className = 'position-fixed bg-dark text-white px-3 py-2 rounded-pill';
+        notification.className = 'custom-notification position-fixed bg-dark text-white px-3 py-2 rounded-pill';
         notification.style.cssText = `
-                                                                                            top: 90px;
-                                                                                            right: 20px;
-                                                                                            z-index: 3000;
-                                                                                            animation: slideInRight 0.3s ease;
-                                                                                            font-size: 14px;
-                                                                                        `;
+        top: 90px;
+        right: 20px;
+        z-index: 3000;
+        animation: slideInRight 0.3s ease;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
         notification.innerHTML = message;
 
-        // Add animation keyframes if not exists
         if (!document.querySelector('#notification-styles')) {
             const style = document.createElement('style');
             style.id = 'notification-styles';
             style.textContent = `
-                                                                                                @keyframes slideInRight {
-                                                                                                    from { transform: translateX(100%); opacity: 0; }
-                                                                                                    to { transform: translateX(0); opacity: 1; }
-                                                                                                }
-                                                                                            `;
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
             document.head.appendChild(style);
         }
 
         document.body.appendChild(notification);
 
-        // Remove notification after 3 seconds
         setTimeout(() => {
-            notification.style.animation = 'slideInRight 0.3s ease reverse';
+            notification.style.animation = 'slideOutRight 0.3s ease';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
             }, 300);
         }, 3000);
-    }
+    };
 
-    // Close modal when clicking outside
+    // ============================================================
+    // DOM READY - FORM SUBMISSION & EVENT LISTENERS
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded - Functions available:', typeof window.triggerMediaUpload);
+
+        const postForm = document.getElementById('postForm');
+        const postContent = document.getElementById('postContent');
+        const postBtn = document.getElementById('postBtn');
+
+        if (postForm) {
+            postForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const hasContent = postContent.value.trim().length > 0;
+                const hasMedia = uploadedFiles.length > 0;
+
+                if (!hasContent && !hasMedia) {
+                    window.showNotification('⚠️ Please write something or add media');
+                    return false;
+                }
+
+                const formData = new FormData(this);
+                formData.delete('media');
+
+                uploadedFiles.forEach((file, index) => {
+                    formData.append(`media[${index}]`, file);
+                });
+
+                if (postBtn) {
+                    postBtn.disabled = true;
+                    postBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+                }
+
+                fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            window.showNotification('✅ Post created successfully!');
+                            postContent.value = '';
+                            uploadedFiles = [];
+                            window.renderMediaPreviews();
+                            window.updateCharCount();
+
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            throw new Error(data.message || 'Failed to create post');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        window.showNotification('⚠️ Failed to create post. Please try again.');
+
+                        if (postBtn) {
+                            postBtn.disabled = false;
+                            postBtn.innerHTML = 'Post';
+                        }
+                    });
+            });
+        }
+
+        // Auto-resize textarea
+        if (postContent) {
+            postContent.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+        }
+
+        // Initialize post button state
+        if (postBtn) {
+            postBtn.classList.remove('active');
+        }
+    });
+
+    // ============================================================
+    // WINDOW EVENT LISTENERS
+    // ============================================================
     window.onclick = function(event) {
         const modal = document.getElementById('modal');
+        const imageModal = document.getElementById('imageModal');
         if (event.target === modal) {
-            closeModal();
+            window.closeModal();
         }
-    }
+        if (event.target === imageModal) {
+            window.closeImageModal();
+        }
+    };
 
-    // Initialize page
-    document.addEventListener('DOMContentLoaded', function() {
-        renderFeed();
-
-        // Add staggered entrance animations
-        setTimeout(() => {
-            document.querySelectorAll('.post-card').forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    card.style.transition = 'all 0.5s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 150);
-            });
-        }, 300);
-    });
-
-    // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            closeModal();
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            if (postBtn.classList.contains('active')) {
-                createPost();
-            }
+            window.closeModal();
+            window.closeImageModal();
         }
     });
 
-    // Infinite scroll simulation
-    let isLoading = false;
-
-    window.addEventListener('scroll', function() {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000 && !isLoading) {
-            loadMorePosts();
-        }
-    });
-
-    function loadMorePosts() {
-        isLoading = true;
-
-        // Simulate loading delay
-        setTimeout(() => {
-            const morePosts = [{
-                    id: postIdCounter++,
-                    user: {
-                        name: "Emma Wilson",
-                        username: "emmawilson",
-                        avatar: "EW",
-                        gradient: "linear-gradient(135deg, #f093fb, #f5576c)"
-                    },
-                    content: "Baru saja deploy project terbaru ke production! 🚀 Tidak ada yang mengalahkan perasaan ketika semuanya berjalan dengan sempurna. Saatnya rayakan dengan pizza! 🍕",
-                    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-                    likes: 34,
-                    comments: 7,
-                    shares: 2,
-                    liked: false,
-                    hasImage: false
-                },
-                {
-                    id: postIdCounter++,
-                    user: {
-                        name: "James Brown",
-                        username: "jamesbrown",
-                        avatar: "JB",
-                        gradient: "linear-gradient(135deg, #43e97b, #38f9d7)"
-                    },
-                    content: "Sesi coding weekend dengan pemandangan yang luar biasa ini! 🏔️ Kadang kantor terbaik adalah di manapun kamu bisa setup laptop.",
-                    timestamp: new Date(Date.now() - 26 * 60 * 60 * 1000),
-                    likes: 89,
-                    comments: 18,
-                    shares: 12,
-                    liked: true,
-                    hasImage: true,
-                    imageUrl: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop"
-                }
-            ];
-
-            feedPosts.push(...morePosts);
-            renderFeed();
-            isLoading = false;
-
-            showNotification('📱 Post baru dimuat!');
-        }, 1000);
-    }
+    console.log('✅ All functions loaded successfully');
 </script>
-
 @endsection

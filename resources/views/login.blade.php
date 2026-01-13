@@ -5,20 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialConnect - Login</title>
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    {{--
-    <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
-
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
     <style>
         body {
@@ -214,13 +209,26 @@
 
         .tab-content.active {
             display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Floating shapes animation */
         .floating-shape {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(102, 126, 234, 0.1);
             animation: float 8s ease-in-out infinite;
         }
 
@@ -316,45 +324,7 @@
     </style>
 </head>
 
-
-
-{{--
-<script>
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-        e.preventDefault(); // Cegah reload halaman
-        const email = this.email.value;
-        const password = this.password.value;
-
-        fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status) {
-                    // Simpan token kalau perlu
-                    localStorage.setItem("token", data.token);
-                    window.location.href = "/homepage";
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(err => {
-                console.error("Login error:", err);
-            });
-    });
-</script> --}}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <body>
-
     <!-- Floating background shapes -->
     <div class="floating-shape shape-1"></div>
     <div class="floating-shape shape-2"></div>
@@ -367,27 +337,25 @@
                     <div class="login-page">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title d-flex align-items-center gap-2">
-                                    <img src="{{ asset('logo/telava-logo.png') }}" alt="Telava Logo"
-                                        style="height: 88px;" />
+                                <h4 class="card-title d-flex align-items-center justify-content-center gap-2">
+                                    <i class="fas fa-users"></i>
                                     Telava
                                 </h4>
                                 <div class="social-line">
-                                    <a href="#" class="btn-social" onclick="socialLogin('facebook')">
+                                    <a href="#" class="btn-social" onclick="socialLogin(event, 'facebook')">
                                         <i class="fab fa-facebook-f"></i>
                                     </a>
-                                    <a href="#" class="btn-social" onclick="socialLogin('google')">
+                                    <a href="#" class="btn-social" onclick="socialLogin(event, 'google')">
                                         <i class="fab fa-google"></i>
                                     </a>
-                                    <a href="#" class="btn-social" onclick="socialLogin('twitter')">
+                                    <a href="#" class="btn-social" onclick="socialLogin(event, 'twitter')">
                                         <i class="fab fa-twitter"></i>
                                     </a>
-                                    <a href="#" class="btn-social" onclick="socialLogin('instagram')">
+                                    <a href="#" class="btn-social" onclick="socialLogin(event, 'instagram')">
                                         <i class="fab fa-instagram"></i>
                                     </a>
                                 </div>
                             </div>
-
 
                             <p class="category text-center">
                                 <i class="fas fa-magic me-2"></i>
@@ -397,10 +365,10 @@
                             <div class="card-content">
                                 <!-- Tab Navigation -->
                                 <div class="form-tabs">
-                                    <button class="tab-btn active" onclick="switchTab('login')">
+                                    <button class="tab-btn active" id="login-btn" onclick="switchTab('login')">
                                         <i class="fas fa-sign-in-alt me-2"></i>Login
                                     </button>
-                                    <button class="tab-btn" onclick="switchTab('register')">
+                                    <button class="tab-btn" id="register-btn" onclick="switchTab('register')">
                                         <i class="fas fa-user-plus me-2"></i>Register
                                     </button>
                                 </div>
@@ -413,16 +381,14 @@
                                             <span class="input-group-text">
                                                 <i class="fas fa-envelope"></i>
                                             </span>
-                                            <input name="email" type="email" class="form-control"
-                                                placeholder="Email Address" required>
+                                            <input name="email" type="email" class="form-control" placeholder="Email Address" required>
                                         </div>
 
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-lock"></i>
                                             </span>
-                                            <input name="password" type="password" class="form-control"
-                                                placeholder="Password" required>
+                                            <input name="password" type="password" class="form-control" placeholder="Password" required>
                                         </div>
 
                                         <div class="form-check">
@@ -438,10 +404,40 @@
                                         </button>
 
                                         <div class="forgot-password">
-                                            <a href="#" onclick="showForgotPassword()">
+                                            <a href="#" onclick="showForgotPassword(event)">
                                                 <i class="fas fa-question-circle me-1"></i>
                                                 Forgot your password?
                                             </a>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Forgot Password Box -->
+                                <div id="forgotPasswordBox" class="mt-3 d-none">
+                                    <form method="POST" action="/forgot-password">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-envelope"></i>
+                                            </span>
+                                            <input type="email"
+                                                name="email"
+                                                class="form-control"
+                                                placeholder="Masukkan email kamu"
+                                                required>
+                                        </div>
+
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                Kirim Link Reset
+                                            </button>
+
+                                            <button type="button"
+                                                class="btn btn-secondary btn-sm"
+                                                onclick="hideForgotPassword()">
+                                                Batal
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -454,47 +450,34 @@
                                             <span class="input-group-text">
                                                 <i class="fas fa-user-circle"></i>
                                             </span>
-                                            <input name="username" type="text" class="form-control"
-                                                placeholder="username" required>
+                                            <input name="username" type="text" class="form-control" placeholder="Username" required>
                                         </div>
+
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-user"></i>
                                             </span>
-                                            <input name="name" type="text" class="form-control" placeholder="Name"
-                                                required>
+                                            <input name="name" type="text" class="form-control" placeholder="Full Name" required>
                                         </div>
 
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-envelope"></i>
                                             </span>
-                                            <input name="email" type="email" class="form-control"
-                                                placeholder="Email Address" required>
+                                            <input name="email" type="email" class="form-control" placeholder="Email Address" required>
                                         </div>
 
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-lock"></i>
                                             </span>
-                                            <input name="password" type="password" class="form-control"
-                                                placeholder="Password" required>
+                                            <input name="password" type="password" class="form-control" placeholder="Password" required>
                                         </div>
-
-
-                                        {{-- <div class="input-group">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-lock"></i>
-                                            </span>
-                                            <input type="password" class="form-control" placeholder="Confirm Password"
-                                                required>
-                                        </div> --}}
 
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="terms" required>
                                             <label class="form-check-label" for="terms">
-                                                I agree to the <a href="#" style="color: #667eea;">Terms &
-                                                    Conditions</a>
+                                                I agree to the <a href="#" style="color: #667eea;">Terms & Conditions</a>
                                             </label>
                                         </div>
 
@@ -503,40 +486,7 @@
                                             Create Account
                                         </button>
                                     </form>
-
-                                    {{-- Error dari validation --}}
-                                    @if ($errors->any())
-                                        <script>
-                                            document.addEventListener("DOMContentLoaded", function () {
-                                                // Aktifkan tab register
-                                                var regisTab = document.getElementById('register-tab');
-                                                var loginTab = document.getElementById('login-tab');
-
-                                                if (regisTab && loginTab) {
-                                                    regisTab.classList.add('active', 'show');
-                                                    loginTab.classList.remove('active', 'show');
-                                                }
-
-                                                Swal.fire({
-                                                    icon: 'error',
-                                                    title: 'Oops...',
-                                                    html: `{!! implode('<br>', $errors->all()) !!}`,
-                                                })
-                                            });
-                                        </script>
-                                    @endif
-                                    {{-- Success setelah register berhasil --}}
-                                    @if (session('success'))
-                                        <script>
-                                            Swal.fire({
-                                                icon: 'success',
-                                                title: 'Berhasil!',
-                                                text: "{{ session('success') }}",
-                                            })
-                                        </script>
-                                    @endif
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -547,6 +497,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // Switch between tabs
@@ -564,13 +516,14 @@
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.add('active');
 
-            // Add active class to clicked button
-            event.target.classList.add('active');
+            // Add active class to correct button
+            document.getElementById(tabName + '-btn').classList.add('active');
         }
 
         // Social login
-        function socialLogin(provider) {
-            const btn = event.target.closest('.btn-social');
+        function socialLogin(e, provider) {
+            e.preventDefault();
+            const btn = e.currentTarget;
             const originalHTML = btn.innerHTML;
 
             btn.innerHTML = '<div class="loading"></div>';
@@ -580,164 +533,30 @@
                 btn.innerHTML = originalHTML;
                 btn.style.pointerEvents = 'auto';
 
-                // Show success message
-                showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login berhasil!`, 'success');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: `${provider.charAt(0).toUpperCase() + provider.slice(1)} login successful!`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }, 2000);
         }
 
-        // Form submissions
-        // document.getElementById('loginForm').addEventListener('submit', function (e) {
-        //     e.preventDefault();
-        //     const btn = this.querySelector('.btn-primary');
-        //     const originalHTML = btn.innerHTML;
-
-        //     btn.innerHTML = '<div class="loading"></div>Signing In...';
-        //     btn.classList.add('btn-loading');
-
-        //     setTimeout(() => {
-        //         btn.innerHTML = originalHTML;
-        //         btn.classList.remove('btn-loading');
-        //         showToast('Login berhasil! Selamat datang kembali.', 'success');
-        //     }, 2000);
-        // });
-        // document.getElementById('loginForm').addEventListener('submit', async function (e) {
-        //     e.preventDefault();
-
-        //     const btn = this.querySelector('.btn-primary');
-        //     const originalHTML = btn.innerHTML;
-
-        //     btn.innerHTML = '<div class="loading"></div> Signing In...';
-        //     btn.classList.add('btn-loading');
-
-        //     const email = this.querySelector('[name="email"]').value;
-        //     const password = this.querySelector('[name="password"]').value;
-
-        //     try {
-        //         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        //         const response = await fetch('/auth/login', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //                 'Accept': 'application/json',
-        //                 'X-CSRF-TOKEN': csrfToken,
-        //             },
-        //             body: JSON.stringify({ email, password }),
-        //         });
-
-        //         const data = await response.json();
-
-        //         if (response.ok && data.token) {
-        //             // Simpan token ke localStorage
-        //             localStorage.setItem('jwt_token', data.token);
-
-        //             showToast('Login berhasil! Mengarahkan...', 'success');
-
-        //             // 🔥 Redirect ke HALAMAN web, bukan API
-        //             setTimeout(() => {
-        //                 window.location.href = '/homepage';
-        //             }, 1500);
-
-        //         } else {
-        //             showToast(data.message || 'Login gagal. Periksa kredensial.', 'info');
-        //         }
-        //     } catch (error) {
-        //         console.error(error);
-        //         showToast('Terjadi kesalahan saat login.', 'info');
-        //     } finally {
-        //         btn.innerHTML = originalHTML;
-        //         btn.classList.remove('btn-loading');
-        //     }
-        // });
-
-
-        // document.getElementById("registerForm").addEventListener("submit", async function (e) {
-        //     e.preventDefault();
-
-        //     const btn = this.querySelector(".btn-primary");
-        //     const originalHTML = btn.innerHTML;
-
-        //     btn.innerHTML = '<div class="loading"></div> Registering...';
-        //     btn.classList.add("btn-loading");
-
-        //     const name = this.querySelector('[name="name"]').value;
-        //     const email = this.querySelector('[name="email"]').value;
-        //     const password = this.querySelector('[name="password"]').value;
-
-        //     try {
-        //         const response = await fetch("/api/auth/register", {
-        //             method: "POST",
-        //             headers: {
-        //                 "Content-Type": "application/json",
-        //                 "Accept": "application/json",
-        //             },
-        //             body: JSON.stringify({ name, email, password }),
-        //         });
-
-        //         const data = await response.json();
-
-        //         if (response.ok && data.success) {
-        //             showToast("Register berhasil! Silakan login.", "success");
-        //             // kalau mau redirect:
-        //             setTimeout(() => {
-        //                 window.location.href = "/";
-        //             }, 1500);
-        //         } else {
-        //             showToast(data.message || "Gagal register. Cek input.", "info");
-        //         }
-        //     } catch (err) {
-        //         console.error(err);
-        //         showToast("Terjadi error saat register.", "info");
-        //     } finally {
-        //         btn.innerHTML = originalHTML;
-        //         btn.classList.remove("btn-loading");
-        //     }
-        // });
-
-
         // Show forgot password
-        function showForgotPassword() {
-            showToast('Link reset password akan dikirim ke email Anda.', 'info');
+        function showForgotPassword(e) {
+            e.preventDefault();
+            document.getElementById('forgotPasswordBox')
+                .classList.remove('d-none');
         }
 
-        // Toast notification
-        function showToast(message, type) {
-            const toastContainer = document.getElementById('toast-container') || createToastContainer();
-
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'primary'} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.innerHTML = `
-    <div class="d-flex">
-        <div class="toast-body">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
-            ${message}
-        </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-    `;
-
-            toastContainer.appendChild(toast);
-
-            const bsToast = new bootstrap.Toast(toast);
-            bsToast.show();
-
-            // Remove toast after it's hidden
-            toast.addEventListener('hidden.bs.toast', () => {
-                toast.remove();
-            });
-        }
-
-        function createToastContainer() {
-            const container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container position-fixed top-0 end-0 p-3';
-            document.body.appendChild(container);
-            return container;
+        function hideForgotPassword() {
+            document.getElementById('forgotPasswordBox')
+                .classList.add('d-none');
         }
 
         // Add entrance animation
-        window.addEventListener('load', function () {
+        window.addEventListener('load', function() {
             const card = document.querySelector('.card');
             card.style.opacity = '0';
             card.style.transform = 'translateY(30px)';
@@ -750,6 +569,5 @@
         });
     </script>
 </body>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </html>

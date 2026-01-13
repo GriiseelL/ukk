@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->boolean('is_flipside')->default(0); // Tambahan kolom baru
             $table->text('caption');
             $table->string('image');
             $table->timestamps();

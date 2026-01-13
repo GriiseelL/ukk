@@ -10,11 +10,21 @@ class Stories extends Model
         "caption",
         "media",
         "type",
-        "user_id"
+        "user_id",
+        "text_content",
+        'background',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function hiddenUsers()
+    {
+        return $this->hasMany(
+            \App\Models\StoryHide::class,
+            'story_id'
+        );
     }
 }

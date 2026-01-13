@@ -5,26 +5,41 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
-class loginMiddleware
+class LoginMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        if (Auth::check()) {
-            return redirect()->route('homepage');
-        }
-        if (Auth::check() && !$request->is('auth/logout')) {
-            return redirect()->route('homepage');
+        if (!auth()->check()) {
+            return $next($request);
         }
 
+        $user = auth()->user();
 
-        // dd(Auth());
+        // === AUTO UNSUSPEND ===
+        if (
+            $user->is_suspended
+            && $user->suspended_until
+            && now()->greaterThan($user->suspended_until)
+        ) {
+
+            $user->update([
+                'is_suspended' => 0,
+                'suspended_until' => null,
+                'suspended_at' => null,
+                'suspend_reason' => null,
+            ]);
+        }
+
+        // === CEK SUSPENDED ===
+        if ($user->is_suspended) {
+            return redirect()->route('suspended.page');
+        }
+
+        // Cegah buka login/register
+        if ($request->is('auth/login') || $request->is('auth/register')) {
+            return redirect()->route('homepage');
+        }
 
         return $next($request);
     }

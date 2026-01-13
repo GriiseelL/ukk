@@ -2,69 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FlipPosts;
 use App\Models\Likes;
 use App\Models\Posts;
+use App\Models\FlipsidePosts;
 use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
-    public function store($postId)
+    public function store($postId, $type)
     {
 
         $user = auth()->user();
 
-        $post = Posts::findOrFail($postId);
-
+        // gunakan $type dari URL tanpa override
         $alreadyLiked = Likes::where('user_id', $user->id)
             ->where('post_id', $postId)
+            ->where('type', $type)
             ->exists();
 
         if ($alreadyLiked) {
             return response()->json([
-                'message' => 'You already liked this post',
-                'status'=> 409
-            ], 409);
+                'message' => 'already liked',
+                'status' => 409
+            ]);
         }
 
         Likes::create([
             'user_id' => $user->id,
-            'post_id' => $postId
+            'post_id' => $postId,
+            'type'    => $type
         ]);
 
+
         return response()->json([
-            'message' => 'succes',
+            'message' => 'success',
             'status' => 200
-        ], 200);
+        ]);
     }
 
-    public function destroy($postId)
+    public function destroy($postId, $type)
     {
-
-        $user = auth()->user();
-
-        $deleted = Likes::where('user_id', $user->id)
+        Likes::where('user_id', auth()->id())
             ->where('post_id', $postId)
+            ->where('type', $type)
             ->delete();
 
-        if ($deleted) {
-            return response()->json([
-                'message' => 'unlike success',
-                'status' => 200
-            ]);
-        }
-
-        return response()->json(['message' => 'not found', 409]);
-
+        return response()->json([
+            'message' => 'success',
+            'status' => 200
+        ]);
     }
 
-    public function cost($postId)
+    public function count($postId, $type)
     {
-
-        $count = Likes::where('post_id', $postId)->count();
+        $count = Likes::where('post_id', $postId)
+            ->where('type', $type)
+            ->count();
 
         return response()->json([
             'data' => $count,
-            'message' => 'berhasil hitung',
+            'message' => 'count success',
             'status' => 200
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FlipAccess;
 use App\Models\Friends;
 use Illuminate\Http\Request;
 
@@ -17,7 +18,23 @@ class FollowController extends Controller
     //     // ]);
 
     //     return view('akunPrib');
-    // }
+    // }\
+
+    public function getFollowers()
+    {
+        $user = auth()->user();
+
+        // Ambil semua followers (orang yang follow user ini)
+        $followers = Friends::where('user_following', $user->id)
+            ->join('users', 'friends.user_id', '=', 'users.id')
+            ->select('users.id', 'users.name', 'users.username', 'users.avatar')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $followers
+        ]);
+    }
 
     public function store($followingId)
     {
@@ -81,5 +98,32 @@ class FollowController extends Controller
             'message' => 'not found',
             'status' => 409
         ], 409);
+    }
+
+    public function removeFollower($id)
+    {
+        $remove = Friends::where('user_id', $id)
+            ->where('user_following', auth()->id())
+            ->first();
+
+        if (!$remove) {
+            return response()->json([
+                'success' => false,
+                'message' => 'not found'
+            ], 409);
+        }
+
+        // Hapus follower
+        $remove->delete();
+
+        // Hapus juga akses flipside jika ada
+        FlipAccess::where('user_id', $id)
+            ->where('owner_id', auth()->id())
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Follower & akses flipside berhasil dihapus'
+        ], 200);
     }
 }

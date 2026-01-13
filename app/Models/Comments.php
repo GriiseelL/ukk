@@ -9,7 +9,8 @@ class Comments extends Model
     protected $fillable = [
         'post_id',
         'user_id',
-        'content'
+        'content',
+        'type'
     ];
 
     public function user()
@@ -22,5 +23,14 @@ class Comments extends Model
         return $this->belongsTo(Posts::class);
     }
 
+    public function scopeMain($query)
+    {
+        return $query->where('type', 'main');
+    }
+
+    public function scopeFlipside($query)
+    {
+        return $query->where('type', 'flipside');
+    }
 
 }

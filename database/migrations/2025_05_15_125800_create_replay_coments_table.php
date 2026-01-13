@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('replay_coments', function (Blueprint $table) {
+        Schema::create('replay_comments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('coments_id')->constrained('coments')->onDelete('cascade');
+            $table->foreignId('comment_id')->constrained('comments')->onDelete('cascade');
             $table->text('content');
             $table->timestamps();
         });
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('replay_coments');
+        Schema::dropIfExists('replay_comments');
     }
 };
