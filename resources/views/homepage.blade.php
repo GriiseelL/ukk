@@ -161,7 +161,7 @@
         transition: all 0.3s ease;
     }
 
-    .post-composer:focus-within {
+    /* .post-composer:focus-within {
         box-shadow: 0 4px 20px rgba(29, 161, 242, 0.15);
         border-color: var(--primary-color);
     }
@@ -227,7 +227,111 @@
     .composer-option:hover {
         background-color: rgba(29, 161, 242, 0.1);
         transform: scale(1.1);
+    } */
+
+    .post-composer {
+        border-bottom: 1px solid #e6ecf0;
+        padding: 12px;
     }
+
+    .composer-textarea {
+        width: 100%;
+        border: none;
+        resize: none;
+        font-size: 16px;
+        outline: none;
+    }
+
+    .media-preview {
+        margin-top: 10px;
+    }
+
+    .media-preview.hidden {
+        display: none;
+    }
+
+    /* GRID */
+    .media-grid {
+        display: grid;
+        gap: 6px;
+    }
+
+    .media-grid img,
+    .media-grid video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 16px;
+    }
+
+    /* 1 media */
+    .media-grid[data-count="1"] {
+        grid-template-columns: 1fr;
+    }
+
+    /* 2 media */
+    .media-grid[data-count="2"] {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* 3 media */
+    .media-grid[data-count="3"] {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .media-grid[data-count="3"]> :first-child {
+        grid-row: span 2;
+    }
+
+    /* 4 media */
+    .media-grid[data-count="4"] {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    /* REMOVE BTN */
+    .media-item {
+        position: relative;
+    }
+
+    .media-remove {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0, 0, 0, .6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+    }
+
+    /* TOOLBAR */
+    .composer-toolbar {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .toolbar-left button {
+        background: none;
+        border: none;
+        color: #1d9bf0;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    /* .post-btn {
+        background: #1d9bf0;
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-weight: bold;
+    } */
+
 
     .post-btn {
         background: var(--primary-color);
@@ -784,67 +888,60 @@
             </div>
 
             <!-- Post Composer -->
-            <div class="post-composer">
-                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data" id="postForm">
-                    @csrf
+            <form id="postForm" action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
 
-                    <div class="composer-header">
-                        <div class="composer-avatar">
-                            @if(Auth::user()->avatar)
-                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="avatar"
-                                class="rounded-circle" width="40" height="40">
-                            @else
-                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
-                            @endif
-                        </div>
-                        <textarea class="composer-input" id="postContent" name="caption"
-                            placeholder="Apa yang sedang terjadi?" maxlength="280" oninput="updateCharCount()"
-                            required></textarea>
+                <div class="post-composer">
+
+                    <!-- TEXTAREA -->
+                    <textarea
+                        class="composer-textarea"
+                        id="postContent"
+                        name="caption"
+                        placeholder="Apa yang sedang terjadi?"
+                        rows="1"
+                        oninput="updateCharCount()"></textarea>
+
+                    <!-- CHAR COUNT -->
+                    <div class="text-end small text-muted">
+                        <span id="charCount">0/280</span>
                     </div>
 
-                    <div class="upload-preview hidden" id="uploadPreview">
-                        <span class="media-type-indicator" id="mediaTypeIndicator"></span>
-                        <img id="previewImage" src="" alt="Preview" style="display: none;">
-                        <video id="previewVideo" controls style="display: none;"></video>
-                        <button type="button" class="remove-image" onclick="removeMedia()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                    <!-- MEDIA PREVIEW -->
+                    <div class="media-preview hidden" id="uploadPreview"></div>
 
-                    <input type="file"
-                        class="file-upload"
+                    <!-- FILE INPUT -->
+                    <input
+                        type="file"
                         id="mediaUpload"
-                        name="media"
-                        accept="image/*,video/*"
+                        name="image"
+                        accept="image/*"
                         hidden
                         onchange="handleMediaUpload(event)">
 
-                    <div class="composer-tools">
-                        <div class="composer-options">
-                            <button type="button" class="composer-option" onclick="triggerMediaUpload('image')"
-                                title="Tambah foto">
-                                <i class="fas fa-image"></i>
-                            </button>
-                            <button type="button" class="composer-option"
-                                onclick="triggerMediaUpload('video')"
-                                title="Tambah video">
-                                <i class="fas fa-video"></i>
-                            </button>
-                            <button type="button" class="composer-option" title="Tambah poll">
-                                <i class="fas fa-poll"></i>
-                            </button>
-                            <button type="button" class="composer-option" title="Tambah emoji">
-                                <i class="fas fa-smile"></i>
+                    <!-- TOOLBAR -->
+                    <div class="composer-toolbar">
+                        <div class="toolbar-left">
+                            <button type="button"
+                                onclick="triggerMediaUpload('image')"
+                                title="Media">
+                                <i class="far fa-image"></i>
                             </button>
                         </div>
 
-                        <div class="d-flex align-items-center">
-                            <span class="char-count" id="charCount">0/280</span>
-                            <button type="submit" class="post-btn" id="postBtn">Post</button>
-                        </div>
+                        <!-- SUBMIT -->
+                        <button
+                            class="post-btn"
+                            id="postBtn"
+                            type="submit"
+                            disabled>
+                            Post
+                        </button>
                     </div>
-                </form>
-            </div>
+
+                </div>
+            </form>
+
 
             <!-- Feed Posts -->
             <div id="feedContainer">
@@ -1002,28 +1099,31 @@
         const charCount = document.getElementById('charCount');
         const postBtn = document.getElementById('postBtn');
 
-        if (!postContent) return;
+        if (!postContent || !postBtn) return;
 
         const length = postContent.value.length;
         charCount.textContent = `${length}/280`;
 
+        // DEFAULT
+        postBtn.disabled = true;
+        postBtn.classList.remove('active');
+        charCount.classList.remove('warning', 'danger');
+
         if (length > 280) {
             charCount.classList.add('danger');
-            charCount.classList.remove('warning');
-            postBtn.classList.remove('active');
-        } else if (length > 250) {
+            return;
+        }
+
+        if (length > 250) {
             charCount.classList.add('warning');
-            charCount.classList.remove('danger');
+        }
+
+        if (length > 0 || uploadedFiles.length > 0) {
+            postBtn.disabled = false;
             postBtn.classList.add('active');
-        } else {
-            charCount.classList.remove('warning', 'danger');
-            if (length > 0 || uploadedFiles.length > 0) {
-                postBtn.classList.add('active');
-            } else {
-                postBtn.classList.remove('active');
-            }
         }
     };
+
 
     // Media Upload Functions
     window.triggerMediaUpload = function(type) {
@@ -1050,114 +1150,83 @@
 
     window.handleMediaUpload = function(event) {
         const files = Array.from(event.target.files);
+        if (!files.length) return;
 
-        if (!files || files.length === 0) return;
+        let imageCount = uploadedFiles.filter(f => f.type.startsWith('image/')).length;
+        let videoCount = uploadedFiles.filter(f => f.type.startsWith('video/')).length;
 
-        const uploadPreview = document.getElementById('uploadPreview');
-        const mediaTypeIndicator = document.getElementById('mediaTypeIndicator');
-
-        if (!uploadPreview) {
-            console.error('Preview elements not found');
-            return;
-        }
-
-        // Check if adding video when images exist or vice versa
-        const hasImages = uploadedFiles.some(f => f.type.startsWith('image/'));
-        const hasVideos = uploadedFiles.some(f => f.type.startsWith('video/'));
-        const newHasImages = files.some(f => f.type.startsWith('image/'));
-        const newHasVideos = files.some(f => f.type.startsWith('video/'));
-
-        if ((hasImages && newHasVideos) || (hasVideos && newHasImages)) {
-            window.showNotification('⚠️ Cannot mix images and videos');
-            event.target.value = '';
-            return;
-        }
-
-        // Validate each file
         for (const file of files) {
+
             if (uploadedFiles.length >= MAX_FILES) {
-                window.showNotification(`⚠️ Maximum ${MAX_FILES} files allowed`);
+                showNotification(`⚠️ Max ${MAX_FILES} media`);
                 break;
             }
 
-            if (file.type.startsWith('image/') && file.size > MAX_IMAGE_SIZE) {
-                window.showNotification(`⚠️ ${file.name} exceeds 5MB limit`);
-                continue;
-            }
-
-            if (file.type.startsWith('video/') && file.size > MAX_VIDEO_SIZE) {
-                window.showNotification(`⚠️ ${file.name} exceeds 50MB limit`);
-                continue;
-            }
-
-            const isDuplicate = uploadedFiles.some(f =>
-                f.name === file.name && f.size === file.size
-            );
-
-            if (isDuplicate) {
-                window.showNotification(`⚠️ ${file.name} already added`);
-                continue;
+            if (file.type.startsWith('image/')) {
+                if (imageCount >= 4) {
+                    showNotification('⚠️ Max 4 images');
+                    continue;
+                }
+                if (file.size > MAX_IMAGE_SIZE) {
+                    showNotification(`⚠️ ${file.name} > 5MB`);
+                    continue;
+                }
+                imageCount++;
+            } else if (file.type.startsWith('video/')) {
+                if (videoCount >= 1) {
+                    showNotification('⚠️ Only 1 video allowed');
+                    continue;
+                }
+                if (file.size > MAX_VIDEO_SIZE) {
+                    showNotification(`⚠️ ${file.name} > 50MB`);
+                    continue;
+                }
+                videoCount++;
             }
 
             uploadedFiles.push(file);
         }
 
-        window.renderMediaPreviews();
-        window.updateCharCount();
+        renderMediaPreviews();
+        updateCharCount();
         event.target.value = '';
-
-        const fileType = uploadedFiles[0]?.type.startsWith('image/') ? 'Image' : 'Video';
-        const count = uploadedFiles.length;
-        window.showNotification(`✅ ${count} ${fileType}${count > 1 ? 's' : ''} loaded!`);
     };
 
-    window.renderMediaPreviews = function() {
-        const uploadPreview = document.getElementById('uploadPreview');
-        const mediaTypeIndicator = document.getElementById('mediaTypeIndicator');
 
-        if (uploadedFiles.length === 0) {
-            uploadPreview.classList.add('hidden');
+    window.renderMediaPreviews = function() {
+        const wrapper = document.getElementById('uploadPreview');
+        wrapper.innerHTML = '';
+
+        if (!uploadedFiles.length) {
+            wrapper.classList.add('hidden');
             return;
         }
 
-        uploadPreview.classList.remove('hidden');
+        wrapper.classList.remove('hidden');
 
-        const existingPreviews = uploadPreview.querySelectorAll('.preview-item');
-        existingPreviews.forEach(p => p.remove());
-
-        const isImage = uploadedFiles[0].type.startsWith('image/');
-        const count = uploadedFiles.length;
-        mediaTypeIndicator.innerHTML = isImage ?
-            `<i class="fas fa-image"></i> ${count} Image${count > 1 ? 's' : ''}` :
-            `<i class="fas fa-video"></i> Video`;
+        const grid = document.createElement('div');
+        grid.className = 'media-grid';
+        grid.dataset.count = uploadedFiles.length;
 
         uploadedFiles.forEach((file, index) => {
-            const fileURL = URL.createObjectURL(file);
-            const previewItem = document.createElement('div');
-            previewItem.className = 'preview-item';
-            previewItem.style.cssText = 'position: relative; margin-top: 10px;';
+            const url = URL.createObjectURL(file);
+            const item = document.createElement('div');
+            item.className = 'media-item';
 
-            if (file.type.startsWith('image/')) {
-                previewItem.innerHTML = `
-                <img src="${fileURL}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;">
-                <button type="button" class="remove-media-btn" onclick="window.removeMediaAtIndex(${index})" 
-                    style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            } else if (file.type.startsWith('video/')) {
-                previewItem.innerHTML = `
-                <video src="${fileURL}" controls style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;"></video>
-                <button type="button" class="remove-media-btn" onclick="window.removeMediaAtIndex(${index})"
-                    style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
+            item.innerHTML = `
+            ${file.type.startsWith('image/')
+                ? `<img src="${url}">`
+                : `<video src="${url}" muted controls></video>`
             }
+            <button class="media-remove" onclick="removeMediaAtIndex(${index})">✕</button>
+        `;
 
-            uploadPreview.appendChild(previewItem);
+            grid.appendChild(item);
         });
+
+        wrapper.appendChild(grid);
     };
+
 
     window.removeMediaAtIndex = function(index) {
         if (index >= 0 && index < uploadedFiles.length) {
@@ -1651,12 +1720,11 @@
                     return false;
                 }
 
-                const formData = new FormData(this);
-                formData.delete('media');
+                const formData = new FormData(this); // ✅ INI PENTING
 
-                uploadedFiles.forEach((file, index) => {
-                    formData.append(`media[${index}]`, file);
-                });
+                if (uploadedFiles.length > 0) {
+                    formData.set('image', uploadedFiles[0]);
+                }
 
                 if (postBtn) {
                     postBtn.disabled = true;
