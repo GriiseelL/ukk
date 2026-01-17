@@ -19,12 +19,12 @@ class StorePostRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules()
     {
         return [
-//            'user_id' => 'required|exists:users,id',
-            'caption' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+            'caption' => 'nullable|string|max:280',
+            'media' => 'nullable|array|max:6',
+            'media.*' => 'file|mimes:jpg,jpeg,png,webp,mp4,mov|max:51200',
         ];
     }
 }

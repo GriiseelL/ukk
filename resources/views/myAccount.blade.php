@@ -704,8 +704,7 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
         color: {{ $isFlipside ? 'rgba(255,255,255,0.9)' : 'inherit' }};
     }
 
-    /* Image Modal */
-    .image-modal {
+  .image-modal {
         display: none;
         position: fixed;
         z-index: 3000;
@@ -804,44 +803,81 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
     border-radius: 12px;
     margin-bottom: 10px;
     transition: all 0.3s ease;
-}
+    }
 
-.user-list-item .modal-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 2px solid #e0e0e0;
-}
+    .user-list-item .modal-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid #e0e0e0;
+    }
 
-.user-list-item .modal-avatar.flipside {
-    border-color: rgba(255, 0, 128, 0.3);
-}
+    .user-list-item .modal-avatar.flipside {
+        border-color: rgba(255, 0, 128, 0.3);
+    }
 
-.user-list-item .name {
-    display: block;
-    font-size: 15px;
-    font-weight: 700;
-}
+    .user-list-item .name {
+        display: block;
+        font-size: 15px;
+        font-weight: 700;
+    }
 
-.user-list-item .username {
-    font-size: 13px;
-}
+    .user-list-item .username {
+        font-size: 13px;
+    }
 
-.modal-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    border: 2px solid #e0e0e0;
-}
+    .modal-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid #e0e0e0;
+    }
 
-.modal-avatar.flipside {
-    border-color: rgba(255, 0, 128, 0.3);
-}
+    .modal-avatar.flipside {
+        border-color: rgba(255, 0, 128, 0.3);
+    }
 
+    .media-grid {
+        display: grid;
+        gap: 6px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .media-grid.media-count-1 {
+        grid-template-columns: 1fr;
+    }
+
+    .media-grid.media-count-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .media-grid.media-count-3,
+    .media-grid.media-count-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .media-item img,
+    .media-item video {
+        width: 100%;
+        height: 100%;
+        max-height: 420px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .media-grid-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 12px;
+        cursor: pointer;
+    }
 </style>
 
 <div class="row">
@@ -861,35 +897,35 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
             </div>
             @endif
 
-          <div class="cover-section {{ $activeCover ? 'has-cover-image' : '' }}" 
-     @if($activeCover)
-     style="background-image: url('{{ asset('storage/' . $activeCover) }}'); 
-            background-size: cover; 
-            background-position: center; 
-            background-repeat: no-repeat;
-            animation: none !important;"
-     @endif
-     onclick="{{ !$isFlipside ? 'editCover()' : 'editFlipsideCover()' }}">
+            <div class="cover-section {{ $activeCover ? 'has-cover-image' : '' }}" 
+                @if($activeCover)
+                style="background-image: url('{{ asset('storage/' . $activeCover) }}'); 
+                        background-size: cover; 
+                        background-position: center; 
+                        background-repeat: no-repeat;
+                        animation: none !important;"
+                @endif
+                onclick="{{ !$isFlipside ? 'editCover()' : 'editFlipsideCover()' }}">
+                
+                {{-- Edit Overlay --}}
+                <div class="cover-edit-overlay" onclick="event.stopPropagation(); {{ $isFlipside ? 'editFlipsideCover()' : 'editCover()' }}">
+                    <i class="fas fa-camera me-2"></i> 
+                    {{ $activeCover ? 'Change' : 'Add' }} 
+                    {{ $isFlipside ? 'Flipside' : '' }} Cover
+                 </div>
     
-    {{-- Edit Overlay --}}
-    <div class="cover-edit-overlay" onclick="event.stopPropagation(); {{ $isFlipside ? 'editFlipsideCover()' : 'editCover()' }}">
-        <i class="fas fa-camera me-2"></i> 
-        {{ $activeCover ? 'Change' : 'Add' }} 
-        {{ $isFlipside ? 'Flipside' : '' }} Cover
-    </div>
     
-    
-    @if($user->cover)
-    <!-- View Cover Button -->
-    <div class="cover-view-btn" onclick="viewCoverFullSize(event)" 
-         style="position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.6); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; transition: all 0.3s ease; z-index: 10; backdrop-filter: blur(10px);"
-         onmouseover="this.style.background='rgba(0, 0, 0, 0.8)'; this.style.transform='scale(1.05)';"
-         onmouseout="this.style.background='rgba(0, 0, 0, 0.6)'; this.style.transform='scale(1)';">
-        <i class="fas fa-expand"></i>
-        <span>View Cover</span>
-    </div>
-    @endif
-</div>
+                @if($user->cover)
+                <!-- View Cover Button -->
+                    <div class="cover-view-btn" onclick="viewCoverFullSize(event)" 
+                        style="position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.6); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; transition: all 0.3s ease; z-index: 10; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(0, 0, 0, 0.8)'; this.style.transform='scale(1.05)';"
+                        onmouseout="this.style.background='rgba(0, 0, 0, 0.6)'; this.style.transform='scale(1)';">
+                        <i class="fas fa-expand"></i>
+                        <span>View Cover</span>
+                    </div>
+                @endif
+            </div>
             <div class="profile-header">
             <div class="avatar-container">
                 <div class="avatar" onclick="{{ $isFlipside ? 'editFlipsideAvatar()' : 'toggleAvatarMenu(event)' }}">
@@ -1025,12 +1061,34 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
 
                         <div class="post-content">
                             {!! nl2br(e($post->caption)) !!}
-                            @if($post->image)
-                            <div class="mt-3">
-                                <img src="{{ asset('storage/' . $post->image) }}"
-                                    class="img-fluid rounded"
-                                    style="max-width: 100%; border-radius: 12px; cursor: pointer;"
-                                    onclick="openImageModal(this.src)">
+                            @if($post->media && $post->media->count())
+                            <div class="mt-3 media-grid media-count-{{ $post->media->count() }}">
+                                @foreach($post->media as $media)
+                                    <div class="media-item">
+                                        @if($media->type === 'image')
+                                            <img
+                                                src="{{ asset('storage/' . $media->file_path) }}"
+                                                onclick="openImageModal(this.src)"
+                                            >
+                                       @elseif($media->type === 'video') 
+                                    <div class="post-video-container" style="position:relative; margin-bottom:15px;">
+                                        <video
+                                            class="twitter-video"
+                                            muted
+                                            playsinline
+                                            preload="metadata"
+                                            style="width:100%; max-height:400px; object-fit:cover; border-radius:12px; cursor:pointer;">
+                                            <source src="{{ asset('storage/' . $media->file_path) }}" type="video/mp4">
+                                        </video>
+                                        <!-- tombol mute/unmute -->
+                                        <button class="mute-btn"
+                                            style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.5); border:none; color:white; padding:5px 8px; border-radius:50%; cursor:pointer;">
+                                            🔇
+                                        </button>
+                                    </div>
+                                    @endif
+                                    </div>
+                                @endforeach
                             </div>
                             @endif
                         </div>
@@ -1087,17 +1145,23 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                 </div>
 
                 <div id="media-content" class="hidden">
-                    @if(collect($displayPosts)->where('image', '!=', null)->isNotEmpty())
+                    @php
+                        $allMedia = collect($displayPosts)->pluck('media')->flatten();
+                    @endphp
+
+                    @if($allMedia->count())
                     <div class="row">
-                        @foreach(collect($displayPosts)->where('image', '!=', null) as $post)
-                        <div class="col-md-4 mb-3">
-                            <div style="background: {{ $isFlipside ? '#1a1a1a' : 'white' }}; border: 1px solid {{ $isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#ddd' }}; border-radius: 12px; overflow: hidden;">
-                                <img src="{{ asset('storage/' . $post->image) }}"
-                                    alt="Media"
-                                    style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;"
-                                    onclick="openImageModal(this.src)">
+                        @foreach($allMedia as $media)
+                            @if($media->type === 'image')
+                            <div class="col-md-4 mb-3">
+                                <div class="media-grid-item">
+                                    <img
+                                        src="{{ asset('storage/' . $media->file_path) }}"
+                                        onclick="openImageModal(this.src)"
+                                    >
+                                </div>
                             </div>
-                        </div>
+                            @endif
                         @endforeach
                     </div>
                     @else
@@ -1107,6 +1171,7 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                     </div>
                     @endif
                 </div>
+
 
                 @if(!$isFlipside)
                 <div id="likes-content" class="hidden">
@@ -1215,6 +1280,7 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
         <img id="modalImage" src="" alt="Full size image">
     </div>
 </div>
+
 
 <!-- Flipside Post Modal -->
 <div id="flipsidePostModal" class="modal" style="display: none;">
@@ -2115,10 +2181,10 @@ async function removeFollower(userId, button) {
 }
 
 // Helper function untuk notification
-function showNotification(message) {
-    // Implementasi sesuai dengan sistem notifikasi Anda
-    alert(message);
-}
+    function showNotification(message) {
+        // Implementasi sesuai dengan sistem notifikasi Anda
+        alert(message);
+    }
 
     // Modal functions
     function openImageModal(imageSrc) {
@@ -3820,6 +3886,57 @@ function viewCoverFullSize(event, mode = 'main') {
     
     openImageModal(coverImage);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const videos = document.querySelectorAll(".twitter-video");
+    let currentlyPlaying = null;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                if (currentlyPlaying && currentlyPlaying !== video) {
+                    currentlyPlaying.pause();
+                }
+                video.play().catch(()=>{});
+                currentlyPlaying = video;
+            } else {
+                video.pause();
+                if (currentlyPlaying === video) currentlyPlaying = null;
+            }
+        });
+    }, { threshold: [0, 0.6] });
+
+    videos.forEach(video => observer.observe(video));
+
+    // klik video → buka fullscreen
+    videos.forEach(video => {
+        video.addEventListener("click", () => {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                video.requestFullscreen();
+            }
+        });
+    });
+
+    // tombol mute/unmute
+    const muteButtons = document.querySelectorAll(".mute-btn");
+    muteButtons.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation(); // jangan trigger fullscreen
+            const video = btn.previousElementSibling; // video sebelah tombol
+            if (video.muted) {
+                video.muted = false;
+                btn.textContent = "🔊";
+            } else {
+                video.muted = true;
+                btn.textContent = "🔇";
+            }
+        });
+    });
+});
 </script>
 
 @endsection

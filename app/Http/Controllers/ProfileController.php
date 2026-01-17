@@ -20,17 +20,21 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
-        // Post normal (MAIN POSTS)
+        // MAIN POSTS
         $posts = Posts::where('user_id', $user->id)
+            ->with(['media', 'user'])
+            ->withCount(['likes as likes_count' => function ($q) {
+                $q->where('type', 'main');
+            }])
             ->latest()
             ->get();
 
-        // Followers = orang yang mengikuti user ini
+        // Followers
         $followers = Friends::where('user_following', $user->id)
             ->with('follower')
             ->get();
 
-        // Following = orang yang diikuti oleh user ini
+        // Following
         $following = Friends::where('user_id', $user->id)
             ->with('following')
             ->get();
@@ -38,18 +42,20 @@ class ProfileController extends Controller
         $followersCount = $followers->count();
         $followingCount = $following->count();
 
-        // Hitung likes untuk MAIN POSTS saja
-        $likesCount = Likes::whereIn('post_id', $posts->pluck('id'))
-            ->where('type', 'main')
-            ->count();
+        // TOTAL LIKES PROFILE
+        $likesCount = Likes::whereHas('post', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->where('type', 'main')->count();
 
-        // Postingan yang disukai user (MAIN ONLY)
-        $likedPosts = Posts::whereHas('likes', function ($q) use ($user) {
-            $q->where('user_id', $user->id)
-                ->where('type', 'main');
-        })->latest()->get();
+        // POST YANG DISUKAI USER
+        $likedPosts = Posts::with('media')
+            ->whereHas('likes', function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->where('type', 'main');
+            })
+            ->latest()
+            ->get();
 
-        // Ambil daftar ID pengguna yang diikuti
         $followingIds = $following->pluck('following.id')->toArray();
 
         return view('myAccount', compact(

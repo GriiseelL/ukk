@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePostRequest;
 use App\Models\FlipPosts;
 use App\Models\Friends;
+use App\Models\PostMedia;
 use App\Models\Posts;
 use App\Models\Stories;
 use App\Models\User;
@@ -24,7 +25,7 @@ class PostController extends Controller
         $authUserId = Auth::id();
 
         // Query posts seperti biasa
-        $posts = Posts::with(['user.followers', 'likes'])
+        $posts = Posts::with(['user.followers', 'likes', 'media'])
             ->whereHas('user.followers', function ($q) use ($authUserId) {
                 $q->where('user_id', '=', $authUserId);
             })
@@ -134,40 +135,38 @@ class PostController extends Controller
     // Maka insert: story_id = 5, user_id = 3
     // ============================================
 
-    public function store(StorePostRequest $request)
+    public function store(Request $request)
     {
-        $user = auth()->user();
+        $request->validate([
+            'caption' => 'nullable|string|max:280',
+            'media' => 'nullable|array|max:4',
+            'media.*' => 'file|mimes:jpg,jpeg,png,mp4,mov|max:51200',
+        ]);
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+        $post = Posts::create([
+            'user_id' => auth()->id(),
+            'caption' => $request->caption,
+        ]);
+
+        if ($request->hasFile('media')) {
+            foreach ($request->file('media') as $file) {
+                $path = $file->store('posts', 'public');
+
+                PostMedia::create([
+                    'post_id' => $post->id,
+                    'file_path' => $path,
+                    'type' => str_starts_with($file->getMimeType(), 'video')
+                        ? 'video'
+                        : 'image'
+                ]);
+            }
         }
 
-        $data = $request->validated();
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('posts', 'public');
-        } else {
-            $data['image'] = null;
-        }
-
-        $data['user_id'] = $user->id;
-
-        $post = Posts::create($data);
-
-        // Cek apakah request dari AJAX
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Post berhasil dibuat',
-                'post' => $post
-            ]);
-        }
-
-        return redirect()->route('homepage')->with('success', 'Post berhasil dibuat');
+        return response()->json([
+            'success' => true
+        ]);
     }
+
 
     public function update(StorePostRequest $request, Posts $post)
     {
@@ -206,9 +205,13 @@ class PostController extends Controller
         }
 
         // 4. Hapus media kalau ada
-        if ($post->image) {
-            Storage::disk('public')->delete($post->image);
+        foreach ($post->media as $media) {
+            Storage::disk('public')->delete($media->file_path);
+            $media->delete();
         }
+
+        $post->delete();
+
 
         // 5. Hapus record
         $post->delete();
@@ -221,10 +224,14 @@ class PostController extends Controller
 
     public function show($id)
     {
-        $post = Posts::with(['user', 'comments.user', 'likes'])
+        $post = Posts::with([
+            'user',
+            'media',
+            'comments.user',
+            'likes'
+        ])
             ->withCount(['likes', 'comments'])
             ->findOrFail($id);
-
         $isLiked = $post->likes()->where('user_id', auth()->id())->exists();
 
         return response()->json([

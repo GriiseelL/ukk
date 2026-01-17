@@ -453,16 +453,33 @@
     }
 
     .post-media {
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 15px;
-        max-height: 400px;
+        display: grid;
+        gap: 6px;
+        margin-top: 8px;
     }
 
+    /* AUTO GRID BERDASARKAN JUMLAH */
+    .post-media[data-count="1"] {
+        grid-template-columns: 1fr;
+    }
+
+    .post-media[data-count="2"] {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .post-media[data-count="3"],
+    .post-media[data-count="4"] {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* FIX UKURAN IMAGE */
     .post-media img {
         width: 100%;
-        height: auto;
+        height: 220px;
+        /* 🔥 INI YANG NYAMAIN */
         object-fit: cover;
+        /* 🔥 AUTO CROP */
+        border-radius: 12px;
         cursor: pointer;
     }
 
@@ -888,7 +905,10 @@
             </div>
 
             <!-- Post Composer -->
-            <form id="postForm" action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="postForm"
+                action="{{ route('posts.store') }}"
+                method="POST"
+                enctype="multipart/form-data">
                 @csrf
 
                 <div class="post-composer">
@@ -910,20 +930,22 @@
                     <!-- MEDIA PREVIEW -->
                     <div class="media-preview hidden" id="uploadPreview"></div>
 
-                    <!-- FILE INPUT -->
+                    <!-- FILE INPUT (PENTING) -->
                     <input
                         type="file"
                         id="mediaUpload"
-                        name="image"
-                        accept="image/*"
+                        name="media[]"
+                        accept="image/*,video/*"
+                        multiple
                         hidden
                         onchange="handleMediaUpload(event)">
 
                     <!-- TOOLBAR -->
                     <div class="composer-toolbar">
                         <div class="toolbar-left">
-                            <button type="button"
-                                onclick="triggerMediaUpload('image')"
+                            <button
+                                type="button"
+                                onclick="triggerMediaUpload()"
                                 title="Media">
                                 <i class="far fa-image"></i>
                             </button>
@@ -941,7 +963,6 @@
 
                 </div>
             </form>
-
 
             <!-- Feed Posts -->
             <div id="feedContainer">
@@ -974,12 +995,33 @@
                                     <span class="text-muted ms-2">• {{ $post->created_at->diffForHumans() }}</span>
                                 </div>
                                 <p class="mb-3">{{ $post->caption }}</p>
-                                @if($post->image)
-                                <img src="{{ asset('storage/' . $post->image) }}"
-                                    alt="Post"
-                                    class="post-image mb-3"
-                                    onclick="openImageModal('{{ asset('storage/' . $post->image) }}')"
-                                    style="cursor: pointer;" />
+                                @if($post->media->count())
+                                <div class="post-media media-grid" data-count="{{ $post->media->count() }}">
+                                    @foreach($post->media as $media)
+                                    @if($media->type === 'image')
+                                    <img
+                                        src="{{ asset('storage/' . $media->file_path) }}"
+                                        alt="Post Image"
+                                        onclick="openImageModal('{{ asset('storage/' . $media->file_path) }}')">
+                                    @elseif($media->type === 'video') 
+                                    <div class="post-video-container" style="position:relative; margin-bottom:15px;">
+                                        <video
+                                            class="twitter-video"
+                                            muted
+                                            playsinline
+                                            preload="metadata"
+                                            style="width:100%; max-height:400px; object-fit:cover; border-radius:12px; cursor:pointer;">
+                                            <source src="{{ asset('storage/' . $media->file_path) }}" type="video/mp4">
+                                        </video>
+                                        <!-- tombol mute/unmute -->
+                                        <button class="mute-btn"
+                                            style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.5); border:none; color:white; padding:5px 8px; border-radius:50%; cursor:pointer;">
+                                            🔇
+                                        </button>
+                                    </div>
+                                    @endif
+                                    @endforeach
+                                </div>
                                 @endif
                                 <div class="d-flex justify-content-between">
                                     <button class="btn btn-sm btn-light" onclick="showComments({{ $post->id }})">
@@ -1095,57 +1137,31 @@
 
     // Character Count
     window.updateCharCount = function() {
-        const postContent = document.getElementById('postContent');
-        const charCount = document.getElementById('charCount');
+        const textarea = document.getElementById('postContent');
         const postBtn = document.getElementById('postBtn');
+        const charCount = document.getElementById('charCount');
 
-        if (!postContent || !postBtn) return;
+        if (!textarea || !postBtn || !charCount) return;
 
-        const length = postContent.value.length;
-        charCount.textContent = `${length}/280`;
+        const textLength = textarea.value.trim().length;
+        charCount.textContent = `${textLength}/280`;
 
-        // DEFAULT
-        postBtn.disabled = true;
-        postBtn.classList.remove('active');
-        charCount.classList.remove('warning', 'danger');
-
-        if (length > 280) {
-            charCount.classList.add('danger');
-            return;
-        }
-
-        if (length > 250) {
-            charCount.classList.add('warning');
-        }
-
-        if (length > 0 || uploadedFiles.length > 0) {
+        if (textLength > 0 || uploadedFiles.length > 0) {
             postBtn.disabled = false;
-            postBtn.classList.add('active');
+            postBtn.classList.add('active'); // 🔥 INI PENTING
+        } else {
+            postBtn.disabled = true;
+            postBtn.classList.remove('active'); // 🔥 INI PENTING
         }
     };
 
 
     // Media Upload Functions
-    window.triggerMediaUpload = function(type) {
-        console.log('triggerMediaUpload called with type:', type);
-        const mediaUpload = document.getElementById('mediaUpload');
 
-        if (!mediaUpload) {
-            console.error('Media upload input not found');
-            window.showNotification('⚠️ Upload input not found');
-            return;
-        }
-
-        // Set accept attribute based on type
-        if (type === 'image') {
-            mediaUpload.setAttribute('accept', 'image/*');
-            mediaUpload.setAttribute('multiple', 'multiple');
-        } else if (type === 'video') {
-            mediaUpload.setAttribute('accept', 'video/*');
-            mediaUpload.removeAttribute('multiple');
-        }
-
-        mediaUpload.click();
+    window.triggerMediaUpload = function() {
+        const input = document.getElementById('mediaUpload');
+        if (!input) return;
+        input.click();
     };
 
     window.handleMediaUpload = function(event) {
@@ -1189,10 +1205,13 @@
 
         renderMediaPreviews();
         updateCharCount();
+
         event.target.value = '';
     };
 
-
+    /* =======================
+       PREVIEW
+    ======================= */
     window.renderMediaPreviews = function() {
         const wrapper = document.getElementById('uploadPreview');
         wrapper.innerHTML = '';
@@ -1210,13 +1229,14 @@
 
         uploadedFiles.forEach((file, index) => {
             const url = URL.createObjectURL(file);
+
             const item = document.createElement('div');
             item.className = 'media-item';
 
             item.innerHTML = `
             ${file.type.startsWith('image/')
                 ? `<img src="${url}">`
-                : `<video src="${url}" muted controls></video>`
+                : `<video src="${url}" controls muted></video>`
             }
             <button class="media-remove" onclick="removeMediaAtIndex(${index})">✕</button>
         `;
@@ -1227,35 +1247,17 @@
         wrapper.appendChild(grid);
     };
 
-
     window.removeMediaAtIndex = function(index) {
-        if (index >= 0 && index < uploadedFiles.length) {
-            uploadedFiles.splice(index, 1);
-            window.renderMediaPreviews();
-            window.updateCharCount();
-            window.showNotification('🗑️ Media removed');
-        }
+        if (index < 0 || index >= uploadedFiles.length) return;
+        uploadedFiles.splice(index, 1);
+        renderMediaPreviews();
+        updateCharCount();
     };
 
-    window.removeMedia = function() {
-        uploadedFiles = [];
-        const uploadPreview = document.getElementById('uploadPreview');
 
-        if (uploadPreview) {
-            const previews = uploadPreview.querySelectorAll('.preview-item');
-            previews.forEach(p => {
-                const img = p.querySelector('img');
-                const video = p.querySelector('video');
-                if (img && img.src) URL.revokeObjectURL(img.src);
-                if (video && video.src) URL.revokeObjectURL(video.src);
-            });
-
-            uploadPreview.classList.add('hidden');
-        }
-
-        window.updateCharCount();
-        window.showNotification('🗑️ All media removed');
-    };
+    /* =======================
+       SUBMIT (IMPORTANT PART)
+    ======================= */
 
     // Like Functionality
     window.toggleLike = async function(btn) {
@@ -1723,7 +1725,9 @@
                 const formData = new FormData(this); // ✅ INI PENTING
 
                 if (uploadedFiles.length > 0) {
-                    formData.set('image', uploadedFiles[0]);
+                    uploadedFiles.forEach(file => {
+                        formData.append('media[]', file);
+                    });
                 }
 
                 if (postBtn) {
@@ -1803,5 +1807,58 @@
     });
 
     console.log('✅ All functions loaded successfully');
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const videos = document.querySelectorAll(".twitter-video");
+        let currentlyPlaying = null;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target;
+
+                if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+                    if (currentlyPlaying && currentlyPlaying !== video) {
+                        currentlyPlaying.pause();
+                    }
+                    video.play().catch(() => {});
+                    currentlyPlaying = video;
+                } else {
+                    video.pause();
+                    if (currentlyPlaying === video) currentlyPlaying = null;
+                }
+            });
+        }, {
+            threshold: [0, 0.6]
+        });
+
+        videos.forEach(video => observer.observe(video));
+
+        // klik video → buka fullscreen
+        videos.forEach(video => {
+            video.addEventListener("click", () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    video.requestFullscreen();
+                }
+            });
+        });
+
+        // tombol mute/unmute
+        const muteButtons = document.querySelectorAll(".mute-btn");
+        muteButtons.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation(); // jangan trigger fullscreen
+                const video = btn.previousElementSibling; // video sebelah tombol
+                if (video.muted) {
+                    video.muted = false;
+                    btn.textContent = "🔊";
+                } else {
+                    video.muted = true;
+                    btn.textContent = "🔇";
+                }
+            });
+        });
+    });
 </script>
 @endsection

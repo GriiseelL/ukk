@@ -711,6 +711,7 @@ $isOwnProfile = auth()->check() && auth()->id() === $user->id;
             font-size: 14px;
         }
     }
+
 </style>
 
 <div class="row">

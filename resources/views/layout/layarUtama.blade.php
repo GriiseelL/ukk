@@ -305,7 +305,7 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg" id="mainNavbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Telava</a>
 
