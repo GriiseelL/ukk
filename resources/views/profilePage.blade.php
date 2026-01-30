@@ -41,8 +41,10 @@ $isOwnProfile = auth()->check() && auth()->id() === $user->id;
     }
 
     .main-content {
-        margin-top: 70px;
+        /* margin-top: 70px; */
         padding-bottom: 80px;
+            padding-top: 60px;   /* sama dengan tinggi navbar */
+
     }
 
   .profile-container {
@@ -810,6 +812,161 @@ background: rgba(0, 0, 0, 0.9) !important;
 transform: scale(1.1);
 }
 
+.media-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 10px 0;
+}
+
+@media (min-width: 768px) {
+    .media-gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+.media-gallery-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.media-gallery-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    border-color: #667eea;
+}
+
+.media-gallery-item img,
+.media-gallery-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                filter 0.3s ease;
+}
+
+.media-gallery-item:hover img,
+.media-gallery-item:hover video {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+/* Video Play Icon */
+.video-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    color: white;
+    opacity: 0.9;
+    pointer-events: none;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.media-gallery-item:hover .video-play-icon {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+}
+
+/* Overlay effect saat hover */
+.media-gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        180deg, 
+        rgba(0, 0, 0, 0) 0%, 
+        rgba(0, 0, 0, 0.4) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.media-gallery-item:hover::before {
+    opacity: 1;
+}
+
+/* Video specific styling */
+.media-gallery-item.has-video video {
+    background: #000;
+}
+
+.media-gallery-item.has-video::after {
+    content: '🎬';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-gallery-item.has-video:hover::after {
+    opacity: 1;
+}
+
+/* Loading animation */
+.media-gallery-item img,
+.media-gallery-item video {
+    animation: fadeInMedia 0.5s ease-in-out;
+}
+
+@keyframes fadeInMedia {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .media-gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+    }
+    
+    .video-play-icon {
+        font-size: 36px;
+    }
+    
+    .media-gallery-item:hover {
+        transform: scale(1.02);
+    }
+}
+
+@media (max-width: 480px) {
+    .media-gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 </style>
 
 <div class="row">
@@ -921,9 +1078,9 @@ transform: scale(1.1);
             </button>
 
             <!-- Message Button -->
-            <button class="btn-profile btn-secondary" onclick="sendMessage({{ $user->id }})">
+            <!-- <button class="btn-profile btn-secondary" onclick="sendMessage({{ $user->id }})">
                 <i class="far fa-envelope"></i> Pesan
-            </button>
+            </button> -->
 
             <!-- Flipside Access -->
             @if($hasFlipsideAccess)
@@ -1097,30 +1254,43 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
                 </div>
 
                 <!-- Media Content -->
-                @if(!$isFlipsideView)
-                <div id="media-content" class="hidden">
-                    @if(collect($displayPosts)->where('image', '!=', null)->isNotEmpty())
-                    <div class="row">
-                        @foreach(collect($displayPosts)->where('image', '!=', null) as $post)
-                        <div class="col-md-4 mb-3">
-                            <div style="background: white; border: 1px solid #ddd; border-radius: 12px; overflow: hidden;">
-                                <img src="{{ asset('storage/' . $post->image) }}"
-                                    alt="Media"
-                                    style="width: 100%; height: 200px; object-fit: cover; cursor: pointer;"
-                                    onclick="openImageModal(this.src)">
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
+   <!-- Media Content -->
+@if(!$isFlipsideView)
+<div id="media-content" class="hidden">
+    @if($allMedia && $allMedia->count() > 0)
+        <div class="media-gallery-grid">
+            @foreach($allMedia as $media)
+                @php
+                    $ext = strtolower(pathinfo($media->file_path, PATHINFO_EXTENSION));
+                    $isVideo = in_array($ext, ['mp4', 'mov', 'webm']);
+                    $src = $media->url;
+                @endphp
+                
+                <div class="media-gallery-item {{ $isVideo ? 'has-video' : '' }}">
+                    @if(!$isVideo)
+                        <img src="{{ $src }}" 
+                             alt="Media"
+                             onclick="openImageModal('{{ $src }}')">
                     @else
-                    <div class="empty-state">
-                        <i class="fas fa-image"></i>
-                        <h4>Belum ada media</h4>
-                        <p>Postingan dengan gambar akan muncul di sini.</p>
-                    </div>
+                        <div class="post-video-container">
+                            <video controls muted playsinline>
+                                <source src="{{ $src }}" type="{{ $media->mime_type ?? 'video/mp4' }}">
+                            </video>
+                            <span class="video-play-icon">▶</span>
+                        </div>
                     @endif
                 </div>
-                @endif
+            @endforeach
+        </div>
+    @else
+        <div class="empty-state">
+            <i class="fas fa-images"></i>
+            <h4>Belum ada media</h4>
+            <p>Media dari postingan akan muncul di sini.</p>
+        </div>
+    @endif
+</div>
+@endif
             </div>
         </div>
     </div>
@@ -1679,112 +1849,116 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
         }
     }
 
-    function renderUserList(users, title, isFollowingList = false) {
-        const container = document.getElementById("userListContainer");
-        const modalTitle = document.getElementById("userListTitle");
-        const isFlipside = window.appData.isFlipside;
+function renderUserList(users, title, isFollowingList = false) {
+    const container = document.getElementById("userListContainer");
+    const modalTitle = document.getElementById("userListTitle");
+    const isFlipside = window.appData.isFlipside;
 
-        modalTitle.innerText = title;
-        container.innerHTML = "";
+    modalTitle.innerText = title;
+    container.innerHTML = "";
 
-        if (!users || users.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center;padding:40px 20px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
-                    <i class="fas fa-user-slash" style="font-size:3rem;opacity:0.3;margin-bottom:15px;display:block;"></i>
-                    <p style="margin:0;">${title === 'Followers' ? 'Belum ada followers' : 'Belum mengikuti siapa pun'}</p>
-                </div>
-            `;
-            openUserListModal();
-            return;
+    if (!users || users.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:40px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
+                <i class="fas fa-users" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+                <p style="font-size:16px;margin:0;">No ${title.toLowerCase()}</p>
+            </div>
+        `;
+        openUserListModal();
+        return;
+    }
+
+    users.forEach(user => {
+        const userData = user.follower || user.following || user;
+        const userId = userData.id;
+        const userName = userData.name || 'Unknown';
+        const userUsername = userData.username || 'unknown';
+        
+        const loggedInUsername = window.appData.user.username;
+
+        let profileLink = `/profilePage/${userUsername}`;
+        if (userUsername === loggedInUsername) {
+            profileLink = `/profile`;
+        }
+        
+        const avatar = userData.avatar
+            ? `/storage/${userData.avatar}`
+            : `https://ui-avatars.com/api/?name=${userName}&background=667eea&color=fff`;
+
+        let actionButton = '';
+        
+        if (window.appData.isOwnProfile) {
+            if (isFollowingList) {
+                actionButton = `
+                    <button onclick="unfollowUser(${userId}, this)" 
+                            style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                            onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
+                            onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
+                        Following
+                    </button>
+                `;
+            } else {
+                actionButton = `
+                    <button onclick="removeFollower(${userId}, this)" 
+                            style="padding:8px 16px;background-color:#fee2e2;color:#dc2626;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                            onmouseover="this.style.backgroundColor='#fecaca'"
+                            onmouseout="this.style.backgroundColor='#fee2e2'">
+                        Remove
+                    </button>
+                `;
+            }
+        } else if (userId !== {{ auth()->id() ?? 0 }}) {
+            const isFollowing = window.appData.following && 
+                               window.appData.following.some(f => {
+                                   const followingUser = f.following || f;
+                                   return followingUser.id === userId;
+                               });
+            
+            if (isFollowing) {
+                actionButton = `
+                    <button onclick="unfollowUser(${userId}, this)" 
+                            style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                            onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
+                            onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
+                        Following
+                    </button>
+                `;
+            } else {
+                actionButton = `
+                    <button onclick="followUser(${userId}, this)" 
+                            style="padding:8px 16px;background-color:#3b82f6;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                            onmouseover="this.style.backgroundColor='#2563eb'"
+                            onmouseout="this.style.backgroundColor='#3b82f6'">
+                        Follow
+                    </button>
+                `;
+            }
         }
 
-        users.forEach(user => {
-            const userData = user.follower || user.following || user;
-            const userId = userData.id;
-            const userName = userData.name || 'Unknown';
-            const userUsername = userData.username || 'unknown';
-            
-            const loggedInUsername = window.appData.user.username;
-
-            let profileLink = `/profilePage/${userUsername}`;
-            if (userUsername === loggedInUsername) {
-                profileLink = `/profile`;
-            }
-            
-            const avatar = userData.avatar
-                ? `/storage/${userData.avatar}`
-                : `https://ui-avatars.com/api/?name=${userName}&background=667eea&color=fff`;
-
-            let actionButton = '';
-            
-            if (window.appData.isOwnProfile) {
-                if (isFollowingList) {
-                    actionButton = `
-                        <button onclick="unfollowUser(${userId}, this)" 
-                                class="px-4 py-2 bg-green-500 hover:bg-red-500 text-white rounded-full text-sm font-semibold transition-all duration-300"
-                                onmouseover="this.textContent='Unfollow'"
-                                onmouseout="this.textContent='Following'">
-                            Following
-                        </button>
-                    `;
-                } else {
-                    actionButton = `
-                        <button onclick="removeFollower(${userId}, this)" 
-                                class="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-full text-sm font-semibold transition-all duration-300">
-                            Remove
-                        </button>
-                    `;
-                }
-            } else if (userId !== {{ auth()->id() ?? 0 }}) {
-                const isFollowing = window.appData.following && 
-                                   window.appData.following.some(f => {
-                                       const followingUser = f.following || f;
-                                       return followingUser.id === userId;
-                                   });
-                
-                if (isFollowing) {
-                    actionButton = `
-                        <button onclick="unfollowUser(${userId}, this)" 
-                                class="px-4 py-2 bg-green-500 hover:bg-red-500 text-white rounded-full text-sm font-semibold transition-all duration-300"
-                                onmouseover="this.textContent='Unfollow'"
-                                onmouseout="this.textContent='Following'">
-                            Following
-                        </button>
-                    `;
-                } else {
-                    actionButton = `
-                        <button onclick="followUser(${userId}, this)" 
-                                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-semibold transition-all duration-300">
-                            Follow
-                        </button>
-                    `;
-                }
-            }
-
-            container.innerHTML += `
-                <div class="user-list-item" data-user-id="${userId}" style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${isFlipside ? '#1a1a1a' : 'white'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e5e7eb'};border-radius:12px;margin-bottom:10px;transition:all 0.3s ease;">
-                    <div style="display:flex;align-items:center;gap:12px;flex:1;">
-                        <a href="${profileLink}" onclick="closeUserListModal()">
-                            <img src="${avatar}" class="w-12 h-12 rounded-full object-cover" 
-                            style="border:2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#e5e7eb'};">
+        container.innerHTML += `
+            <div class="user-list-item" data-user-id="${userId}" 
+                 style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${isFlipside ? '#1a1a1a' : 'white'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e5e7eb'};border-radius:12px;margin-bottom:10px;transition:all 0.3s ease;">
+                <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                    <a href="${profileLink}" onclick="closeUserListModal()" style="display:inline-block;width:48px;height:48px;overflow:hidden;border-radius:50%;border:2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#e5e7eb'};">
+                        <img src="${avatar}" 
+                             style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                    </a>
+                    <div style="flex:1;">
+                        <a href="${profileLink}" onclick="closeUserListModal()" style="text-decoration:none;">
+                            <div style="font-weight:600;font-size:15px;color:${isFlipside ? 'white' : '#1a1a1a'};">
+                                ${userName}
+                            </div>
                         </a>
-
-                        <div style="flex:1;">
-                            <a href="${profileLink}" onclick="closeUserListModal()" style="text-decoration:none;">
-                                <div style="font-weight:600;font-size:15px;color:${isFlipside ? 'white' : '#1a1a1a'};">
-                                    ${userName}
-                                </div>
-                            </a>
-                            <div style="color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};font-size:13px;">@${userUsername}</div>
-                        </div>
+                        <div style="color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};font-size:13px;">@${userUsername}</div>
                     </div>
-                    ${actionButton}
                 </div>
-            `;
-        });
+                ${actionButton}
+            </div>
+        `;
+    });
 
-        openUserListModal();
-    }
+    openUserListModal();
+}
 
     function showFollowers() {
         const followers = window.appData.followers || [];

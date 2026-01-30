@@ -9,18 +9,24 @@ class Notification extends Model
     protected $fillable = [
         'sender_id',
         'receiver_id',
+        'post_id',
         'type',
-        'reference_id',
         'message',
-        'is_read'
+        'is_read',
     ];
 
-    public function sender(){
-        return $this->belongsTo(User::class,'sender_id');
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'sender_id');
     }
 
-    public function receiver(){
-        return $this->belongsTo(User::class,'receiver_id');
+    public function receiver()
+    {
+        return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    public function post()
+    {
+        return $this->belongsTo(Posts::class, 'post_id');
     }
 }
-

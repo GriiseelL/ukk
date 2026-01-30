@@ -35,13 +35,17 @@
             top: 0;
             width: 100%;
             z-index: 1030 !important;
-            /* Bootstrap standard */
+            height: 55px;
+            padding: 0 16px;
         }
+
 
         .navbar-brand {
             font-weight: bold;
             color: var(--primary-color) !important;
+            font-size: 18px;
         }
+
 
         /* ✅ PERBAIKAN DROPDOWN - PASTIKAN BISA MUNCUL */
         .navbar .dropdown-menu {
@@ -68,7 +72,7 @@
             border-right: 1px solid var(--border-color);
             height: calc(100vh - 70px);
             position: fixed;
-            top: 70px;
+            top: 50px;
             left: 0;
             padding: 20px;
             overflow-y: auto;
@@ -447,8 +451,8 @@
                         <img
                             src="{{ $navbarAvatar }}"
                             class="rounded-circle"
-                            style="width:40px;height:40px;object-fit:cover;"
-                            alt="Avatar">
+                            style="width:32px;height:32px;object-fit:cover;">
+
 
                     </a> <!-- ✅ TUTUP A DI SINI -->
 

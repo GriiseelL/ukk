@@ -42,6 +42,7 @@ class LikeController extends Controller
                 'receiver_id' => $post->user_id,
                 'type' => 'like',
                 'reference_id' => $post->id,
+                'post_id' =>$post->id, // ⚠️ BARIS INI HARUS ADA!
                 'message' => $user->username . ' menyukai postinganmu'
             ]);
         }

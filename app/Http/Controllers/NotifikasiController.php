@@ -3,42 +3,66 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
+use App\Models\Post;
 use Illuminate\Http\Request;
 
 class NotifikasiController extends Controller
 {
-    public function index()
+    function index()
     {
-        $notifications = Notification::with('sender')
+        $notifications = Notification::with(['sender', 'post'])
             ->where('receiver_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($n) {
+            ->map(function ($notification) {
                 return [
-                    'id' => $n->id,
-                    'type' => $n->type,
-                    'post_id' => $n->post_id,   // ✅ TAMBAH
-                    'is_read' => $n->is_read,
-                    'created_at' => $n->created_at,
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'is_read' => $notification->is_read,
+                    'created_at' => $notification->created_at,
+                    'post_id' => $notification->post_id, // Pastikan ini ada
                     'sender' => [
-                        'id' => $n->sender->id,
-                        'username' => $n->sender->username
-                    ]
+                        'id' => $notification->sender->id,
+                        'username' => $notification->sender->username,
+                    ],
+                    'post' => $notification->post ? [
+                        'id' => $notification->post->id,
+                        'caption' => $notification->post->caption,
+                    ] : null,
+                    'data' => $notification->data,
                 ];
             });
-
-        Notification::where('receiver_id', auth()->id())
-            ->update(['is_read' => 1]);
 
         return view('notifikasi', compact('notifications'));
     }
 
-    // Tandai semua sudah dibaca
-    public function markAsRead()
+    // ... rest of the methods
+
+
+    // Mark single notification as read
+    public function markAsReadSingle($id)
+    {
+        $notification = Notification::where('id', $id)
+            ->where('receiver_id', auth()->id())
+            ->first();
+
+        if ($notification) {
+            $notification->is_read = 1;
+            $notification->save();
+
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false], 404);
+    }
+
+    // Mark all as read
+    public function markAllAsRead()
     {
         Notification::where('receiver_id', auth()->id())
+            ->where('is_read', 0)
             ->update(['is_read' => 1]);
 
-        return back();
+        return response()->json(['success' => true]);
     }
 }

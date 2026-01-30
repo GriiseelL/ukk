@@ -14,6 +14,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StoriesController;
+use App\Http\Controllers\PostDetailController;
 use App\Http\Middleware\loginMiddleware;
 use App\Http\Middleware\UserMiddleware;
 use App\Models\User;
@@ -124,7 +125,10 @@ Route::delete('stories/destroy', [StoriesController::class, 'destroy'])->name('d
 Route::get('/notifications', [NotifikasiController::class, 'index'])->name('notifications.index')
     ->middleware('auth');
 
-Route::post('/notifications/read', [NotifikasiController::class, 'markAsRead'])
+Route::post('/notifications/read', [NotifikasiController::class, 'markAllAsRead'])->name('notifications.markAllAsRead')
+    ->middleware('auth');
+    
+Route::post('/notifications/read/{id}', [NotifikasiController::class, 'markAsReadSingle'])->name('notifications.markAsReadSingle')
     ->middleware('auth');
 
 // Route::get('/flipside', function () {
@@ -206,6 +210,12 @@ Route::middleware(['auth'])->group(function () {
     // Change Password
     Route::post('/profile/change-password', [SettingController::class, 'changePassword'])->name('profile.changePassword');
 });
+
+// Post routes
+Route::get('/post/{id}', [PostDetailController::class, 'show'])->name('post.show');
+Route::post('/post/{id}/like', [PostDetailController::class, 'like'])->name('post.like');
+Route::post('/post/{id}/comment', [PostDetailController::class, 'comment'])->name('post.comment');
+
 
 Route::get('/', function () {
     return view('login');

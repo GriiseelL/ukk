@@ -16,6 +16,7 @@
         margin: 0 auto;
         animation: fadeIn 0.6s ease-out;
         margin-right: 300px;
+        margin-left: 40px;
     }
 
     @keyframes fadeIn {
@@ -417,6 +418,17 @@
         border-radius: 4px;
     }
 
+    /* Clickable username */
+    .clickable {
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .clickable:hover {
+        color: #0d8bd9;
+        text-decoration: underline;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
         .notifications-container {
@@ -547,28 +559,53 @@
 </div>
 
 <script>
+    // Debug: Log semua data dari server
+    console.log('=== NOTIFICATIONS FROM SERVER ===');
+    console.log(@json($notifications));
+
     // Sample notification data - replace with actual data from your backend
     const notificationsFromServer = @json($notifications);
-    let notifications = notificationsFromServer.map(n => ({
-        id: n.id,
-        type: n.type,
-        user: {
-            id: n.sender.id,
-            username: n.sender.username,
-            initial: n.sender.username.charAt(0).toUpperCase()
-        },
-        action: n.type === 'like' ? 'menyukai' : n.type === 'comment' ? 'mengomentari' : n.type === 'follow' ? 'mulai mengikuti' : '',
-        target: 'postingan Anda',
-        time: new Date(n.created_at).toLocaleString(),
-        read: n.is_read == 1,
+    let notifications = notificationsFromServer.map(n => {
+        console.log('Processing notification:', {
+            id: n.id,
+            type: n.type,
+            post_id_from_n: n.post_id,
+            post_id_from_post: n.post ? n.post.id : null,
+            data: n.data
+        });
 
-        is_followed: n.is_followed ?? false
-    }));
+        return {
+            id: n.id,
+            type: n.type,
+            user: {
+                id: n.sender.id,
+                username: n.sender.username,
+                initial: n.sender.username.charAt(0).toUpperCase()
+            },
+            action: n.type === 'like' ? 'menyukai' : n.type === 'comment' ? 'mengomentari' : n.type === 'follow' ? 'mulai mengikuti' : '',
+            target: 'postingan Anda',
+            time: new Date(n.created_at).toLocaleString('id-ID', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            read: n.is_read == 1,
+            is_followed: n.is_followed ?? false,
+            post_id: n.post_id || (n.post ? n.post.id : null), // Coba ambil dari post juga
+            comment: n.data ? (typeof n.data === 'string' ? JSON.parse(n.data)?.comment : n.data.comment) : null
+        };
+    });
+
+    console.log('=== PROCESSED NOTIFICATIONS ===');
+    console.log(notifications);
 
     let currentFilter = 'all';
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded, total notifications:', notifications.length);
         setupEventListeners();
         setTimeout(loadNotifications, 800); // Simulate loading
     });
@@ -580,41 +617,39 @@
                 setActiveFilter(this.dataset.filter);
             });
         });
-
-        // Mark individual notifications as read on click
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.notification-item')) {
-                const item = e.target.closest('.notification-item');
-                markAsRead(parseInt(item.dataset.id));
-            }
-        });
     }
 
     function loadNotifications() {
         const container = document.getElementById('notificationsList');
         const filteredNotifications = filterNotifications();
 
+        console.log('Loading notifications, filtered count:', filteredNotifications.length);
+
         if (filteredNotifications.length === 0) {
             container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icon">
-                            <i class="fas fa-bell-slash"></i>
-                        </div>
-                        <h3>Tidak Ada Notifikasi</h3>
-                        <p>Belum ada notifikasi untuk kategori ini. Notifikasi baru akan muncul di sini.</p>
+                <div class="empty-state">
+                    <div class="icon">
+                        <i class="fas fa-bell-slash"></i>
                     </div>
-                `;
+                    <h3>Tidak Ada Notifikasi</h3>
+                    <p>Belum ada notifikasi untuk kategori ini. Notifikasi baru akan muncul di sini.</p>
+                </div>
+            `;
             return;
         }
 
-        container.innerHTML = filteredNotifications.map(notification =>
-            createNotificationHTML(notification)
-        ).join('');
+        let html = '';
+        filteredNotifications.forEach(notification => {
+            html += createNotificationHTML(notification);
+        });
 
+        container.innerHTML = html;
         updateNotificationCount();
     }
 
     function createNotificationHTML(notification) {
+        console.log('Creating HTML for notification:', notification);
+
         const typeIcons = {
             like: 'fas fa-heart',
             comment: 'fas fa-comment',
@@ -623,69 +658,150 @@
             share: 'fas fa-share'
         };
 
-        const actionButtons = notification.type === 'follow' ? `
-    <div class="notification-actions">
-        ${
-            notification.is_followed
-                ? `<button class="notification-btn primary" disabled>
-                        <i class="fas fa-check"></i> Diikuti
-                   </button>`
-                : `<button class="notification-btn primary"
-                        onclick="followBack(${notification.id}, ${notification.user.id})">
-                        <i class="fas fa-user-plus"></i> Ikuti Balik
-                   </button>`
-        }
-        <button class="notification-btn" onclick="viewProfile('${notification.user.username}')">
-            <i class="fas fa-eye"></i> Lihat Profil
-        </button>
-    </div>
-` : '';
+        // Tombol aksi
+        let actionButtons = '';
 
-
-        const commentPreview = notification.comment ? `
-                <div class="notification-post-preview">
-                    <i class="fas fa-quote-left" style="margin-right: 5px; opacity: 0.7;"></i>
-                    ${notification.comment}
-                </div>
-            ` : '';
-
-        const postPreview = notification.postPreview && notification.type !== 'follow' ? `
-                <div class="notification-post-preview">
-                    ${notification.postPreview}
-                </div>
-            ` : '';
-
-        return `
-                <div class="notification-item ${!notification.read ? 'unread' : ''}" data-id="${notification.id}">
-                    <div class="notification-avatar">
-                        ${notification.user.initial}
-                        <div class="notification-type-icon type-${notification.type}">
-                            <i class="${typeIcons[notification.type]}"></i>
-                        </div>
-                    </div>
-                    <div class="notification-content">
-                        <div class="notification-text">
-                        <span class="username clickable"
-                            onclick="viewProfile('${notification.user.username}')">
-                            @${notification.user.username}
-                        </span>
-                            ${notification.target}
-                        </div>
-                        <div class="notification-meta">
-                            <span class="notification-time">
-                                <i class="fas fa-clock" style="margin-right: 4px; opacity: 0.7;"></i>
-                                ${notification.time}
-                            </span>
-                        </div>
-                        ${commentPreview}
-                        ${postPreview}
-                        ${actionButtons}
-                    </div>
+        if (notification.type === 'follow') {
+            actionButtons = `
+                <div class="notification-actions">
+                    ${
+                        notification.is_followed
+                            ? `<button class="notification-btn primary" disabled>
+                                    <i class="fas fa-check"></i> Diikuti
+                               </button>`
+                            : `<button class="notification-btn primary"
+                                    onclick="event.stopPropagation(); followBack(${notification.id}, ${notification.user.id})">
+                                    <i class="fas fa-user-plus"></i> Ikuti Balik
+                               </button>`
+                    }
+                    <button class="notification-btn" onclick="event.stopPropagation(); viewProfile('${notification.user.username}')">
+                        <i class="fas fa-eye"></i> Lihat Profil
+                    </button>
                 </div>
             `;
+        } else if (notification.post_id) {
+            actionButtons = `
+                <div class="notification-actions">
+                    <button class="notification-btn primary" onclick="event.stopPropagation(); viewPost(${notification.post_id})">
+                        <i class="fas fa-eye"></i> Lihat Postingan
+                    </button>
+                </div>
+            `;
+        } else {
+            actionButtons = `
+                <div class="notification-actions">
+                    <button class="notification-btn" disabled style="opacity: 0.5;">
+                        <i class="fas fa-info-circle"></i> Postingan tidak tersedia
+                    </button>
+                </div>
+            `;
+        }
+
+        // Preview komentar
+        let commentPreview = '';
+        if (notification.comment) {
+            commentPreview = `
+                <div class="notification-post-preview">
+                    <i class="fas fa-quote-left" style="margin-right: 5px; opacity: 0.7;"></i>
+                    ${escapeHtml(notification.comment)}
+                </div>
+            `;
+        }
+
+        // Info postingan
+        let postInfo = '';
+        if (notification.post_id) {
+            postInfo = `
+                <span class="notification-post-info" style="color: var(--primary-color); font-weight: 600; cursor: pointer;" 
+                      onclick="event.stopPropagation(); viewPost(${notification.post_id})">
+                    <i class="fas fa-image" style="margin-right: 4px;"></i>
+                    Lihat Postingan
+                </span>
+            `;
+        }
+
+        return `
+            <div class="notification-item ${!notification.read ? 'unread' : ''}" 
+                 data-id="${notification.id}"
+                 data-type="${notification.type}"
+                 data-post-id="${notification.post_id || ''}"
+                 onclick="handleNotificationClick(${notification.id}, '${notification.type}', ${notification.post_id ? notification.post_id : 'null'})">
+                <div class="notification-avatar">
+                    ${notification.user.initial}
+                    <div class="notification-type-icon type-${notification.type}">
+                        <i class="${typeIcons[notification.type]}"></i>
+                    </div>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <span class="username clickable"
+                              onclick="event.stopPropagation(); viewProfile('${notification.user.username}')">
+                            @${notification.user.username}
+                        </span>
+                        ${notification.action} ${notification.target}
+                    </div>
+                    <div class="notification-meta">
+                        <span class="notification-time">
+                            <i class="fas fa-clock" style="margin-right: 4px; opacity: 0.7;"></i>
+                            ${notification.time}
+                        </span>
+                        ${postInfo}
+                    </div>
+                    ${commentPreview}
+                    ${actionButtons}
+                </div>
+            </div>
+        `;
+    }
+
+    // Helper function untuk escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    function viewPost(postId) {
+        console.log('View post clicked, postId:', postId);
+        if (postId) {
+            window.location.href = `/post/${postId}`;
+        } else {
+            showNotification('Postingan tidak ditemukan');
+        }
+    }
+
+    function handleNotificationClick(notificationId, type, postId) {
+        console.log('=== NOTIFICATION CLICKED ===');
+        console.log('notificationId:', notificationId);
+        console.log('type:', type);
+        console.log('postId:', postId);
+
+        // Tandai notifikasi sebagai dibaca
+        markAsRead(notificationId);
+
+        // Jika notifikasi adalah like atau comment dan ada post_id, buka halaman postingan
+        if ((type === 'like' || type === 'comment') && postId) {
+            console.log('Redirecting to post:', postId);
+            window.location.href = `/post/${postId}`;
+        } else if (type === 'follow') {
+            console.log('Follow notification, no redirect');
+            return;
+        } else {
+            console.log('No post_id available or unsupported type');
+            if (postId === null || postId === undefined) {
+                showNotification('Postingan tidak ditemukan atau sudah dihapus');
+            }
+        }
     }
 
     function setActiveFilter(filter) {
+        console.log('Filter changed to:', filter);
         document.querySelectorAll('.filter-tab').forEach(tab => {
             tab.classList.remove('active');
         });
@@ -714,12 +830,26 @@
         const notification = notifications.find(n => n.id === notificationId);
         if (notification && !notification.read) {
             notification.read = true;
-            const element = document.querySelector(`[data-id="${notificationId}"]`);
-            if (element) {
-                element.classList.remove('unread');
-            }
-            updateNotificationCount();
-            showNotification('Notifikasi ditandai sebagai dibaca');
+            console.log('Marking notification as read:', notificationId);
+
+            // Kirim request ke server untuk update database
+            fetch(`/notifications/read/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    const element = document.querySelector(`[data-id="${notificationId}"]`);
+                    if (element) {
+                        element.classList.remove('unread');
+                    }
+                    updateNotificationCount();
+                }
+            }).catch(error => {
+                console.error('Error marking notification as read:', error);
+            });
         }
     }
 
@@ -730,12 +860,26 @@
             return;
         }
 
-        notifications.forEach(n => n.read = true);
-        document.querySelectorAll('.notification-item.unread').forEach(item => {
-            item.classList.remove('unread');
+        // Kirim request ke server untuk update semua notifikasi
+        fetch('/notifications/read', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                notifications.forEach(n => n.read = true);
+                document.querySelectorAll('.notification-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                });
+                updateNotificationCount();
+                showNotification(`${unreadCount} notifikasi ditandai sebagai dibaca`);
+            }
+        }).catch(error => {
+            console.error('Error marking all notifications as read:', error);
+            showNotification('Gagal menandai notifikasi sebagai dibaca');
         });
-        updateNotificationCount();
-        showNotification(`${unreadCount} notifikasi ditandai sebagai dibaca`);
     }
 
     function updateNotificationCount() {
@@ -747,19 +891,25 @@
         } else {
             badge.style.display = 'none';
         }
+        console.log('Notification count updated:', unreadCount);
     }
 
-    function followBack(userId) {
+    function followBack(notificationId, userId) {
         fetch(`/follow/store/${userId}`, {
                 method: "POST",
                 headers: {
-                    "X-CSRF-TOKEN": document
-                        .querySelector('meta[name="csrf-token"]').content
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
                 }
             })
             .then(res => res.json())
             .then(data => {
                 if (data.following) {
+                    // Update status is_followed pada notifikasi
+                    const notification = notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.is_followed = true;
+                    }
+                    loadNotifications(); // Reload untuk update button
                     showNotification("Berhasil mengikuti balik");
                 } else {
                     showNotification("Berhenti mengikuti");
@@ -771,9 +921,9 @@
     }
 
     function viewProfile(username) {
+        console.log('View profile:', username);
         window.location.href = `/profilePage/${username}`;
     }
-
 
     function toggleFilterDropdown() {
         showNotification('Filter dropdown - fitur akan segera hadir');
@@ -788,19 +938,22 @@
         const notification = document.createElement('div');
         notification.className = 'toast-notification';
         notification.style.cssText = `
-                position: fixed;
-                top: 90px;
-                right: 20px;
-                z-index: 10000;
-                background: #333;
-                color: white;
-                padding: 12px 20px;
-                border-radius: 25px;
-                font-size: 14px;
-                animation: slideInRight 0.3s ease;
-                max-width: 300px;
-            `;
-        notification.textContent = message;
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 10000;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: slideInRight 0.3s ease, fadeOut 0.5s 2.5s ease forwards;
+            max-width: 300px;
+            text-align: center;
+        `;
+        notification.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> ${message}`;
         document.body.appendChild(notification);
 
         // Auto remove after 3 seconds
@@ -812,19 +965,23 @@
     // Add CSS animation for toast notification
     const style = document.createElement('style');
     style.textContent = `
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
             }
-        `;
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+    `;
     document.head.appendChild(style);
-
-    // Simulate real-time notifications
 </script>
 @endsection

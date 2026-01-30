@@ -1091,6 +1091,163 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
             font-size: 38px;
         }
     }
+
+
+/* ===== MEDIA GALLERY GRID STYLING ===== */
+.media-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 10px 0;
+}
+
+@media (min-width: 768px) {
+    .media-gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+.media-gallery-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 12px;
+    cursor: pointer;
+    background: {{ $isFlipside ? '#1a1a1a' : '#f5f5f5' }};
+    border: 1px solid {{ $isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e0e0e0' }};
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.media-gallery-item:hover {
+    transform: scale(1.03);
+    box-shadow: {{ $isFlipside ? '0 8px 24px rgba(255, 0, 128, 0.4)' : '0 8px 24px rgba(0, 0, 0, 0.15)' }};
+    z-index: 10;
+    border-color: {{ $isFlipside ? 'rgba(255, 0, 128, 0.5)' : '#667eea' }};
+}
+
+.media-gallery-item img,
+.media-gallery-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                filter 0.3s ease;
+}
+
+.media-gallery-item:hover img,
+.media-gallery-item:hover video {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+}
+
+/* Video Play Icon */
+.video-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    color: white;
+    opacity: 0.9;
+    pointer-events: none;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    transition: all 0.3s ease;
+}
+
+.media-gallery-item:hover .video-play-icon {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+}
+
+/* Overlay effect saat hover */
+.media-gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        180deg, 
+        rgba(0, 0, 0, 0) 0%, 
+        rgba(0, 0, 0, 0.4) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.media-gallery-item:hover::before {
+    opacity: 1;
+}
+
+/* Loading animation */
+.media-gallery-item img,
+.media-gallery-item video {
+    animation: fadeInMedia 0.5s ease-in-out;
+}
+
+@keyframes fadeInMedia {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Video specific styling */
+.media-gallery-item.has-video video {
+    background: #000;
+}
+
+.media-gallery-item.has-video::after {
+    content: '🎬';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-gallery-item.has-video:hover::after {
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .media-gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+    }
+    
+    .video-play-icon {
+        font-size: 36px;
+    }
+    
+    .media-gallery-item:hover {
+        transform: scale(1.02);
+    }
+}
+
+@media (max-width: 480px) {
+    .media-gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
 </style>
 
 <div class="row">
@@ -1362,33 +1519,62 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                     @endforelse
                 </div>
 
-                <div id="media-content" class="hidden">
-                    @php
-                        $allMedia = collect($displayPosts)->pluck('media')->flatten();
-                    @endphp
+           {{-- ============================================ --}}
+{{-- FIX UNTUK MEDIA CONTENT TAB                --}}
+{{-- Ganti bagian <div id="media-content"> hingga </div> dengan kode ini --}}
+{{-- ============================================ --}}
 
-                    @if($allMedia->count())
-                    <div class="row">
-                        @foreach($allMedia as $media)
-                            @if($media->type === 'image')
-                            <div class="col-md-4 mb-3">
-                                <div class="media-grid-item">
-                                    <img
-                                        src="{{ asset('storage/' . $media->file_path) }}"
-                                        onclick="openImageModal(this.src)"
-                                    >
-                                </div>
-                            </div>
-                            @endif
-                        @endforeach
-                    </div>
-                    @else
-                    <div class="empty-state">
-                        <i class="fas fa-image"></i>
-                        <p>Belum ada media.</p>
-                    </div>
-                    @endif
-                </div>
+<div id="media-content" class="hidden">
+    @php
+        // Ambil semua media dari posts
+        $allMedia = collect($displayPosts)
+            ->pluck('media')
+            ->flatten()
+            ->filter(function($media) {
+                return $media && $media->file_path;
+            });
+    @endphp
+
+    @if($allMedia->count() > 0)
+    <div class="media-gallery-grid">
+        @foreach($allMedia as $media)
+            @php
+                $ext = pathinfo($media->file_path, PATHINFO_EXTENSION);
+                $isImage = in_array(strtolower($ext), ['jpg','jpeg','png','webp','gif']);
+                $isVideo = in_array(strtolower($ext), ['mp4','mov','webm']);
+            @endphp
+            
+            @if($isImage)
+            <div class="media-gallery-item">
+                <img
+                    src="{{ asset('storage/' . $media->file_path) }}"
+                    onclick="openImageModal(this.src)"
+                    alt="Media"
+                >
+            </div>
+            @elseif($isVideo)
+            <div class="media-gallery-item has-video">
+                <video
+                    src="{{ asset('storage/' . $media->file_path) }}"
+                    muted
+                    playsinline
+                    preload="metadata"
+                    onclick="this.paused ? this.play() : this.pause()"
+                ></video>
+                <div class="video-play-icon">▶</div>
+            </div>
+            @endif
+        @endforeach
+    </div>
+    @else
+    <div class="empty-state">
+        <i class="fas fa-image"></i>
+        <p>Belum ada media.</p>
+    </div>
+    @endif
+</div>
+
+
 
 
                 @if(!$isFlipside)

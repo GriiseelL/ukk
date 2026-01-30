@@ -6,6 +6,7 @@ use App\Models\FlipPosts;
 use App\Models\User;
 use App\Models\Friends;
 use App\Models\Likes;
+use App\Models\PostMedia;
 use App\Models\Posts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -98,9 +99,9 @@ class JelajahController extends Controller // atau nama controller yang sesuai
     public function show($username)
     {
 
-          if (auth()->check() && auth()->user()->username === $username) {
-        return redirect('/profile');
-    }
+        if (auth()->check() && auth()->user()->username === $username) {
+            return redirect('/profile');
+        }
         // Find user by username
         $user = User::where('username', $username)->firstOrFail();
         $authUser = Auth::user();
@@ -163,7 +164,7 @@ class JelajahController extends Controller // atau nama controller yang sesuai
         } else {
             // Normal posts
             $posts = Posts::where('user_id', $user->id)
-                ->with(['user', 'likes', 'comments'])
+                ->with(['user', 'likes', 'comments', 'media'])
                 ->latest()
                 ->get();
             $flipsidePosts = [];
@@ -219,9 +220,22 @@ class JelajahController extends Controller // atau nama controller yang sesuai
             ->select('users.id', 'users.name', 'users.username', 'users.avatar')
             ->get();
 
+        // Ambil SEMUA media dari SEMUA postingan user
+        // Ambil SEMUA media dari SEMUA postingan user
+        $allMedia = PostMedia::where('mediaable_type', 'App\Models\Posts')
+            ->whereIn('mediaable_id', function ($query) use ($user) {
+                $query->select('id')
+                    ->from('posts')
+                    ->where('user_id', $user->id);
+            })
+            ->with('mediaable.user')
+            ->latest('created_at')
+            ->get();
+
 
         return view('profilePage', compact(
             'user',
+            'allMedia',
             'posts',
             'hasFlipsideAccess',
             'isFlipsideView',

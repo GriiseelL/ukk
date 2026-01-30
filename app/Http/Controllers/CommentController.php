@@ -194,6 +194,7 @@ class CommentController extends Controller
                     'receiver_id' => $post->user_id,
                     'type' => 'comment',
                     'reference_id' => $post->id,
+                    'post_id' => $post->id, // ✅ WAJIB ADA!
                     'message' => Auth::user()->username . ' mengomentari postinganmu'
                 ]);
             }
