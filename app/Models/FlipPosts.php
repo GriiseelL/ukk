@@ -8,15 +8,14 @@ class FlipPosts extends Model
 {
     protected $table = 'flipside_posts';
 
-    // Laravel auto handle created_at & updated_at
     public $timestamps = true;
 
     protected $fillable = [
         'user_id',
         'caption',
-        'image',
         'likes_count',
         'is_flipside',
+        'status',
         'deleted_at'
     ];
 
@@ -28,52 +27,40 @@ class FlipPosts extends Model
         'deleted_at' => 'datetime'
     ];
 
-    protected $appends = ['image_url'];
+    /* ================= RELATIONS ================= */
 
-    /**
-     * Get the user that owns the post
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get full image URL
-     */
-    public function getImageUrlAttribute()
+    // 🔥 RELASI KE post_media
+    public function media()
     {
-        if ($this->image_back) {
-            return asset('storage/' . $this->image_back);
-        }
-        return null;
+        return $this->morphMany(PostMedia::class, 'mediaable');
     }
 
-    /**
-     * Scope for active posts only (not deleted)
-     */
-    public function scopeActive($query)
+    public function likes()
     {
-        return $query->whereNull('deleted_at');
-    }
-
-    /**
-     * Scope for flipside posts only
-     */
-    public function scopeFlipside($query)
-    {
-        return $query->where('is_flipside', 1);
-    }
-
-    public function flipsideLikes()
-    {
-        return $this->hasMany(\App\Models\Likes::class, 'post_id')
-            ->where('type', 'flipside');
+        return $this->hasMany(FlipsideLike::class, 'flipside_post_id');
     }
 
 
     public function flipsideComments()
     {
-        return $this->hasMany(Comments::class, 'post_id')->where('type', 'flipside');
+        return $this->hasMany(Comments::class, 'post_id')
+            ->where('type', 'flipside');
+    }
+
+    /* ================= SCOPES ================= */
+
+    public function scopeActive($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    public function scopeFlipside($query)
+    {
+        return $query->where('is_flipside', 1);
     }
 }

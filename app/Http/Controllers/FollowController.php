@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FlipAccess;
 use App\Models\Friends;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class FollowController extends Controller
@@ -49,7 +50,7 @@ class FollowController extends Controller
             ->first();
 
         if ($existing) {
-            // kalau sudah follow → Unfollow
+            // UNFOLLOW
             $existing->delete();
 
             $followersCount = Friends::where('user_following', $followingId)->count();
@@ -61,10 +62,19 @@ class FollowController extends Controller
             ]);
         }
 
-        // kalau belum follow → Follow
+        // FOLLOW
         Friends::create([
             'user_id' => $user->id,
             'user_following' => $followingId
+        ]);
+
+        // 👉 TAMBAH NOTIFIKASI
+        Notification::create([
+            'sender_id' => $user->id,
+            'receiver_id' => $followingId,
+            'type' => 'follow',
+            'reference_id' => $followingId,
+            'message' => $user->username . ' mulai mengikutimu'
         ]);
 
         $followersCount = Friends::where('user_following', $followingId)->count();
@@ -75,6 +85,7 @@ class FollowController extends Controller
             'followers_count' => $followersCount
         ]);
     }
+
 
 
     public function destroy($followingId)

@@ -150,20 +150,18 @@ class PostController extends Controller
 
         if ($request->hasFile('media')) {
             foreach ($request->file('media') as $file) {
-                $path = $file->store('posts', 'public');
+                $path = $file->store('posts/media', 'public');
 
-                PostMedia::create([
-                    'post_id' => $post->id,
+                // ⬇️ INI PENTING
+                $post->media()->create([
                     'file_path' => $path,
-                    'type' => str_starts_with($file->getMimeType(), 'video')
-                        ? 'video'
-                        : 'image'
                 ]);
             }
         }
 
         return response()->json([
-            'success' => true
+            'success' => true,
+            'data' => $post->load('media')
         ]);
     }
 

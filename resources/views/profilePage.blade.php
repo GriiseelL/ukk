@@ -45,16 +45,16 @@ $isOwnProfile = auth()->check() && auth()->id() === $user->id;
         padding-bottom: 80px;
     }
 
-    .profile-container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: {{ $isFlipsideView ? '#0d0d0d' : 'white' }};
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: {{ $isFlipsideView ? '0 8px 32px rgba(255, 0, 128, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)' }};
-        border: {{ $isFlipsideView ? '1px solid rgba(255, 0, 128, 0.2)' : 'none' }};
-        animation: slideUp 0.6s ease-out;
-    }
+  .profile-container {
+    max-width: 800px; /* 👈 Diperbesar */
+    margin: 0 auto;
+    background: {{ $isFlipsideView ? '#0d0d0d' : 'white' }};
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: {{ $isFlipsideView ? '0 8px 32px rgba(255, 0, 128, 0.3)' : '0 8px 32px rgba(0, 0, 0, 0.1)' }};
+    border: {{ $isFlipsideView ? '1px solid rgba(255, 0, 128, 0.2)' : 'none' }};
+    animation: slideUp 0.6s ease-out;
+}
 
     @keyframes slideUp {
         from {
@@ -711,17 +711,115 @@ $isOwnProfile = auth()->check() && auth()->id() === $user->id;
             font-size: 14px;
         }
     }
+    /* === GRID MEDIA DI DALAM POST === */
+.media-grid {
+display: grid;
+gap: 5px;
+border-radius: 12px;
+overflow: hidden;
+width: 100%;
+padding: 10px;
+}
+/* 1 GAMBAR */
+.media-grid.media-count-1 {
+grid-template-columns: 1fr;
+}
+.media-grid.media-count-1 .media-item {
+max-height: 500px;
+min-height: 300px;
+}
+/* 2 GAMBAR */
+.media-grid.media-count-2 {
+grid-template-columns: repeat(2, 1fr);
+height: 300px;
+}
+.media-grid.media-count-2 .media-item {
+height: 100%;
+}
+/* 3 GAMBAR - TWITTER LAYOUT */
+.media-grid.media-count-3 {
+grid-template-columns: 2fr 1fr;
+grid-template-rows: repeat(2, 200px);
+gap: 4px;
+}
+.media-grid.media-count-3 .media-item:nth-child(1) {
+grid-row: 1 / 3;
+height: 100%;
+}
+/* 4 GAMBAR - 2x2 GRID */
+.media-grid.media-count-4 {
+grid-template-columns: repeat(2, 1fr);
+grid-template-rows: repeat(2, 200px);
+gap: 4px;
+}
+.media-grid.media-count-4 .media-item {
+height: 100%;
+}
+/* BASE STYLE MEDIA ITEM */
+.media-item {
+position: relative;
+overflow: hidden;
+cursor: pointer;
+background: #000;
+border-radius: 8px;
+transition: transform 0.3s ease;
+}
+.media-item img,
+.media-item video {
+width: 100%;
+height: 100%;
+object-fit: cover;
+display: block;
+border-radius: inherit;
+}
+.media-item:hover {
+transform: scale(1.015);
+box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+border-radius: 10px;
+}
+.media-item:hover img,
+.media-item:hover video {
+transform: scale(1.03);
+}
+.post-video-container {
+position: relative;
+width: 100%;
+height: 100%;
+}
+.post-video-container video {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+.mute-btn {
+position: absolute;
+bottom: 10px;
+right: 10px;
+background: rgba(0, 0, 0, 0.7) !important;
+border: none;
+color: white;
+padding: 8px 10px;
+border-radius: 50%;
+cursor: pointer;
+z-index: 3;
+transition: all 0.3s ease;
+backdrop-filter: blur(5px);
+}
+.mute-btn:hover {
+background: rgba(0, 0, 0, 0.9) !important;
+transform: scale(1.1);
+}
 
 </style>
 
 <div class="row">
-    <div class="col-lg-3 d-none d-lg-block"></div>
-    <div class="col-lg-6 col-12">
+    <div class="col-lg-1 d-none d-lg-block"></div>
+    <div class="col-lg-10 col-xl-9 col-12 px-3 px-lg-4">
         <div class="profile-container">
             @if($isFlipsideView)
             <div class="flipside-mode-header">
                 <a href="{{ auth()->id() === $user->id ? '/profile' : route('profilePage', $user->username) }}"
-class="back-to-normal-btn">
+                class="back-to-normal-btn">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to Profile</span>
                 </a>
@@ -924,14 +1022,34 @@ class="back-to-normal-btn">
                                 
                                 <div class="post-content mb-2">
                                     {!! nl2br(e($post->caption)) !!}
-                                    @if($post->image)
-                                        <div class="mt-2">
-                                            <img src="{{ asset('storage/' . $post->image) }}" 
-                                                 alt="Post image"
-                                                 class="img-fluid rounded" 
-                                                 onclick="openImageModal('{{ asset('storage/' . $post->image) }}')">
-                                        </div>
-                                    @endif
+                                   {{-- Multi-media support --}}
+@if($post->media && $post->media->count() > 0)
+<div class="mt-3 media-grid media-count-{{ $post->media->count() }}">
+@foreach($post->media as $medium)
+@php
+$ext = strtolower(pathinfo($medium->file_path, PATHINFO_EXTENSION));
+@endphp
+<div class="media-item">
+{{-- IMAGE --}}
+@if(in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']))
+<img
+src="{{ asset('storage/' . $medium->file_path) }}"
+alt="Post image"
+onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
+>
+{{-- VIDEO --}}
+@elseif(in_array($ext, ['mp4', 'mov', 'webm']))
+<div class="post-video-container">
+<video muted playsinline preload="metadata" controls>
+<source src="{{ asset('storage/' . $medium->file_path) }}" type="{{ $medium->mime_type }}">
+</video>
+<button class="mute-btn">🔇</button>
+</div>
+@endif
+</div>
+@endforeach
+</div>
+@endif
                                 </div>
 
                                 <!-- Post Interactions -->

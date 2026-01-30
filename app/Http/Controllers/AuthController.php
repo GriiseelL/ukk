@@ -126,7 +126,7 @@ class AuthController extends Controller
 
         // === LOGIN ===
         Auth::login($user);
-
+        
         return redirect()->route('homepage');
     }
 

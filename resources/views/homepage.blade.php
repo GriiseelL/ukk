@@ -14,7 +14,6 @@
         color: red;
     }
 
-
     .upload-preview video {
         width: 100%;
         max-height: 200px;
@@ -31,6 +30,70 @@
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 12px;
+    }
+
+    /* NEW: Download Button Style */
+    .media-download-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 10;
+        backdrop-filter: blur(5px);
+    }
+
+    .media-download-btn:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: scale(1.1);
+    }
+
+    .media-download-btn i {
+        font-size: 16px;
+    }
+
+    /* Dropdown Menu for Download */
+    .media-dropdown {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+
+    .media-dropdown .dropdown-toggle {
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .media-dropdown .dropdown-toggle:hover {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .media-dropdown .dropdown-toggle::after {
+        display: none;
+    }
+
+    .media-dropdown .dropdown-menu {
+        min-width: 150px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     /* Stories/Highlights Section */
@@ -161,74 +224,6 @@
         transition: all 0.3s ease;
     }
 
-    /* .post-composer:focus-within {
-        box-shadow: 0 4px 20px rgba(29, 161, 242, 0.15);
-        border-color: var(--primary-color);
-    }
-
-    .composer-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-
-    .composer-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
-
-    .composer-input {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-size: 18px;
-        resize: none;
-        min-height: 60px;
-        font-family: inherit;
-        color: var(--text-color);
-    }
-
-    .composer-input::placeholder {
-        color: #657786;
-    }
-
-    .composer-tools {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-top: 15px;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .composer-options {
-        display: flex;
-        gap: 15px;
-    }
-
-    .composer-option {
-        background: none;
-        border: none;
-        color: var(--primary-color);
-        cursor: pointer;
-        padding: 8px;
-        border-radius: 50%;
-        transition: all 0.3s ease;
-        font-size: 18px;
-    }
-
-    .composer-option:hover {
-        background-color: rgba(29, 161, 242, 0.1);
-        transform: scale(1.1);
-    } */
-
     .post-composer {
         border-bottom: 1px solid #e6ecf0;
         padding: 12px;
@@ -253,46 +248,117 @@
     /* GRID */
     .media-grid {
         display: grid;
-        gap: 6px;
+        gap: 4px;
+        border-radius: 12px;
+        overflow: hidden;
     }
 
-    .media-grid img,
-    .media-grid video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 16px;
-    }
-
-    /* 1 media */
     .media-grid[data-count="1"] {
         grid-template-columns: 1fr;
     }
 
-    /* 2 media */
     .media-grid[data-count="2"] {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    /* 3 media */
     .media-grid[data-count="3"] {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 2fr 1fr;
         grid-template-rows: 1fr 1fr;
+        height: 300px;
     }
 
-    .media-grid[data-count="3"]> :first-child {
-        grid-row: span 2;
+    .media-grid[data-count="3"]>.media-item:first-child {
+        grid-row: 1 / 3;
+        grid-column: 1;
     }
 
-    /* 4 media */
+    .media-grid[data-count="3"]>.media-item:nth-child(2) {
+        grid-row: 1;
+        grid-column: 2;
+    }
+
+    .media-grid[data-count="3"]>.media-item:nth-child(3) {
+        grid-row: 2;
+        grid-column: 2;
+    }
+
     .media-grid[data-count="4"] {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        height: 300px;
     }
 
-    /* REMOVE BTN */
-    .media-item {
+    .media-grid>.media-item {
         position: relative;
+        aspect-ratio: auto;
+        overflow: hidden;
+        border-radius: 8px;
+        cursor: pointer;
+        height: 100%;
+    }
+
+    .media-item img,
+    .media-item video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        border-radius: 8px;
+        max-height: 100%;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+
+    /* ✅ HOVER - OVERLAY DARK */
+    .media-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .media-item:hover::before {
+        opacity: 1;
+    }
+
+    /* ✅ HOVER - ICON EXPAND */
+    .media-item::after {
+        /* content: '⤢'; */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 32px;
+        color: white;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 2;
+        pointer-events: none;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    .media-item:hover::after {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+
+    /* ✅ HOVER - ZOOM IMAGE */
+    .media-item:hover img,
+    .media-item:hover video {
+        transform: scale(1.05);
+    }
+
+    .post-video-container {
+        position: relative;
+        margin-bottom: 15px;
     }
 
     .media-remove {
@@ -322,16 +388,6 @@
         font-size: 18px;
         cursor: pointer;
     }
-
-    /* .post-btn {
-        background: #1d9bf0;
-        color: white;
-        border: none;
-        padding: 6px 14px;
-        border-radius: 999px;
-        font-weight: bold;
-    } */
-
 
     .post-btn {
         background: var(--primary-color);
@@ -431,7 +487,6 @@
         display: block;
     }
 
-
     .post-avatar:hover {
         transform: scale(1.05);
     }
@@ -452,35 +507,121 @@
         font-size: 15px;
     }
 
+    /* POST MEDIA GRID - UPDATED FOR TWITTER/X STYLE */
     .post-media {
         display: grid;
-        gap: 6px;
-        margin-top: 8px;
+        gap: 4px;
+        border-radius: 16px;
+        overflow: hidden;
     }
 
-    /* AUTO GRID BERDASARKAN JUMLAH */
     .post-media[data-count="1"] {
         grid-template-columns: 1fr;
     }
 
+    .post-media[data-count="1"]>* {
+        max-height: 500px;
+    }
+
     .post-media[data-count="2"] {
         grid-template-columns: repeat(2, 1fr);
+        max-height: 400px;
     }
 
-    .post-media[data-count="3"],
+    /* 3 items: Large left, 2 stacked right (Twitter/X style) */
+    .post-media[data-count="3"] {
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        height: 400px;
+    }
+
+    .post-media[data-count="3"]>.media-item:first-child {
+        grid-row: 1 / 3;
+        grid-column: 1;
+        height: 100%;
+    }
+
+    .post-media[data-count="3"]>.media-item:nth-child(2) {
+        grid-row: 1;
+        grid-column: 2;
+        height: 100%;
+    }
+
+    .post-media[data-count="3"]>.media-item:nth-child(3) {
+        grid-row: 2;
+        grid-column: 2;
+        height: 100%;
+    }
+
+    /* 4 items: 2x2 grid */
     .post-media[data-count="4"] {
         grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        height: 400px;
     }
 
-    /* FIX UKURAN IMAGE */
-    .post-media img {
-        width: 100%;
-        height: 220px;
-        /* 🔥 INI YANG NYAMAIN */
-        object-fit: cover;
-        /* 🔥 AUTO CROP */
-        border-radius: 12px;
+    .post-media>.media-item {
+        position: relative;
+        overflow: hidden;
         cursor: pointer;
+        width: 100%;
+    }
+
+    .post-media img,
+    .post-media video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+
+    /* ✅ HOVER - OVERLAY DARK FOR POST MEDIA */
+    .post-media .media-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .post-media .media-item:hover::before {
+        opacity: 1;
+    }
+
+    /* ✅ HOVER - ICON EXPAND FOR POST MEDIA */
+    .post-media .media-item::after {
+        /* content: '⤢'; */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 32px;
+        color: white;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 2;
+        pointer-events: none;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    .post-media .media-item:hover::after {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+
+    /* ✅ HOVER - ZOOM IMAGE FOR POST MEDIA */
+    .post-media .media-item:hover img,
+    .post-media .media-item:hover video {
+        transform: scale(1.05);
     }
 
     .post-actions {
@@ -827,6 +968,11 @@
             max-width: 100%;
             max-height: 85vh;
         }
+
+        .post-media[data-count="3"],
+        .post-media[data-count="4"] {
+            height: 300px;
+        }
     }
 
     @media (min-width: 992px) {
@@ -912,8 +1058,6 @@
                 @csrf
 
                 <div class="post-composer">
-
-                    <!-- TEXTAREA -->
                     <textarea
                         class="composer-textarea"
                         id="postContent"
@@ -922,15 +1066,12 @@
                         rows="1"
                         oninput="updateCharCount()"></textarea>
 
-                    <!-- CHAR COUNT -->
                     <div class="text-end small text-muted">
                         <span id="charCount">0/280</span>
                     </div>
 
-                    <!-- MEDIA PREVIEW -->
                     <div class="media-preview hidden" id="uploadPreview"></div>
 
-                    <!-- FILE INPUT (PENTING) -->
                     <input
                         type="file"
                         id="mediaUpload"
@@ -940,7 +1081,6 @@
                         hidden
                         onchange="handleMediaUpload(event)">
 
-                    <!-- TOOLBAR -->
                     <div class="composer-toolbar">
                         <div class="toolbar-left">
                             <button
@@ -951,7 +1091,6 @@
                             </button>
                         </div>
 
-                        <!-- SUBMIT -->
                         <button
                             class="post-btn"
                             id="postBtn"
@@ -960,7 +1099,6 @@
                             Post
                         </button>
                     </div>
-
                 </div>
             </form>
 
@@ -994,44 +1132,91 @@
                                     <span class="text-muted">{{ '@' . $post->user->username }}</span>
                                     <span class="text-muted ms-2">• {{ $post->created_at->diffForHumans() }}</span>
                                 </div>
+
                                 <p class="mb-3">{{ $post->caption }}</p>
-                                @if($post->media->count())
+
+                                @if($post->media && $post->media->count())
                                 <div class="post-media media-grid" data-count="{{ $post->media->count() }}">
                                     @foreach($post->media as $media)
-                                    @if($media->type === 'image')
-                                    <img
-                                        src="{{ asset('storage/' . $media->file_path) }}"
-                                        alt="Post Image"
-                                        onclick="openImageModal('{{ asset('storage/' . $media->file_path) }}')">
-                                    @elseif($media->type === 'video') 
-                                    <div class="post-video-container" style="position:relative; margin-bottom:15px;">
-                                        <video
-                                            class="twitter-video"
-                                            muted
-                                            playsinline
-                                            preload="metadata"
-                                            style="width:100%; max-height:400px; object-fit:cover; border-radius:12px; cursor:pointer;">
-                                            <source src="{{ asset('storage/' . $media->file_path) }}" type="video/mp4">
-                                        </video>
-                                        <!-- tombol mute/unmute -->
-                                        <button class="mute-btn"
-                                            style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.5); border:none; color:white; padding:5px 8px; border-radius:50%; cursor:pointer;">
-                                            🔇
-                                        </button>
+                                    @php
+                                    $ext = pathinfo($media->file_path, PATHINFO_EXTENSION);
+                                    $mediaUrl = asset('storage/' . $media->file_path);
+                                    @endphp
+
+                                    <div class="media-item">
+                                        {{-- IMAGE --}}
+                                        @if(in_array(strtolower($ext), ['jpg','jpeg','png','webp','gif']))
+                                        <img
+                                            src="{{ $mediaUrl }}"
+                                            onclick="openImageModal('{{ $mediaUrl }}')"
+                                            style="width:100%; height:100%; object-fit:cover; cursor:pointer;">
+
+                                        {{-- Download Button for Image --}}
+                                        <div class="media-dropdown">
+                                            <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item" href="#" onclick="event.preventDefault(); event.stopPropagation(); downloadMedia('{{ $mediaUrl }}', 'image_{{ $media->id }}.{{ $ext }}')">
+                                                        <i class="fas fa-download me-2"></i>Download Image
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        {{-- VIDEO --}}
+                                        @elseif(in_array(strtolower($ext), ['mp4','mov','webm']))
+                                        <div class="post-video-container" style="position:relative; height:100%;">
+                                            <video
+                                                class="twitter-video"
+                                                muted
+                                                playsinline
+                                                preload="metadata"
+                                                controls
+                                                style="width:100%; height:100%; object-fit:cover; cursor:pointer;">
+                                                <source src="{{ $mediaUrl }}">
+                                            </video>
+
+                                            <button class="mute-btn"
+                                                style="position:absolute; bottom:10px; right:10px;
+                                                background:rgba(0,0,0,0.5); border:none;
+                                                color:white; padding:5px 8px;
+                                                border-radius:50%; cursor:pointer;">
+                                                🔇
+                                            </button>
+
+                                            {{-- Download Button for Video --}}
+                                            <div class="media-dropdown">
+                                                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" onclick="event.preventDefault(); event.stopPropagation(); downloadMedia('{{ $mediaUrl }}', 'video_{{ $media->id }}.{{ $ext }}')">
+                                                            <i class="fas fa-download me-2"></i>Download Video
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
-                                    @endif
                                     @endforeach
                                 </div>
                                 @endif
-                                <div class="d-flex justify-content-between">
+
+                                <div class="d-flex justify-content-between mt-2">
                                     <button class="btn btn-sm btn-light" onclick="showComments({{ $post->id }})">
                                         <i class="far fa-comment"></i> {{ $post->comments_count ?? 0 }}
                                     </button>
+
                                     <button class="btn btn-sm btn-light">
                                         <i class="fas fa-bookmark"></i>
                                     </button>
 
-                                    <button class="btn btn-sm like-btn" onclick="toggleLike(this)"
+                                    <button class="btn btn-sm like-btn"
+                                        onclick="toggleLike(this)"
                                         data-post-id="{{ $post->id }}"
                                         data-liked="{{ $post->is_liked_by_auth_user ? 'true' : 'false' }}">
                                         <i class="fa fa-heart {{ $post->is_liked_by_auth_user ? 'text-danger' : 'text-secondary' }}"></i>
@@ -1109,13 +1294,42 @@
     // ============================================================
     const currentUserId = Number("{{ auth()->id() }}");
 
-    let uploadedFiles = []; // Array untuk menyimpan multiple files
+    let uploadedFiles = [];
     const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
     const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
-    const MAX_FILES = 4; // Maximum 4 files
+    const MAX_FILES = 4;
 
     // ============================================================
-    // IMMEDIATELY DEFINE GLOBAL FUNCTIONS (BEFORE DOMContentLoaded)
+    // DOWNLOAD MEDIA FUNCTION
+    // ============================================================
+    window.downloadMedia = async function(mediaUrl, filename) {
+        try {
+            window.showNotification('📥 Downloading...');
+
+            const response = await fetch(mediaUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+
+            document.body.appendChild(a);
+            a.click();
+
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            window.showNotification('✅ Download complete!');
+        } catch (error) {
+            console.error('Download error:', error);
+            window.showNotification('⚠️ Download failed. Please try again.');
+        }
+    };
+
+    // ============================================================
+    // IMMEDIATELY DEFINE GLOBAL FUNCTIONS
     // ============================================================
 
     // Story Functions
@@ -1148,16 +1362,14 @@
 
         if (textLength > 0 || uploadedFiles.length > 0) {
             postBtn.disabled = false;
-            postBtn.classList.add('active'); // 🔥 INI PENTING
+            postBtn.classList.add('active');
         } else {
             postBtn.disabled = true;
-            postBtn.classList.remove('active'); // 🔥 INI PENTING
+            postBtn.classList.remove('active');
         }
     };
 
-
     // Media Upload Functions
-
     window.triggerMediaUpload = function() {
         const input = document.getElementById('mediaUpload');
         if (!input) return;
@@ -1172,7 +1384,6 @@
         let videoCount = uploadedFiles.filter(f => f.type.startsWith('video/')).length;
 
         for (const file of files) {
-
             if (uploadedFiles.length >= MAX_FILES) {
                 showNotification(`⚠️ Max ${MAX_FILES} media`);
                 break;
@@ -1205,13 +1416,9 @@
 
         renderMediaPreviews();
         updateCharCount();
-
         event.target.value = '';
     };
 
-    /* =======================
-       PREVIEW
-    ======================= */
     window.renderMediaPreviews = function() {
         const wrapper = document.getElementById('uploadPreview');
         wrapper.innerHTML = '';
@@ -1253,11 +1460,6 @@
         renderMediaPreviews();
         updateCharCount();
     };
-
-
-    /* =======================
-       SUBMIT (IMPORTANT PART)
-    ======================= */
 
     // Like Functionality
     window.toggleLike = async function(btn) {
@@ -1722,7 +1924,7 @@
                     return false;
                 }
 
-                const formData = new FormData(this); // ✅ INI PENTING
+                const formData = new FormData(this);
 
                 if (uploadedFiles.length > 0) {
                     uploadedFiles.forEach(file => {
@@ -1808,6 +2010,9 @@
 
     console.log('✅ All functions loaded successfully');
 
+    // ============================================================
+    // VIDEO AUTO-PLAY & MUTE FUNCTIONALITY
+    // ============================================================
     document.addEventListener("DOMContentLoaded", () => {
         const videos = document.querySelectorAll(".twitter-video");
         let currentlyPlaying = null;
@@ -1833,7 +2038,7 @@
 
         videos.forEach(video => observer.observe(video));
 
-        // klik video → buka fullscreen
+        // Click video to toggle fullscreen
         videos.forEach(video => {
             video.addEventListener("click", () => {
                 if (document.fullscreenElement) {
@@ -1844,12 +2049,12 @@
             });
         });
 
-        // tombol mute/unmute
+        // Mute/unmute buttons
         const muteButtons = document.querySelectorAll(".mute-btn");
         muteButtons.forEach(btn => {
             btn.addEventListener("click", (e) => {
-                e.stopPropagation(); // jangan trigger fullscreen
-                const video = btn.previousElementSibling; // video sebelah tombol
+                e.stopPropagation();
+                const video = btn.previousElementSibling;
                 if (video.muted) {
                     video.muted = false;
                     btn.textContent = "🔊";

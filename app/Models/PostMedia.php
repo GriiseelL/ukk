@@ -7,17 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class PostMedia extends Model
 {
     protected $fillable = [
-        'post_id',
+        'mediaable_id',
+        'mediaable_type',
         'file_path',
-        'type', // image | video
     ];
 
-    public function post()
+    public function mediaable()
     {
-        return $this->belongsTo(Posts::class, 'post_id', 'id');
+        return $this->morphTo();
     }
 
-    // biar gampang di blade
+    // helper buat blade
     public function getUrlAttribute()
     {
         return asset('storage/' . $this->file_path);

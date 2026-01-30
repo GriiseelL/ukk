@@ -62,7 +62,7 @@
         .card-title {
             font-size: 2rem;
             font-weight: 600;
-            margin-bottom: 1rem;
+            /* margin-bottom: 1rem; */
         }
 
         .social-line {
@@ -160,6 +160,10 @@
         .form-control:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
         }
 
         .form-check {
@@ -321,6 +325,22 @@
             pointer-events: none;
             opacity: 0.8;
         }
+
+        /* Custom SweetAlert2 styling */
+        .swal2-popup {
+            border-radius: 15px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .swal2-title {
+            font-weight: 600;
+        }
+
+        .swal2-confirm {
+            background: linear-gradient(135deg, #b6bbc9, #667eea) !important;
+            border-radius: 8px;
+            padding: 10px 30px;
+        }
     </style>
 </head>
 
@@ -341,7 +361,7 @@
                                     <i class="fas fa-users"></i>
                                     Telava
                                 </h4>
-                                <div class="social-line">
+                                <!-- <div class="social-line">
                                     <a href="#" class="btn-social" onclick="socialLogin(event, 'facebook')">
                                         <i class="fab fa-facebook-f"></i>
                                     </a>
@@ -354,7 +374,7 @@
                                     <a href="#" class="btn-social" onclick="socialLogin(event, 'instagram')">
                                         <i class="fab fa-instagram"></i>
                                     </a>
-                                </div>
+                                </div> -->
                             </div>
 
                             <p class="category text-center">
@@ -414,7 +434,7 @@
 
                                 <!-- Forgot Password Box -->
                                 <div id="forgotPasswordBox" class="mt-3 d-none">
-                                    <form method="POST" action="/forgot-password">
+                                    <form method="POST" action="/forgot-password" id="forgotPasswordForm">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
                                         <div class="input-group mb-2">
@@ -423,13 +443,14 @@
                                             </span>
                                             <input type="email"
                                                 name="email"
+                                                id="forgotPasswordEmail"
                                                 class="form-control"
                                                 placeholder="Masukkan email kamu"
                                                 required>
                                         </div>
 
                                         <div class="d-flex gap-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">
+                                            <button type="submit" class="btn btn-primary btn-sm" id="sendResetBtn">
                                                 Kirim Link Reset
                                             </button>
 
@@ -543,7 +564,7 @@
             }, 2000);
         }
 
-        // Show forgot password
+        // Show forgot password (ORIGINAL FUNCTION - TIDAK DIUBAH)
         function showForgotPassword(e) {
             e.preventDefault();
             document.getElementById('forgotPasswordBox')
@@ -553,7 +574,147 @@
         function hideForgotPassword() {
             document.getElementById('forgotPasswordBox')
                 .classList.add('d-none');
+            // Reset form
+            document.getElementById('forgotPasswordEmail').value = '';
         }
+
+        // Add event listener for forgot password form
+        document.addEventListener('DOMContentLoaded', function() {
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            
+            if (forgotPasswordForm) {
+                forgotPasswordForm.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent immediate submit
+                    
+                    const email = document.getElementById('forgotPasswordEmail').value;
+                    const submitBtn = document.getElementById('sendResetBtn');
+                    const originalBtnText = submitBtn.innerHTML;
+                    
+                    // Show loading state
+                    submitBtn.innerHTML = '<span class="loading"></span>Mengirim...';
+                    submitBtn.disabled = true;
+                    
+                    // Show SweetAlert immediately
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Email Terkirim!',
+                        html: `Link reset password sedang dikirim ke<br><strong>${email}</strong><br><br>Silakan cek <strong>inbox</strong> atau folder <strong>spam</strong> email Anda.`,
+                        confirmButtonText: 'OK',
+                        timer: 5000,
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeInDown'
+                        }
+                    }).then(() => {
+                        // After SweetAlert closes, submit the form to Laravel
+                        forgotPasswordForm.submit();
+                    });
+                    
+                    // Also submit after timer ends
+                    setTimeout(() => {
+                        if (!Swal.isVisible()) {
+                            forgotPasswordForm.submit();
+                        }
+                    }, 5000);
+                });
+            }
+        });
+
+        // Check for Laravel errors and show SweetAlert
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check for login errors
+            @if($errors->has('email') || $errors->has('password'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Gagal!',
+                    html: '@if($errors->has("email")){{ $errors->first("email") }}@elseif($errors->has("password")){{ $errors->first("password") }}@endif',
+                    confirmButtonText: 'Coba Lagi'
+                });
+            @endif
+
+            // Check for general authentication errors
+            @if(session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: '{{ session("error") }}',
+                    confirmButtonText: 'OK'
+                });
+            @endif
+
+            // Check for account not found error
+            @if(session('account_not_found'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akun Tidak Ditemukan!',
+                    text: 'Email yang Anda masukkan tidak terdaftar. Silakan periksa kembali atau daftar akun baru.',
+                    confirmButtonText: 'OK',
+                    showCancelButton: true,
+                    cancelButtonText: 'Daftar Sekarang'
+                }).then((result) => {
+                    if (result.dismiss === Swal.DismissReason.cancel) {
+                        switchTab('register');
+                    }
+                });
+            @endif
+
+            // Check for wrong password error
+            @if(session('wrong_password'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Password Salah!',
+                    text: 'Password yang Anda masukkan tidak sesuai. Silakan coba lagi atau reset password Anda.',
+                    confirmButtonText: 'Coba Lagi',
+                    showCancelButton: true,
+                    cancelButtonText: 'Lupa Password?'
+                }).then((result) => {
+                    if (result.dismiss === Swal.DismissReason.cancel) {
+                        showForgotPassword(new Event('click'));
+                    }
+                });
+            @endif
+
+            // Check for successful registration
+            @if(session('registration_success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Registrasi Berhasil!',
+                    text: 'Akun Anda telah dibuat. Silakan login dengan email dan password Anda.',
+                    confirmButtonText: 'Login Sekarang'
+                }).then(() => {
+                    switchTab('login');
+                });
+            @endif
+
+            // Check for successful password reset
+            @if(session('password_reset_success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Password Berhasil Direset!',
+                    text: 'Password Anda telah berhasil direset. Silakan login dengan password baru Anda.',
+                    confirmButtonText: 'OK'
+                });
+            @endif
+
+            // Check for password reset email sent
+            @if(session('reset_link_sent'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Email Terkirim!',
+                    html: 'Link reset password telah dikirim ke email Anda.<br><br>Silakan cek <strong>inbox</strong> atau folder <strong>spam</strong> email Anda.',
+                    confirmButtonText: 'OK',
+                    timer: 6000,
+                    timerProgressBar: true,
+                    showClass: {
+                        popup: 'animate__animated animate__fadeInDown'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__fadeOutUp'
+                    }
+                });
+            @endif
+        });
 
         // Add entrance animation
         window.addEventListener('load', function() {

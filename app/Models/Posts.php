@@ -34,8 +34,9 @@ class Posts extends Model
     // 🖼️🎥 MEDIA (foto / video)
     public function media()
     {
-        return $this->hasMany(PostMedia::class, 'post_id', 'id');
+        return $this->morphMany(PostMedia::class, 'mediaable');
     }
+
 
 
     // helper: hanya foto

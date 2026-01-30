@@ -9,8 +9,10 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\JelajahController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StoriesController;
 use App\Http\Middleware\loginMiddleware;
 use App\Http\Middleware\UserMiddleware;
@@ -47,6 +49,7 @@ Route::prefix('like')->middleware('auth')->group(function () {
     Route::post('/store/{postId}/{type}', [LikeController::class, 'store']);
     Route::delete('/destroy/{postId}/{type}', [LikeController::class, 'destroy']);
     Route::get('/like/count/{postId}/{type}', [LikeController::class, 'count']);
+    Route::post('flipsideStore/{postId}', [LikeController::class, 'storeFlip']);
 });
 
 
@@ -118,9 +121,12 @@ Route::delete('stories/destroy', [StoriesController::class, 'destroy'])->name('d
 
 
 
-Route::get('/notifikasi', function () {
-    return view('notifikasi');
-})->name('notifikasi');
+Route::get('/notifications', [NotifikasiController::class, 'index'])->name('notifications.index')
+    ->middleware('auth');
+
+Route::post('/notifications/read', [NotifikasiController::class, 'markAsRead'])
+    ->middleware('auth');
+
 // Route::get('/flipside', function () {
 //     return view('flipside');
 // })->name('flipside');
@@ -188,6 +194,18 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink
 
 Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
+Route::middleware(['auth'])->group(function () {
+
+    // Settings Page
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings');
+
+    // Update Avatar
+    Route::post('/profile/update-avatar', [SettingController::class, 'updateAvatar'])->name('profile.updateAvatar');
+
+    // Change Password
+    Route::post('/profile/change-password', [SettingController::class, 'changePassword'])->name('profile.changePassword');
+});
 
 Route::get('/', function () {
     return view('login');

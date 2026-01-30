@@ -27,18 +27,40 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
+        /* ✅ PERBAIKAN NAVBAR - Z-INDEX STANDAR BOOTSTRAP */
         .navbar {
             background-color: var(--card-bg) !important;
             border-bottom: 1px solid var(--border-color);
             position: fixed;
             top: 0;
             width: 100%;
-            z-index: 999;
+            z-index: 1030 !important;
+            /* Bootstrap standard */
         }
 
         .navbar-brand {
             font-weight: bold;
             color: var(--primary-color) !important;
+        }
+
+        /* ✅ PERBAIKAN DROPDOWN - PASTIKAN BISA MUNCUL */
+        .navbar .dropdown-menu {
+            z-index: 1031 !important;
+            /* Di atas navbar */
+            position: absolute !important;
+        }
+
+        .navbar .nav-item.dropdown {
+            position: relative;
+        }
+
+        /* ✅ PASTIKAN TIDAK ADA OVERFLOW YANG MEMOTONG */
+        .navbar-collapse {
+            overflow: visible !important;
+        }
+
+        .navbar .container-fluid {
+            overflow: visible !important;
         }
 
         .sidebar {
@@ -269,36 +291,137 @@
             box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
         }
 
-        /* FIXED: Modal Z-Index */
+        /* ✅ PERBAIKAN MODAL Z-INDEX */
         .modal {
-            z-index: 1055 !important;
+            z-index: 1050 !important;
+            /* Bootstrap standard */
         }
 
         .modal-backdrop {
-            z-index: 1050 !important;
+            z-index: 1040 !important;
+            /* Bootstrap standard */
         }
 
         .modal-dialog {
-            z-index: 1056 !important;
+            z-index: 1055 !important;
         }
 
-        /* Pastikan main content tidak tertutup */
         .main-content {
             position: relative;
-            z-index: 1;
             background-color: #ffffff;
         }
 
         .btn-tweet {
-            /* background: linear-gradient(135deg, #4f46e5, #6366f1); */
             color: #fff;
-            /* ⬅️ ini yang bikin teks putih */
             font-weight: 600;
         }
 
         .btn-tweet:hover {
             color: #fff;
-            /* biar hover nggak balik hitam */
+        }
+
+        body[data-flipside="true"] .dropdown-menu {
+            background: #1a1a1a !important;
+            border: 2px solid rgba(255, 0, 128, 0.3) !important;
+        }
+
+        body[data-flipside="true"] .dropdown-item {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        body[data-flipside="true"] .dropdown-item:hover {
+            background: rgba(255, 0, 128, 0.2) !important;
+            color: #FF0080 !important;
+        }
+
+        /* ===== MODAL MEDIA PREVIEW STYLES (UNIQUE TO MODAL!) ===== */
+        #modalMediaPreview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+            min-height: 0;
+        }
+
+        #modalMediaPreview .media-item {
+            position: relative;
+            width: calc(50% - 5px);
+            height: 200px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #f5f5f5;
+        }
+
+        #modalMediaPreview .media-item:only-child {
+            width: 100%;
+            height: 300px;
+        }
+
+        #modalMediaPreview:has(.media-item:nth-child(3):last-child) .media-item:first-child {
+            width: 100%;
+        }
+
+        #modalMediaPreview .media-item img,
+        #modalMediaPreview .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #modalMediaPreview .remove-media {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10;
+            font-size: 14px;
+        }
+
+        #modalMediaPreview .remove-media:hover {
+            background: rgba(220, 53, 69, 0.95);
+            transform: scale(1.1);
+        }
+
+        #modalMediaPreview .media-item video {
+            background: #000;
+        }
+
+        #modalMediaPreview .video-indicator {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #modalMediaPreview .media-count-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(29, 161, 242, 0.9);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -309,23 +432,29 @@
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Telava</a>
 
-
             <div class="navbar-nav flex-row">
-                <a class="nav-link me-3" href="#">
-                    <i class="far fa-bell"></i>
-                    <span class="badge bg-danger rounded-pill">3</span>
-                </a>
-                <a class="nav-link me-3" href="#">
-                    <i class="far fa-envelope"></i>
-                </a>
                 <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-bs-toggle="dropdown">
-                        <i class="far fa-user-circle"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        @php
+                        $user = auth()->user();
+                        $navbarAvatar = $user->avatar
+                        ? asset('storage/'.$user->avatar)
+                        : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=1da1f2&color=fff';
+                        @endphp
+
+                        <img
+                            src="{{ $navbarAvatar }}"
+                            class="rounded-circle"
+                            style="width:40px;height:40px;object-fit:cover;"
+                            alt="Avatar">
+
+                    </a> <!-- ✅ TUTUP A DI SINI -->
+
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{{ route('profile') }}">Profil</a></li>
-                        <li><a class="dropdown-item" href="#">Pengaturan</a></li>
+                        <li><a class="dropdown-item" href="{{ route('settings') }}">Pengaturan</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -337,6 +466,7 @@
                         </li>
                     </ul>
                 </div>
+
             </div>
         </div>
     </nav>
@@ -350,14 +480,16 @@
             <a class="nav-link" href="{{ route('jelajahi') }}">
                 <i class="fas fa-search me-3"></i>Jelajah
             </a>
-            <a class="nav-link" href="#">
-                <i class="far fa-bell me-3"></i>Notifikasi
-            </a>
-            <a class="nav-link" href="#">
-                <i class="far fa-envelope me-3"></i>Pesan
-            </a>
-            <a class="nav-link" href="#">
-                <i class="far fa-bookmark me-3"></i>Tersimpan
+            <a class="nav-link d-flex justify-content-between align-items-center"
+                href="{{ route('notifications.index') }}">
+                <span>
+                    <i class="far fa-bell me-3"></i>Notifikasi
+                </span>
+                @if($unreadNotificationsCount > 0)
+                <span class="badge bg-danger rounded-pill">
+                    {{ $unreadNotificationsCount }}
+                </span>
+                @endif
             </a>
             <a class="nav-link" href="{{ route('profile') }}">
                 <i class="far fa-user me-3"></i>Profil
@@ -407,69 +539,75 @@
     </div>
 
     <!-- Modal Tweet -->
-    <div class="modal fade" id="tweetModal" tabindex="-1" aria-labelledby="tweetModalLabel" aria-hidden="true">
+    <div class="modal fade" id="tweetModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 16px; border: none;">
-                <div class="modal-header" style="border-bottom: 1px solid #e1e8ed;">
-                    <h5 class="modal-title" id="tweetModalLabel" style="font-weight: bold;">Buat Tweet</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content" style="border-radius:16px">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Buat Elav</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body">
                     <div class="d-flex">
                         @php
                         $user = auth()->user();
                         $avatar = $user->avatar
-                        ? asset('storage/' . $user->avatar)
-                        : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=1da1f2&color=fff';
+                        ? asset('storage/'.$user->avatar)
+                        : 'https://ui-avatars.com/api/?name='.urlencode($user->name).'&background=1da1f2&color=fff';
                         @endphp
 
-                        <img src="{{ $avatar }}" class="post-avatar me-3" alt="Avatar">
+                        <img src="{{ $avatar }}" class="post-avatar me-3">
 
                         <div class="flex-grow-1">
-                            <textarea class="form-control" id="tweetText" rows="4" placeholder="Apa yang sedang terjadi?" style="border: none; resize: none; font-size: 16px;" maxlength="280"></textarea>
+                            <textarea
+                                id="tweetText"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Apa yang sedang terjadi?"
+                                maxlength="280"
+                                style="border:none;resize:none"></textarea>
 
-                            <div class="text-end mt-2">
-                                <small class="text-muted">
-                                    <span id="charCount">0</span>/280
-                                </small>
-                            </div>
-
-                            <div id="imagePreview" class="mt-3" style="display: none;">
-                                <div class="position-relative">
-                                    <img id="previewImg" src="" class="img-fluid rounded" style="max-height: 300px;">
-                                    <button type="button" class="btn btn-sm btn-dark position-absolute top-0 end-0 m-2" onclick="removeImage()" style="border-radius: 50%; width: 32px; height: 32px; padding: 0;">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
+                            <small class="text-muted float-end">
+                                <span id="charCount">0</span>/280
+                            </small>
                         </div>
                     </div>
+
+                    <!-- MODAL MEDIA PREVIEW - ID UNIK! -->
+                    <div id="modalMediaPreview"></div>
                 </div>
-                <div class="modal-footer" style="border-top: 1px solid #e1e8ed; justify-content: space-between;">
-                    <div class="media-options">
-                        <label for="imageUpload" class="btn btn-sm" style="color: var(--primary-color); cursor: pointer;">
+
+                <div class="modal-footer justify-content-between">
+                    <div class="d-flex gap-2">
+                        <!-- Upload Image/Video -->
+                        <label for="modalMediaUpload" class="btn btn-sm text-primary" title="Upload gambar atau video">
                             <i class="far fa-image fa-lg"></i>
                         </label>
-                        <input type="file" id="imageUpload" accept="image/*" style="display: none;">
 
-                        <button type="button" class="btn btn-sm" style="color: var(--primary-color);">
-                            <i class="far fa-smile fa-lg"></i>
-                        </button>
+                        <input
+                            type="file"
+                            id="modalMediaUpload"
+                            multiple
+                            accept="image/*,video/*"
+                            hidden>
 
-                        <button type="button" class="btn btn-sm" style="color: var(--primary-color);">
-                            <i class="far fa-calendar fa-lg"></i>
-                        </button>
+                        <small class="text-muted align-self-center" id="modalMediaCount"></small>
                     </div>
 
-                    <button type="button" class="btn btn-primary" id="postTweetBtn" disabled style="background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); border: none; border-radius: 20px; padding: 8px 20px; font-weight: bold;">
+                    <button id="postTweetBtn"
+                        class="btn btn-primary"
+                        disabled
+                        style="border-radius:20px">
                         Elav
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
         @csrf
         @method('DELETE')
     </form>
@@ -477,143 +615,293 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // FIXED: Pastikan tidak ada modal yang terbuka saat page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Tutup semua modal backdrop yang mungkin masih ada
-            const modalBackdrops = document.querySelectorAll('.modal-backdrop');
-            modalBackdrops.forEach(backdrop => backdrop.remove());
+        console.log('🚀 Script started loading...');
 
-            // Reset body
+        (function() {
+            if (window.location.pathname.includes('/flipside')) {
+                document.body.setAttribute('data-flipside', 'true');
+            }
+        })();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM Ready!');
+
+            // ✅ PERBAIKAN: Hanya bersihkan backdrop yang tidak terpakai
+            // JANGAN hapus backdrop saat dropdown aktif
+            const cleanupUnusedBackdrops = () => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                const hasActiveModal = document.querySelector('.modal.show');
+                const hasActiveDropdown = document.querySelector('.dropdown-menu.show');
+
+                // Hanya hapus jika tidak ada modal atau dropdown aktif
+                if (!hasActiveModal && !hasActiveDropdown) {
+                    backdrops.forEach(backdrop => backdrop.remove());
+                }
+            };
+
+            cleanupUnusedBackdrops();
+
+            // Reset body styles yang mungkin tersisa
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
             document.body.style.paddingRight = '';
-        });
 
-        // Like button functionality
-        document.querySelectorAll(".post-card .fa-heart").forEach((icon) => {
-            icon.addEventListener("click", function() {
-                const btn = this.closest("button");
-                const span = btn.querySelector("span");
-                let count = parseInt(span?.textContent || "0");
+            // ========== GLOBALS ==========
+            let selectedFiles = [];
+            const MAX_FILES = 4;
+            const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-                if (this.classList.contains("fas")) {
-                    this.classList.remove("fas", "liked");
-                    this.classList.add("far");
-                    btn.classList.remove("liked");
-                    if (span) span.textContent = count - 1;
-                } else {
-                    this.classList.remove("far");
-                    this.classList.add("fas", "liked");
-                    btn.classList.add("liked");
-                    if (span) span.textContent = count + 1;
-                }
+            // ========== GET ELEMENTS WITH UNIQUE IDs ==========
+            const mediaUploadEl = document.getElementById('modalMediaUpload');
+            const mediaPreviewEl = document.getElementById('modalMediaPreview');
+            const mediaCountEl = document.getElementById('modalMediaCount');
+            const tweetTextEl = document.getElementById('tweetText');
+            const charCountEl = document.getElementById('charCount');
+            const postBtnEl = document.getElementById('postTweetBtn');
+            const tweetModalEl = document.getElementById('tweetModal');
+
+            console.log('Elements:', {
+                mediaUpload: !!mediaUploadEl,
+                mediaPreview: !!mediaPreviewEl,
+                mediaCount: !!mediaCountEl
             });
-        });
 
-        // Counter karakter
-        document.getElementById('tweetText').addEventListener('input', function() {
-            const count = this.value.length;
-            document.getElementById('charCount').textContent = count;
-            const btn = document.getElementById('postTweetBtn');
-            const hasImage = document.getElementById('imagePreview').style.display === 'block';
-            btn.disabled = count === 0 && !hasImage;
-            const charCountElement = document.getElementById('charCount');
-            if (count > 250) {
-                charCountElement.style.color = '#e91e63';
-            } else {
-                charCountElement.style.color = '#666';
-            }
-        });
-
-        // Preview gambar
-        document.getElementById('imageUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Ukuran file terlalu besar! Maksimal 5MB');
-                event.target.value = '';
+            if (!mediaUploadEl) {
+                console.error('❌ mediaUpload not found!');
                 return;
             }
 
-            if (!file.type.startsWith('image/')) {
-                alert('File harus berupa gambar!');
-                event.target.value = '';
-                return;
-            }
+            // ========== FILE UPLOAD HANDLER ==========
+            mediaUploadEl.addEventListener('change', function(event) {
+                console.log('🔥 FILE INPUT CHANGED!');
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('previewImg').src = e.target.result;
-                document.getElementById('imagePreview').style.display = 'block';
-                document.getElementById('postTweetBtn').disabled = false;
-            };
-            reader.readAsDataURL(file);
-        });
+                const files = Array.from(event.target.files);
+                console.log('Files:', files.length, files.map(f => f.name));
 
-        // Hapus gambar
-        function removeImage() {
-            document.getElementById('imageUpload').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            const tweetText = document.getElementById('tweetText');
-            document.getElementById('postTweetBtn').disabled = tweetText.value.length === 0;
-        }
+                if (files.length === 0) return;
 
-        // Post tweet
-        document.getElementById('postTweetBtn').addEventListener('click', function() {
-            const text = document.getElementById('tweetText').value.trim();
-            const imageFile = document.getElementById('imageUpload').files[0];
-            const btn = this;
+                if (selectedFiles.length + files.length > MAX_FILES) {
+                    alert(`Maksimal ${MAX_FILES} file!`);
+                    event.target.value = '';
+                    return;
+                }
 
-            if (!text && !imageFile) {
-                alert('Tweet tidak boleh kosong!');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memposting...';
-
-            const formData = new FormData();
-            if (text) formData.append('caption', text);
-            if (imageFile) formData.append('image', imageFile);
-
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            fetch('/posts/store', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success || data.message) {
-                        document.getElementById('tweetText').value = '';
-                        document.getElementById('charCount').textContent = '0';
-                        removeImage();
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('tweetModal'));
-                        modal.hide();
-                        window.location.reload();
-                    } else {
-                        throw new Error(data.error || 'Gagal memposting tweet');
+                files.forEach(file => {
+                    if (file.size > MAX_FILE_SIZE) {
+                        alert(`File ${file.name} terlalu besar!`);
+                        return;
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Gagal memposting tweet. Silakan coba lagi.');
-                    btn.disabled = false;
-                    btn.textContent = 'Elav';
-                });
-        });
 
-        // Reset modal
-        document.getElementById('tweetModal').addEventListener('hidden.bs.modal', function() {
-            document.getElementById('tweetText').value = '';
-            document.getElementById('charCount').textContent = '0';
-            removeImage();
-            document.getElementById('postTweetBtn').disabled = true;
+                    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                        alert(`File ${file.name} harus berupa gambar atau video!`);
+                        return;
+                    }
+
+                    selectedFiles.push(file);
+                    console.log('✅ Added:', file.name);
+                });
+
+                console.log('Total files:', selectedFiles.length);
+                updateMediaPreview();
+                updatePostButton();
+                event.target.value = '';
+            });
+
+            // ========== UPDATE PREVIEW ==========
+            function updateMediaPreview() {
+                console.log('🔄 Updating preview...');
+
+                if (!mediaPreviewEl || !mediaCountEl) {
+                    console.error('❌ Preview elements not found!');
+                    return;
+                }
+
+                mediaPreviewEl.innerHTML = '';
+
+                if (selectedFiles.length === 0) {
+                    mediaCountEl.textContent = '';
+                    return;
+                }
+
+                mediaCountEl.textContent = `${selectedFiles.length}/${MAX_FILES} file`;
+
+                selectedFiles.forEach((file, index) => {
+                    const mediaItem = document.createElement('div');
+                    mediaItem.className = 'media-item';
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        console.log('✅ Loaded:', file.name);
+                        let mediaElement;
+
+                        if (file.type.startsWith('image/')) {
+                            mediaElement = document.createElement('img');
+                            mediaElement.src = e.target.result;
+                            mediaElement.alt = file.name;
+                        } else if (file.type.startsWith('video/')) {
+                            mediaElement = document.createElement('video');
+                            mediaElement.src = e.target.result;
+                            mediaElement.muted = true;
+                            mediaElement.controls = false;
+
+                            const videoIndicator = document.createElement('div');
+                            videoIndicator.className = 'video-indicator';
+                            videoIndicator.innerHTML = '<i class="fas fa-play"></i> Video';
+                            mediaItem.appendChild(videoIndicator);
+                        }
+
+                        if (mediaElement) {
+                            mediaItem.appendChild(mediaElement);
+                        }
+                    };
+
+                    reader.onerror = function(error) {
+                        console.error('❌ Error:', error);
+                    };
+
+                    reader.readAsDataURL(file);
+
+                    // Remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-media';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.type = 'button';
+                    removeBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        removeMedia(index);
+                    };
+
+                    mediaItem.appendChild(removeBtn);
+
+                    // Badge
+                    if (selectedFiles.length > 1) {
+                        const badge = document.createElement('div');
+                        badge.className = 'media-count-badge';
+                        badge.textContent = index + 1;
+                        mediaItem.appendChild(badge);
+                    }
+
+                    mediaPreviewEl.appendChild(mediaItem);
+                });
+
+                console.log('✅ Preview updated!');
+            }
+
+            function removeMedia(index) {
+                console.log('🗑️ Removing:', index);
+                selectedFiles.splice(index, 1);
+                updateMediaPreview();
+                updatePostButton();
+            }
+
+            function updatePostButton() {
+                if (!tweetTextEl || !postBtnEl) return;
+                const text = tweetTextEl.value.trim();
+                postBtnEl.disabled = text.length === 0 && selectedFiles.length === 0;
+            }
+
+            // ========== CHARACTER COUNTER ==========
+            if (tweetTextEl && charCountEl) {
+                tweetTextEl.addEventListener('input', function() {
+                    const count = this.value.length;
+                    charCountEl.textContent = count;
+                    updatePostButton();
+
+                    if (count > 250) {
+                        charCountEl.style.color = '#e91e63';
+                    } else {
+                        charCountEl.style.color = '#666';
+                    }
+                });
+            }
+
+            // ========== POST TWEET ==========
+            if (postBtnEl) {
+                postBtnEl.addEventListener('click', function() {
+                    const text = tweetTextEl.value.trim();
+
+                    if (!text && selectedFiles.length === 0) {
+                        alert('Tweet tidak boleh kosong!');
+                        return;
+                    }
+
+                    this.disabled = true;
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memposting...';
+
+                    const formData = new FormData();
+                    if (text) formData.append('caption', text);
+
+                    selectedFiles.forEach(file => {
+                        formData.append('media[]', file);
+                    });
+
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                    fetch('/posts/store', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success || data.message) {
+                                resetTweetModal();
+                                const modal = bootstrap.Modal.getInstance(tweetModalEl);
+                                modal.hide();
+                                window.location.reload();
+                            } else {
+                                throw new Error(data.error || 'Gagal');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Gagal memposting tweet!');
+                            this.disabled = false;
+                            this.textContent = 'Elav';
+                        });
+                });
+            }
+
+            // ========== RESET MODAL ==========
+            function resetTweetModal() {
+                if (tweetTextEl) tweetTextEl.value = '';
+                if (charCountEl) charCountEl.textContent = '0';
+                selectedFiles = [];
+                updateMediaPreview();
+                if (postBtnEl) postBtnEl.disabled = true;
+            }
+
+            if (tweetModalEl) {
+                tweetModalEl.addEventListener('hidden.bs.modal', resetTweetModal);
+            }
+
+            // ========== LIKE BUTTON ==========
+            document.querySelectorAll(".post-card .fa-heart").forEach((icon) => {
+                icon.addEventListener("click", function() {
+                    const btn = this.closest("button");
+                    const span = btn.querySelector("span");
+                    let count = parseInt(span?.textContent || "0");
+
+                    if (this.classList.contains("fas")) {
+                        this.classList.remove("fas", "liked");
+                        this.classList.add("far");
+                        btn.classList.remove("liked");
+                        if (span) span.textContent = count - 1;
+                    } else {
+                        this.classList.remove("far");
+                        this.classList.add("fas", "liked");
+                        btn.classList.add("liked");
+                        if (span) span.textContent = count + 1;
+                    }
+                });
+            });
+
+            console.log('🎉 ALL SETUP COMPLETE!');
         });
     </script>
 </body>

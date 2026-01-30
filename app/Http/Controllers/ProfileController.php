@@ -6,10 +6,12 @@ use App\Models\FlipAccess;
 use App\Models\FlipPosts;
 use App\Models\Friends;
 use App\Models\Likes;
+use App\Models\PostMedia;
 use App\Models\Posts;
 use Intervention\Image\Facades\Image;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -324,60 +326,57 @@ class ProfileController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'caption' => 'nullable|string|max:280',
+            'media' => 'nullable|array|max:4',
+            'media.*' => 'file|mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/quicktime|max:51200',
+            'is_flipside' => 'required|boolean',
+        ]);
+    
+
+        DB::beginTransaction();
+
         try {
-            // Validation
-            $validator = Validator::make($request->all(), [
-                'caption' => 'required|string|max:5000',
-                'is_flipside' => 'required|boolean',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // max 5MB
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $validator->errors()->first()
-                ], 422);
-            }
-
-            // Handle image upload
-            $imageBackPath = null;
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                $imageBackPath = $image->storeAs('posts/backgrounds', $imageName, 'public');
-            }
-
-            // Create post
             $post = FlipPosts::create([
-                'user_id' => Auth::id(),
+                'user_id' => auth()->id(),
                 'caption' => $request->caption,
-                'image' => $imageBackPath,
                 'is_flipside' => $request->is_flipside ? 1 : 0,
-                'likes_count' => 0,
                 'status' => 'active',
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
-            // Load user relation for response
-            $post->load('user');
+            // ⬇️ POLYMORPHIC CREATE (WAJIB BEGINI)
+            if ($request->hasFile('media')) {
+                foreach ($request->file('media') as $file) {
+                    $path = $file->store('flipside/media', 'public');
+
+                    $post->media()->create([
+                        'file_path' => $path,
+                    ]);
+                }
+            }
+
+
+
+            DB::commit();
+
+            $post->load(['user', 'media']);
 
             return response()->json([
                 'success' => true,
-                'message' => $request->is_flipside ? 'Flipside post created successfully!' : 'Post created successfully!',
-                'data' => [
-                    'post' => $post
-                ]
+                'data' => $post
             ], 201);
-        } catch (\Exception $e) {
-            \Log::error('Error creating post: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('Flipside post error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create post. Please try again.'
+                'message' => 'Failed to create flipside post'
             ], 500);
         }
     }
+
+
 
     /**
      * Get all flipside posts for current user

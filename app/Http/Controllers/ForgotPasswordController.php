@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Helpers\Activity;
+
 
 class ForgotPasswordController extends Controller
 {
@@ -106,9 +108,18 @@ class ForgotPasswordController extends Controller
             return view('reset-expired');
         }
 
-        User::where('email', $reset->email)->update([
+        $user = User::where('email', $reset->email)->first();
+
+        $user->update([
             'password' => Hash::make($request->password)
         ]);
+
+        activity_log(
+            'change_password',
+            $user->username . ' reset password via email'
+        );
+
+
 
         // hapus token (sekali pakai)
         DB::table('password_resets')

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comments;
 use App\Models\FlipPosts;
+use App\Models\Notification;
 use App\Models\Posts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,8 +71,8 @@ class CommentController extends Controller
                 if ($comment->user) {
                     $comment->user->active_avatar =
                         $type === 'flipside'
-                            ? ($comment->user->flipside_avatar ?? $comment->user->avatar)
-                            : $comment->user->avatar;
+                        ? ($comment->user->flipside_avatar ?? $comment->user->avatar)
+                        : $comment->user->avatar;
                 }
                 return $comment;
             });
@@ -83,11 +84,11 @@ class CommentController extends Controller
                 'count'     => $comments->count()
             ]);
         } catch (\Exception $e) {
-            Log::error('Comment index error: '.$e->getMessage());
+            Log::error('Comment index error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch comments: '.$e->getMessage()
+                'message' => 'Failed to fetch comments: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -186,12 +187,24 @@ class CommentController extends Controller
                 'type' => $type
             ]);
 
+            /* ---------------------- NOTIFIKASI KOMENTAR ---------------------- */
+            if (Auth::id() != $post->user_id) {
+                Notification::create([
+                    'sender_id' => Auth::id(),
+                    'receiver_id' => $post->user_id,
+                    'type' => 'comment',
+                    'reference_id' => $post->id,
+                    'message' => Auth::user()->username . ' mengomentari postinganmu'
+                ]);
+            }
+
+
             $comment->load('user:id,name,username,avatar,flipside_avatar');
 
             $comment->user->active_avatar =
                 $type === 'flipside'
-                    ? ($comment->user->flipside_avatar ?? $comment->user->avatar)
-                    : $comment->user->avatar;
+                ? ($comment->user->flipside_avatar ?? $comment->user->avatar)
+                : $comment->user->avatar;
 
             Log::info('Comment created:', [
                 'comment_id' => $comment->id,
@@ -205,13 +218,12 @@ class CommentController extends Controller
                 'data'    => $comment,
                 'type'    => $type
             ], 201);
-
         } catch (\Exception $e) {
-            Log::error('Comment store error: '.$e->getMessage());
+            Log::error('Comment store error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create comment: '.$e->getMessage(),
+                'message' => 'Failed to create comment: ' . $e->getMessage(),
                 'error_detail' => $e->getMessage()
             ], 500);
         }
@@ -249,13 +261,12 @@ class CommentController extends Controller
                 'type'    => $type
             ]);
         } catch (\Exception $e) {
-            Log::error('Comment delete error: '.$e->getMessage());
+            Log::error('Comment delete error: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete: '.$e->getMessage()
+                'message' => 'Failed to delete: ' . $e->getMessage()
             ], 500);
         }
     }
 }
-

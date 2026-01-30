@@ -72,7 +72,7 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
     }
 
     .main-content {
-        margin-top: 70px;
+        margin-top: 55px;
         padding-bottom: 80px;
     }
 
@@ -86,6 +86,8 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
         border: {{ $isFlipside ? '1px solid rgba(255, 0, 128, 0.2)' : 'none' }};
         animation: slideUp 0.6s ease-out;
     }
+
+    
 
     /* FLIPSIDE MODE HEADER */
     .mode-header {
@@ -841,42 +843,253 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
         border-color: rgba(255, 0, 128, 0.3);
     }
 
+ /* === GRID MEDIA DI DALAM POST === */
+    /* === GRID MEDIA DI DALAM POST === */
+    /* === GRID MEDIA DI DALAM POST === */
     .media-grid {
         display: grid;
-        gap: 6px;
+        gap: 5px;
         border-radius: 12px;
         overflow: hidden;
+        width: 100%;
+        padding: 10px; /* ✅ Tambah sedikit padding agar tidak mepet */
     }
 
+    /* 1 GAMBAR */
     .media-grid.media-count-1 {
         grid-template-columns: 1fr;
     }
 
+    .media-grid.media-count-1 .media-item {
+        max-height: 500px;
+        min-height: 300px;
+    }
+
+    /* 2 GAMBAR */
     .media-grid.media-count-2 {
         grid-template-columns: repeat(2, 1fr);
+        height: 300px;
     }
 
-    .media-grid.media-count-3,
+    .media-grid.media-count-2 .media-item {
+        height: 100%;
+    }
+
+    /* 3 GAMBAR - TWITTER LAYOUT */
+    .media-grid.media-count-3 {
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: repeat(2, 200px);
+        gap: 4px;
+    }
+
+    .media-grid.media-count-3 .media-item:nth-child(1) {
+        grid-row: 1 / 3;
+        height: 100%;
+    }
+
+    /* 4 GAMBAR - 2x2 GRID */
     .media-grid.media-count-4 {
         grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 200px);
+        gap: 4px;
     }
 
+    .media-grid.media-count-4 .media-item {
+        height: 100%;
+    }
+
+    /* ✅ SEMUA MEDIA ITEM - BASE STYLE */
+    .media-item {
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        background: #000;
+        border-radius: 8px; /* ✅ Sedikit rounded agar tidak terlalu tajam */
+        /* ✅ SMOOTH TRANSITION */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    border-radius 0.3s ease;
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+    }
+
+    /* ✅ HOVER EFFECT - ZOOM LEBIH KECIL AGAR TIDAK MEPET */
+    .media-item:hover {
+        transform: scale(1.015); /* ✅ Kurangi dari 1.02 jadi 1.015 */
+        z-index: 10;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        border-radius: 10px; /* ✅ Rounded lebih besar saat hover */
+    }
+
+    /* ✅ HOVER - IMAGE/VIDEO ZOOM INTERNAL */
+    .media-item:hover img,
+    .media-item:hover video {
+        transform: scale(1.03); /* ✅ Kurangi internal zoom */
+        filter: brightness(1.08);
+    }
+
+    /* ✅ IMAGE & VIDEO - SMOOTH RENDERING */
     .media-item img,
     .media-item video {
         width: 100%;
         height: 100%;
-        max-height: 420px;
         object-fit: cover;
-        border-radius: 8px;
-        cursor: pointer;
+        object-position: center;
+        display: block;
+        border-radius: inherit; /* ✅ Ikuti border-radius parent */
+        /* ✅ SMOOTH TRANSITION */
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    filter 0.3s ease;
+        will-change: transform, filter;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
 
-    .media-grid-item img {
+    /* ✅ HOVER OVERLAY - GRADIENT */
+    .media-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            180deg, 
+            rgba(0, 0, 0, 0) 0%, 
+            rgba(0, 0, 0, 0.3) 100%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+
+    .media-item:hover::before {
+        opacity: 1;
+    }
+
+    /* ✅ HOVER - ICON EXPAND */
+    .media-item::after {
+        /* content: '⤢'; */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 32px; /* ✅ Sedikit lebih kecil */
+        color: white;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 2;
+        pointer-events: none;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    .media-item:hover::after {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+
+    /* ✅ UNTUK VIDEO - ICON PLAY */
+    .media-item.has-video::after {
+        content: '▶';
+        font-size: 44px;
+    }
+
+    /* ✅ FLIPSIDE MODE - GRADIENT HOVER */
+    {{ $isFlipside ? '.post-item' : 'body' }} .media-item:hover {
+        box-shadow: 0 8px 24px {{ $isFlipside ? 'rgba(255, 0, 128, 0.5)' : 'rgba(0, 0, 0, 0.5)' }};
+    }
+
+    /* ✅ LOADING ANIMATION */
+    .media-item img,
+    .media-item video {
+        animation: fadeInMedia 0.5s ease-in-out;
+    }
+
+    @keyframes fadeInMedia {
+        from {
+            opacity: 0;
+            transform: scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* ✅ VIDEO SPECIFIC */
+    .media-item video {
+        background: #000;
+    }
+
+    .post-video-container {
+        position: relative;
         width: 100%;
-        height: 200px;
+        height: 100%;
+    }
+
+    .post-video-container video {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: 12px;
+    }
+
+    /* ✅ MUTE BUTTON */
+    .mute-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: none;
+        color: white;
+        padding: 8px 10px;
+        border-radius: 50%;
         cursor: pointer;
+        z-index: 3;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .mute-btn:hover {
+        background: rgba(0, 0, 0, 0.9) !important;
+        transform: scale(1.1);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+        .media-grid.media-count-3 {
+            grid-template-columns: 1.5fr 1fr;
+            grid-template-rows: repeat(2, 150px);
+        }
+        
+        .media-grid.media-count-4 {
+            grid-template-rows: repeat(2, 150px);
+        }
+        
+        .media-grid.media-count-2 {
+            height: 250px;
+        }
+        
+        /* ✅ MOBILE - ZOOM LEBIH HALUS */
+        .media-item:hover {
+            transform: scale(1.008); /* ✅ Sangat kecil di mobile */
+        }
+        
+        .media-item:hover img,
+        .media-item:hover video {
+            transform: scale(1.02);
+        }
+        
+        .media-item::after {
+            font-size: 26px;
+        }
+        
+        .media-item.has-video::after {
+            font-size: 38px;
+        }
     }
 </style>
 
@@ -981,6 +1194,13 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                     </h1>
                     <p class="profile-username">{{ '@' . $user->username }}</p>
                     {{-- bio section --}}
+                       <p class="profile-bio" id="profileBio">
+        {{ $user->bio ?? 'Belum ada bio' }}
+        <span style="font-size:13px; margin-left:6px; cursor:pointer;"
+              onclick="editBio()">
+            <i class="fas fa-edit"></i>
+        </span>
+    </p>
                 </div>
             </div>
 
@@ -1059,76 +1279,74 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                             @endif
                         </div>
 
-                        <div class="post-content">
-                            {!! nl2br(e($post->caption)) !!}
-                            @if($post->media && $post->media->count())
+                    <div class="post-content">
+                        {!! nl2br(e($post->caption)) !!}
+
+                        @if($post->media && $post->media->count())
                             <div class="mt-3 media-grid media-count-{{ $post->media->count() }}">
                                 @foreach($post->media as $media)
+
+                                    @php
+                                        $ext = pathinfo($media->file_path, PATHINFO_EXTENSION);
+                                    @endphp
+
                                     <div class="media-item">
-                                        @if($media->type === 'image')
+
+                                        {{-- IMAGE --}}
+                                        @if(in_array(strtolower($ext), ['jpg','jpeg','png','webp','gif']))
                                             <img
                                                 src="{{ asset('storage/' . $media->file_path) }}"
                                                 onclick="openImageModal(this.src)"
+                                                style="width:100%; border-radius:12px; cursor:pointer;"
                                             >
-                                       @elseif($media->type === 'video') 
-                                    <div class="post-video-container" style="position:relative; margin-bottom:15px;">
-                                        <video
-                                            class="twitter-video"
-                                            muted
-                                            playsinline
-                                            preload="metadata"
-                                            style="width:100%; max-height:400px; object-fit:cover; border-radius:12px; cursor:pointer;">
-                                            <source src="{{ asset('storage/' . $media->file_path) }}" type="video/mp4">
-                                        </video>
-                                        <!-- tombol mute/unmute -->
-                                        <button class="mute-btn"
-                                            style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.5); border:none; color:white; padding:5px 8px; border-radius:50%; cursor:pointer;">
-                                            🔇
-                                        </button>
-                                    </div>
-                                    @endif
+
+                                        {{-- VIDEO --}}
+                                        @elseif(in_array(strtolower($ext), ['mp4','mov','webm']))
+                                            <div class="post-video-container" style="position:relative; margin-bottom:15px;">
+                                                <video
+                                                    class="twitter-video"
+                                                    muted
+                                                    playsinline
+                                                    preload="metadata"
+                                                    style="width:100%; max-height:400px; object-fit:cover; border-radius:12px; cursor:pointer;">
+                                                    <source src="{{ asset('storage/' . $media->file_path) }}">
+                                                </video>
+
+                                                <button class="mute-btn"
+                                                    style="position:absolute; bottom:10px; right:10px;
+                                                    background:rgba(0,0,0,0.5); border:none;
+                                                    color:white; padding:5px 8px;
+                                                    border-radius:50%; cursor:pointer;">
+                                                    🔇
+                                                </button>
+                                            </div>
+                                        @endif
+
                                     </div>
                                 @endforeach
                             </div>
-                            @endif
-                        </div>
+                        @endif
+                    </div>
 
-                        <div class="post-interactions">
-                        <button class="interaction-btn 
-                                {{ $isFlipside 
-                                    ? ($post->flipsideLikes && $post->flipsideLikes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                                    : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                                }}"
-                                onclick="toggleLike({{ $post->id }}, this)"
-                            >
-                                <i class="fas fa-heart"></i>
 
-                                <span>
-                                    {{ $isFlipside 
-                                        ? ($post->flipsideLikes ? $post->flipsideLikes->count() : 0) 
-                                        : ($post->likes ? $post->likes->count() : 0) 
-                                    }}
-                                </span>
-                            </button>
-                       <button class="interaction-btn"
-                            onclick="openComments({{ $post->id }}, '{{ $isFlipside ? 'flipside' : 'main' }}')"
-                        >
-                            <i class="fas fa-comment"></i>
-
-                            <span>
-                                {{ $isFlipside
-                                    ? ($post->flipsideComments?->count() ?? 0)
-                                    : ($post->comments?->count() ?? 0)
-                                }}
-                            </span>
+                    <div class="post-interactions">
+                        <button class="interaction-btn {{ $isFlipside ? ($post->flipsideLikes && $post->flipsideLikes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') }}" onclick="toggleLike({{ $post->id }}, this)">
+                            <i class="fas fa-heart"></i>
+                            <span>{{ $isFlipside ? ($post->flipsideLikes ? $post->flipsideLikes->count() : 0) : ($post->likes ? $post->likes->count() : 0) }}</span>
                         </button>
 
-                            <button class="interaction-btn">
-                                <i class="fas fa-share"></i>
-                                Share
-                            </button>
-                        </div>
+                        @if(!$isFlipside)
+                        <button class="interaction-btn" onclick="openComments({{ $post->id }}, 'main')">
+                            <i class="fas fa-comment"></i>
+                            <span>{{ $post->comments?->count() ?? 0 }}</span>
+                        </button>
+                        <button class="interaction-btn">
+                            <i class="fas fa-share"></i>
+                            Share
+                        </button>
+                        @endif
                     </div>
+                </div>
                     @empty
                     <div class="empty-state">
                         <i class="fas {{ $isFlipside ? 'fa-ghost' : 'fa-camera' }}"></i>
@@ -1295,24 +1513,25 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
         <div class="modal-body" style="padding: 25px;">
             <form id="flipsidePostForm" onsubmit="submitFlipsidePost(event)">
                 <div class="mb-3">
-                    <textarea 
-                        id="flipsidePostCaption" 
-                        class="form-control" 
+                    <textarea
+                        id="flipsidePostCaption"
+                        class="form-control"
                         placeholder="What's on your mind? Share your secret thoughts... 🤫"
                         maxlength="1000"
-                        required
                         style="width: 100%; min-height: 150px; background: #0d0d0d; border: 2px solid rgba(255, 0, 128, 0.3); border-radius: 12px; padding: 15px; color: white; font-size: 16px; resize: vertical;"
                     ></textarea>
                     <div class="char-counter" id="charCounter" style="color: rgba(255, 255, 255, 0.5); font-size: 13px; margin-top: 8px;">0 / 1000</div>
                 </div>
 
-                <div class="image-preview-container" id="imagePreviewContainer" style="margin-top: 15px; position: relative; display: none;">
-                    <div class="image-preview-wrapper" style="position: relative; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255, 0, 128, 0.3);">
-                        <img id="imagePreview" src="" alt="Preview" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px;">
-                        <button type="button" class="remove-image-btn" onclick="removeFlipsideImage()" style="position: absolute; top: 10px; right: 10px; width: 35px; height: 35px; border-radius: 50%; background: rgba(0, 0, 0, 0.8); border: 2px solid #FF0080; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                            <i class="fas fa-times"></i>
+                <!-- MULTIPLE IMAGE PREVIEW CONTAINER -->
+                <div id="imagePreviewContainer" style="margin-top: 15px; display: none; padding: 10px; background: rgba(255, 0, 128, 0.1); border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <small style="color: rgba(255,255,255,0.7);">Preview Gambar</small>
+                        <button type="button" onclick="removeFlipsideImage()" style="background: rgba(255,0,128,0.3); color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px;">
+                            Hapus Semua
                         </button>
                     </div>
+                    <div id="imagePreviewMultiple" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
                 </div>
 
                 <div class="post-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 0, 128, 0.2);">
@@ -1320,10 +1539,12 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                         <button type="button" class="post-option-btn" onclick="triggerFlipsideImageUpload()" title="Add Image" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 0, 128, 0.1); border: 1px solid rgba(255, 0, 128, 0.3); color: rgba(255, 255, 255, 0.7); display: flex; align-items: center; justify-content: center; cursor: pointer;">
                             <i class="fas fa-image"></i>
                         </button>
-                        <input 
-                            type="file" 
-                            id="flipsideImageInput" 
-                            accept="image/*" 
+                        <input
+                            type="file"
+                            id="flipsideImageInput"
+                            name="media[]"
+                            accept="image/*"
+                            multiple
                             style="display: none;"
                             onchange="previewFlipsideImage(event)"
                         >
@@ -1457,6 +1678,8 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 <script>
     let cropper = null;
     let scaleX = 1;
@@ -1555,62 +1778,66 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
 
 
     // Like functionality
-    async function toggleLike(postId, button) {
-        const icon = button.querySelector('i');
-        const count = button.querySelector('span');
-        let currentCount = parseInt(count.textContent);
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const liked = button.classList.contains("liked");
+async function toggleLike(postId, button) {
+    const icon = button.querySelector('i');
+    const count = button.querySelector('span');
+    let currentCount = parseInt(count.textContent);
+    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const liked = button.classList.contains("liked");
+    
+    const isFlipside = window.appData?.isFlipside || false;
+    button.disabled = true;
+
+    try {
+        let endpoint, method;
         
-        // ✅ TAMBAHAN: Deteksi type berdasarkan mode
-        const type = window.appData.isFlipside ? 'flipside' : 'main';
-
-        button.disabled = true;
-
-        try {
-            // ✅ UPDATE: Tambahkan type parameter di endpoint
-            const response = await fetch(
-                liked 
-                    ? `/like/destroy/${postId}/${type}` 
-                    : `/like/store/${postId}/${type}`, 
-                {
-                    method: liked ? "DELETE" : "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": csrf,
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
-
-            const result = await response.json();
-
-            if (response.ok) {
-                if (!liked) {
-                    button.classList.add("liked");
-                    count.textContent = currentCount + 1;
-                    showNotification("❤️ Post liked!");
-                } else {
-                    button.classList.remove("liked");
-                    count.textContent = Math.max(0, currentCount - 1);
-                    showNotification("💔 Post unliked");
-                }
-            } else {
-                // Handle specific error codes
-                if (response.status === 409) {
-                    showNotification(liked ? "⚠️ Already unliked" : "⚠️ Already liked");
-                } else {
-                    throw new Error(result.message || 'Failed to toggle like');
-                }
-            }
-        } catch (error) {
-            console.error('Like error:', error);
-            showNotification("⚠️ Network error!");
-        } finally {
-            button.disabled = false;
+        if (isFlipside) {
+            // Flipside likes
+            endpoint = `/like/flipsideStore/${postId}`;
+            method = liked ? "DELETE" : "POST";
+        } else {
+            // Regular likes
+            endpoint = liked 
+                ? `/like/destroy/${postId}/main`
+                : `/like/store/${postId}/main`;
+            method = liked ? "DELETE" : "POST";
         }
-    }
 
+        const response = await fetch(endpoint, {
+            method: method,
+            headers: {
+                "X-CSRF-TOKEN": csrf,
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            if (!liked) {
+                button.classList.add("liked");
+                count.textContent = result.likes_count || (currentCount + 1);
+                showNotification("❤️ Liked!");
+            } else {
+                button.classList.remove("liked");
+                count.textContent = result.likes_count || Math.max(0, currentCount - 1);
+                showNotification("💔 Unliked");
+            }
+        } else {
+            if (response.status === 409) {
+                showNotification(liked ? "⚠️ Already unliked" : "⚠️ Already liked");
+            } else {
+                throw new Error(result.message || "Failed to toggle like");
+            }
+        }
+    } catch (error) {
+        console.error("Like error:", error);
+        showNotification("⚠️ Network error!");
+    } finally {
+        button.disabled = false;
+    }
+}
 
     
     // Comments functionality
@@ -2258,96 +2485,260 @@ async function removeFollower(userId, button) {
     }
 
     function triggerFlipsideImageUpload() {
-        document.getElementById('flipsideImageInput').click();
+        const input = document.getElementById('flipsideImageInput');
+        const currentFiles = Array.from(input.files);
+        
+        // Simpan files yang sudah ada
+        window.existingFlipsideFiles = currentFiles;
+        
+        // Trigger file picker
+        input.click();
     }
 
     function previewFlipsideImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            showNotification('❌ File terlalu besar! Maksimal 5MB');
-            event.target.value = '';
+        const input = event.target;
+        const newFiles = Array.from(input.files);
+        
+        // Gabungkan dengan file yang sudah ada
+        const existingFiles = window.existingFlipsideFiles || [];
+        const allFiles = [...existingFiles, ...newFiles];
+        
+        // Validasi jumlah maksimal
+        if (allFiles.length > 4) {
+            showNotification('❌ Maksimal 4 gambar per post');
+            input.value = '';
             return;
         }
 
-        if (!file.type.startsWith('image/')) {
-            showNotification('❌ File harus berupa gambar!');
-            event.target.value = '';
-            return;
+        // Validasi ukuran & tipe untuk file baru saja
+        for (const file of newFiles) {
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('❌ Salah satu file melebihi 5MB');
+                input.value = '';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                showNotification('❌ Hanya gambar yang diizinkan!');
+                input.value = '';
+                return;
+            }
         }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('imagePreview').src = e.target.result;
-            document.getElementById('imagePreviewContainer').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
+        // Rebuild FileList dengan semua file
+        const dt = new DataTransfer();
+        allFiles.forEach(file => dt.items.add(file));
+        input.files = dt.files;
+        
+        // Simpan untuk next time
+        window.existingFlipsideFiles = allFiles;
+
+        // Tampilkan preview
+        const container = document.getElementById('imagePreviewContainer');
+        const previewMultiple = document.getElementById('imagePreviewMultiple');
+        
+        container.style.display = 'block';
+        previewMultiple.innerHTML = ''; // Kosongkan dulu
+
+        allFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    position: relative;
+                    width: calc(50% - 4px);
+                    max-width: 200px;
+                `;
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.cssText = `
+                    width: 100%;
+                    height: auto;
+                    aspect-ratio: 1;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                `;
+                
+                // Tombol remove per image
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.innerHTML = '✕';
+                removeBtn.style.cssText = `
+                    position: absolute;
+                    top: 5px;
+                    right: 5px;
+                    background: rgba(255,0,128,0.9);
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 26px;
+                    height: 26px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                `;
+                removeBtn.onclick = () => {
+                    removeSpecificImage(index);
+                };
+                
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                previewMultiple.appendChild(wrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        showNotification(`✅ ${allFiles.length} gambar siap diupload!`);
     }
 
     function removeFlipsideImage() {
-        document.getElementById('flipsideImageInput').value = '';
+        const input = document.getElementById('flipsideImageInput');
+        input.value = '';
+        window.existingFlipsideFiles = [];
         document.getElementById('imagePreviewContainer').style.display = 'none';
+        document.getElementById('imagePreviewMultiple').innerHTML = '';
     }
 
-    async function submitFlipsidePost(event) {
-        event.preventDefault();
+  function removeSpecificImage(index) {
+    const input = document.getElementById('flipsideImageInput');
+    const allFiles = window.existingFlipsideFiles || Array.from(input.files);
+    
+    // Remove file at index
+    allFiles.splice(index, 1);
+    
+    // Rebuild FileList
+    const dt = new DataTransfer();
+    allFiles.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+    
+    // Update global variable
+    window.existingFlipsideFiles = allFiles;
+    
+    // Re-render preview
+    if (allFiles.length === 0) {
+        removeFlipsideImage();
+    } else {
+        // Manual re-render
+        const container = document.getElementById('imagePreviewContainer');
+        const previewMultiple = document.getElementById('imagePreviewMultiple');
         
-        const submitBtn = document.getElementById('flipsideSubmitBtn');
-        const caption = document.getElementById('flipsidePostCaption').value.trim();
-        const imageInput = document.getElementById('flipsideImageInput');
+        previewMultiple.innerHTML = '';
         
-        if (!caption) {
-            showNotification('⚠️ Caption tidak boleh kosong!');
-            return;
-        }
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Posting...';
-
-        try {
-            const formData = new FormData();
-            formData.append('caption', caption);
-            formData.append('is_flipside', '1');
-            
-            // Append CSRF token to FormData instead of header
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            formData.append('_token', csrfToken);
-            
-            if (imageInput.files[0]) {
-                formData.append('image', imageInput.files[0]);
-            }
-
-            const response = await fetch('/post/store', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData,
-                credentials: 'same-origin' // Important for session cookies
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                showNotification('🔥 Flipside post berhasil dibuat!');
-                closeFlipsidePostModal();
+        allFiles.forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = `
+                    position: relative;
+                    width: calc(50% - 4px);
+                    max-width: 200px;
+                `;
                 
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                throw new Error(result.message || 'Failed to create post');
-            }
-        } catch (error) {
-            console.error('Error creating flipside post:', error);
-            showNotification('❌ Gagal membuat post. Coba lagi!');
-            
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Post to Flipside';
-        }
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.cssText = `
+                    width: 100%;
+                    height: auto;
+                    aspect-ratio: 1;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                `;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.innerHTML = '✕';
+                removeBtn.style.cssText = `
+                    position: absolute;
+                    top: 5px;
+                    right: 5px;
+                    background: rgba(255,0,128,0.9);
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 26px;
+                    height: 26px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    font-weight: bold;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                `;
+                removeBtn.onclick = () => {
+                    removeSpecificImage(idx);
+                };
+                
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                previewMultiple.appendChild(wrapper);
+            };
+            reader.readAsDataURL(file);
+        });
     }
+}
+
+
+function submitFlipsidePost(e) {
+    e.preventDefault();
+    const caption = document.getElementById('flipsidePostCaption').value.trim();
+    const files = document.getElementById('flipsideImageInput').files;
+    const formData = new FormData();
+
+    // Validasi: minimal caption ATAU media
+    if (files.length === 0 && !caption) {
+        showNotification('❌ Caption atau media wajib diisi!');
+        return;
+    }
+
+    // Validasi jumlah maksimal
+    if (files.length > 4) {
+        showNotification('❌ Maksimal 4 gambar per post!');
+        return;
+    }
+
+    formData.append('caption', caption);
+    formData.append('is_flipside', 1);
+
+    // Append semua file
+    for (let i = 0; i < files.length; i++) {
+        formData.append('media[]', files[i]);
+    }
+
+    const submitBtn = document.getElementById('flipsideSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Posting...';
+
+    axios.post('/post/store', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        timeout: 30000
+    })
+    .then(res => {
+        showNotification('🎉 Berhasil posting ke Flipside!');
+        closeFlipsidePostModal();
+        setTimeout(() => location.reload(), 1000);
+    })
+    .catch(err => {
+        console.error('Post error:', err);
+        let msg = 'Gagal posting. Coba lagi.';
+        if (err.response?.data?.message) msg = err.response.data.message;
+        else if (err.code === 'ECONNABORTED') msg = 'Upload timeout. File terlalu besar atau jaringan lambat.';
+        showNotification(`❌ ${msg}`);
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Post to Flipside';
+    });
+}
 
     // FLIPSIDE FOLLOWERS MODAL
     let flipsideFollowersData = [];
