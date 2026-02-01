@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Helpers\Activity;
-
+use App\Models\ActivityLog;
 
 class ForgotPasswordController extends Controller
 {
@@ -114,14 +114,17 @@ class ForgotPasswordController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
-        activity_log(
-            'change_password',
-            $user->username . ' reset password via email'
-        );
+        // ✅ Gunakan class langsung
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'action' => 'change_password',
+            'description' => $user->username . ' reset password via email',
+            'user_agent' => $request->userAgent(),
+            'target' => 'Password', // ✅ Target = apa yang diubah
+            'ip_address' => $request->ip(),
+        ]);
 
-
-
-        // hapus token (sekali pakai)
+        // Hapus token (sekali pakai)
         DB::table('password_resets')
             ->where('email', $reset->email)
             ->delete();

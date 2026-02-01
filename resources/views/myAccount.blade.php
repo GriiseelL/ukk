@@ -1487,9 +1487,19 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
 
 
                     <div class="post-interactions">
-                        <button class="interaction-btn {{ $isFlipside ? ($post->flipsideLikes && $post->flipsideLikes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') }}" onclick="toggleLike({{ $post->id }}, this)">
-                            <i class="fas fa-heart"></i>
-                            <span>{{ $isFlipside ? ($post->flipsideLikes ? $post->flipsideLikes->count() : 0) : ($post->likes ? $post->likes->count() : 0) }}</span>
+                        <button class="interaction-btn 
+                            {{ $isFlipside 
+                                ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
+                                : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
+                            }}"
+                            onclick="toggleLike({{ $post->id }}, this)"
+                        >                            <i class="fas fa-heart"></i>
+                        <span>
+                            {{ $isFlipside 
+                                ? ($post->Likes ? $post->Likes->count() : 0) 
+                                : ($post->likes ? $post->likes->count() : 0) 
+                            }}
+                        </span>                        
                         </button>
 
                         @if(!$isFlipside)
@@ -1865,6 +1875,8 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 <script>
     let cropper = null;
@@ -1883,62 +1895,62 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
             menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
         }
     }
+async function deletePost(postId) {
+    const result = await Swal.fire({
+        title: 'Hapus Post?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
 
-    async function deletePost(postId) {
-        if (!confirm('Yakin ingin menghapus post ini? Tindakan ini tidak dapat dibatalkan.')) {
-            return;
-        }
+    if (!result.isConfirmed) return;
 
-        const menu = document.getElementById('postMenu-' + postId);
-        if (menu) menu.style.display = 'none';
-
-        try {
-            const response = await fetch('/posts/destroy/' + postId, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                const postElements = document.querySelectorAll('.post-item');
-                let postElement = null;
-                
-                postElements.forEach(el => {
-                    if (el.querySelector('#postMenu-' + postId)) {
-                        postElement = el;
-                    }
-                });
-                
-                if (postElement) {
-                    postElement.style.transition = 'all 0.3s ease';
-                    postElement.style.opacity = '0';
-                    postElement.style.transform = 'translateX(-100%)';
-                    
-                    setTimeout(() => {
-                        postElement.remove();
-                        showNotification('🗑️ Post berhasil dihapus!');
-                        
-                        const remainingPosts = document.querySelectorAll('.post-item');
-                        if (remainingPosts.length === 0) {
-                            setTimeout(() => location.reload(), 1000);
-                        }
-                    }, 300);
-                } else {
-                    showNotification('✅ Post berhasil dihapus!');
-                    setTimeout(() => location.reload(), 1000);
-                }
-            } else {
-                throw new Error(result.message || 'Failed to delete post');
+    try {
+        const response = await fetch(`/posts/destroy/${postId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute('content'),
+                'Accept': 'application/json'
             }
-        } catch (error) {
-            console.error('Delete error:', error);
-            showNotification('❌ Gagal menghapus post. Coba lagi!');
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Failed to delete post');
         }
+
+        const postElement = document.querySelector(
+            `.post-item[data-id="${postId}"]`
+        );
+
+        if (postElement) {
+            postElement.style.transition = '0.3s';
+            postElement.style.opacity = '0';
+            postElement.style.transform = 'translateX(-40px)';
+
+            setTimeout(() => {
+                postElement.remove();
+                showNotification('🗑️ Post berhasil dihapus!');
+            }, 300);
+        } else {
+            showNotification('🗑️ Post berhasil dihapus!');
+            setTimeout(() => location.reload(), 500);
+        }
+
+    } catch (error) {
+        console.error('Delete error:', error);
+        showNotification('❌ Gagal menghapus post!');
     }
+}
+
 
     document.addEventListener('click', function(event) {
         if (!event.target.closest('.post-menu-container')) {
@@ -1965,32 +1977,31 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
 
     // Like functionality
 async function toggleLike(postId, button) {
-    const icon = button.querySelector('i');
     const count = button.querySelector('span');
     let currentCount = parseInt(count.textContent);
     const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const liked = button.classList.contains("liked");
-    
+
     const isFlipside = window.appData?.isFlipside || false;
     button.disabled = true;
 
     try {
         let endpoint, method;
-        
+
         if (isFlipside) {
-            // Flipside likes
-            endpoint = `/like/flipsideStore/${postId}`;
+            endpoint = liked
+                ? `/like/flipsideDestroy/${postId}`
+                : `/like/flipsideStore/${postId}`;
             method = liked ? "DELETE" : "POST";
         } else {
-            // Regular likes
-            endpoint = liked 
-                ? `/like/destroy/${postId}/main`
-                : `/like/store/${postId}/main`;
+            endpoint = liked
+                ? `/like/destroy/${postId}`
+                : `/like/store/${postId}`;
             method = liked ? "DELETE" : "POST";
         }
 
         const response = await fetch(endpoint, {
-            method: method,
+            method,
             headers: {
                 "X-CSRF-TOKEN": csrf,
                 "Accept": "application/json",
@@ -2003,20 +2014,17 @@ async function toggleLike(postId, button) {
         if (response.ok && result.success) {
             if (!liked) {
                 button.classList.add("liked");
-                count.textContent = result.likes_count || (currentCount + 1);
+                count.textContent = result.likes_count;
                 showNotification("❤️ Liked!");
             } else {
                 button.classList.remove("liked");
-                count.textContent = result.likes_count || Math.max(0, currentCount - 1);
+                count.textContent = result.likes_count;
                 showNotification("💔 Unliked");
             }
         } else {
-            if (response.status === 409) {
-                showNotification(liked ? "⚠️ Already unliked" : "⚠️ Already liked");
-            } else {
-                throw new Error(result.message || "Failed to toggle like");
-            }
+            throw new Error(result.message || "Failed to toggle like");
         }
+
     } catch (error) {
         console.error("Like error:", error);
         showNotification("⚠️ Network error!");
@@ -2024,6 +2032,7 @@ async function toggleLike(postId, button) {
         button.disabled = false;
     }
 }
+
 
     
     // Comments functionality
@@ -2140,9 +2149,19 @@ async function submitComment(postId) {
 
 // ✅ TAMBAHAN: Function untuk delete comment
 async function deleteComment(commentId, postId) {
-    if (!confirm('Yakin ingin menghapus komentar ini?')) {
-        return;
-    }
+        const result = await Swal.fire({
+        title: 'Hapus Comment?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
         const response = await fetch(`/comment/destroy/${commentId}`, {
@@ -2466,9 +2485,28 @@ async function deleteComment(commentId, postId) {
     // UNFOLLOW USER
     // Function untuk UNFOLLOW user (menghapus dari following list)
 async function unfollowUser(userId, button) {
-    if (!confirm('Yakin ingin berhenti mengikuti user ini?')) {
+    const result = await Swal.fire({
+        title: 'Berhenti Mengikuti?',
+        text: "Anda tidak akan melihat postingan user ini lagi.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Unfollow!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal2-notification',
+            title: 'swal2-notification-title',
+            confirmButton: 'swal2-confirm-btn',
+            cancelButton: 'swal2-cancel-btn'
+        }
+    });
+
+    if (!result.isConfirmed) {
         return;
     }
+
 
     const userItem = button.closest('.user-list-item');
     const originalButtonHTML = button.innerHTML;
@@ -2532,9 +2570,20 @@ async function unfollowUser(userId, button) {
 
 // Function untuk REMOVE FOLLOWER (menghapus dari followers list)
 async function removeFollower(userId, button) {
-    if (!confirm('Yakin ingin menghapus follower ini?')) {
-        return;
-    }
+
+        const result = await Swal.fire({
+        title: 'Hapus follower ini?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
 
     const userItem = button.closest('.user-list-item');
     const originalButtonHTML = button.innerHTML;
@@ -2594,10 +2643,48 @@ async function removeFollower(userId, button) {
 }
 
 // Helper function untuk notification
-    function showNotification(message) {
-        // Implementasi sesuai dengan sistem notifikasi Anda
-        alert(message);
+// ===== GANTI FUNGSI INI =====
+function showNotification(message) {
+    // Deteksi jenis notifikasi dari emoji/prefix
+    let icon = 'info';
+    let title = 'Notification';
+    let timer = 3000;
+
+    // Deteksi berdasarkan emoji
+    if (message.includes('✅') || message.includes('🎉') || message.includes('❤️') || message.includes('🔥') || message.includes('🎭')) {
+        icon = 'success';
+        timer = 2500;
+    } else if (message.includes('❌') || message.includes('⚠️') || message.includes('💔')) {
+        icon = 'error';
+        timer = 4000;
+    } else if (message.includes('💬') || message.includes('🗑️')) {
+        icon = 'info';
+        timer = 2500;
     }
+
+    // Hapus emoji dari message untuk tampilan yang lebih bersih
+    const cleanMessage = message.replace(/^[✅❌⚠️❤️💔💬🗑️🎉🔥🎭✨]+/, '').trim();
+
+    Swal.fire({
+        icon: icon,
+        title: title,
+        text: cleanMessage,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: timer,
+        timerProgressBar: true,
+        customClass: {
+            popup: 'swal2-notification',
+            title: 'swal2-notification-title',
+            content: 'swal2-notification-content'
+        },
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    });
+}
 
     // Modal functions
     function openImageModal(imageSrc) {
@@ -3277,9 +3364,19 @@ async function submitCommentFromModal(postId) {
 
 // ✅ Function untuk delete comment dari modal
 async function deleteCommentFromModal(commentId, postId) {
-    if (!confirm('Yakin ingin menghapus komentar ini?')) {
-        return;
-    }
+        const result = await Swal.fire({
+        title: 'Hapus Comment?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
         const response = await fetch(`/comment/destroy/${commentId}`, {
@@ -4072,9 +4169,19 @@ function closeCoverModal() {
 }
 
 async function removeCover() {
-    if (!confirm('Yakin ingin menghapus cover image?')) {
-        return;
-    }
+        const result = await Swal.fire({
+        title: 'Hapus Cover Image?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
     
     try {
         const response = await fetch('/profile/remove-cover', {
@@ -4404,9 +4511,20 @@ async function cropAndUploadFlipsideCover() {
  * Remove Flipside Cover
  */
 async function removeFlipsideCover() {
-    if (!confirm('Yakin ingin menghapus Flipside cover?')) {
-        return;
-    }
+
+          const result = await Swal.fire({
+        title: 'Hapus Flipside Cover?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
     
     try {
         const response = await fetch('/profile/remove-flipside-cover', {

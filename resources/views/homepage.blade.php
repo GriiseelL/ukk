@@ -981,6 +981,37 @@
             margin-left: -10%;
         }
     }
+
+    .trending-sidebar {
+        border: 1px solid #eee;
+    }
+
+    .suggest-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .suggest-item:hover {
+        background: #f8f9fa;
+        padding: 6px;
+        border-radius: 10px;
+        transition: .2s;
+    }
+
+    .suggest-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
 </style>
 
 <div class="row">
@@ -1211,9 +1242,9 @@
                                         <i class="far fa-comment"></i> {{ $post->comments_count ?? 0 }}
                                     </button>
 
-                                    <button class="btn btn-sm btn-light">
+                                    <!-- <button class="btn btn-sm btn-light">
                                         <i class="fas fa-bookmark"></i>
-                                    </button>
+                                    </button> -->
 
                                     <button class="btn btn-sm like-btn"
                                         onclick="toggleLike(this)"
@@ -1241,30 +1272,56 @@
             </div>
         </div>
     </div>
-
     <div class="col-lg-3 d-none d-lg-block">
-        <div class="trending-sidebar">
-            <h6><i class="fas fa-users text-primary"></i> Suggested for you</h6>
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="composer-avatar" style="width: 40px; height: 40px; font-size: 14px;">SC</div>
-                <div class="flex-grow-1">
-                    <div class="fw-bold">Sarah Chen</div>
-                    <small class="text-muted">@sarahchen</small>
+        <div class="trending-sidebar p-3 rounded-4 shadow-sm bg-white">
+
+            <h6 class="fw-semibold mb-3">
+                <i class="fas fa-user-plus text-primary me-1"></i>
+                Suggested for you
+            </h6>
+
+            @forelse($suggestedUsers as $user)
+            <div class="suggest-item d-flex align-items-center justify-content-between mb-3">
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Avatar -->
+                    <a href="{{ route('profilePage', $user->username) }}" class="text-decoration-none">
+                        <div class="suggest-avatar">
+                            @if($user->avatar)
+                            <img
+                                src="{{ asset('storage/'.$user->avatar) }}"
+                                alt="{{ $user->name }}">
+                            @else
+                            {{ strtoupper(substr($user->name,0,2)) }}
+                            @endif
+                        </div>
+                    </a>
+
+                    <!-- Info -->
+                    <div>
+                        <a href="{{ route('profilePage', $user->username) }}" class="text-decoration-none">
+                            <div class="fw-semibold small text-dark hover-primary">{{ $user->name }}</div>
+                        </a>
+                        <div class="text-muted small">{{ '@' . ($user->username ?? 'user') }}</div>
+                    </div>
                 </div>
-                <button class="btn btn-outline-primary btn-sm">Follow</button>
+
+                <!-- Follow Button (jika diperlukan nanti) -->
+                <!-- <button
+                id="follow-btn-{{ $user->id }}"
+                class="btn btn-sm btn-primary rounded-pill px-3"
+                onclick="followUser({{ $user->id }})">
+                Follow
+            </button> -->
+
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="composer-avatar"
-                    style="width: 40px; height: 40px; font-size: 14px; background: linear-gradient(135deg, #ff6b6b, #4ecdc4);">
-                    AS</div>
-                <div class="flex-grow-1">
-                    <div class="fw-bold">Alex Smith</div>
-                    <small class="text-muted">@alexsmith</small>
-                </div>
-                <button class="btn btn-outline-primary btn-sm">Follow</button>
-            </div>
+            @empty
+            <p class="text-muted small">No suggestions</p>
+            @endforelse
+
         </div>
     </div>
+
 </div>
 
 <!-- Modal -->
@@ -1473,7 +1530,7 @@
         btn.disabled = true;
 
         try {
-            const endpoint = isLiked ? `/like/destroy/${postId}/main` : `/like/store/${postId}/main`;
+            const endpoint = isLiked ? `/like/destroy/${postId}` : `/like/store/${postId}`;
 
             const response = await fetch(endpoint, {
                 method: isLiked ? "DELETE" : "POST",

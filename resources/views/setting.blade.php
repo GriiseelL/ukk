@@ -8,7 +8,7 @@
 <style>
     /* ===== MAIN LAYOUT ===== */
     .main-content {
-        margin-top: 70px;
+        margin-top: 40px;
         padding-bottom: 80px;
         display: flex;
         justify-content: center;
@@ -20,6 +20,7 @@
         max-width: 800px;
         width: 100%;
         padding: 20px 30px;
+        margin-left: -250px;
     }
 
     /* ===== SETTINGS CARD ===== */
@@ -272,6 +273,7 @@
             transform: translateX(100%);
             opacity: 0;
         }
+
         to {
             transform: translateX(0);
             opacity: 1;
@@ -342,9 +344,9 @@
             <div class="avatar-section">
                 <div class="avatar-display" onclick="openAvatarModal()">
                     @if(auth()->user()->avatar)
-                        <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar">
+                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar">
                     @else
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     @endif
                     <div class="avatar-overlay">
                         <i class="fas fa-camera" style="color: white; font-size: 24px;"></i>
@@ -362,12 +364,11 @@
                 </label>
                 <div class="input-group">
                     <i class="fas fa-envelope input-icon"></i>
-                    <input 
-                        type="email" 
-                        class="form-input input-with-icon" 
-                        value="{{ auth()->user()->email }}" 
-                        disabled
-                    >
+                    <input
+                        type="email"
+                        class="form-input input-with-icon"
+                        value="{{ auth()->user()->email }}"
+                        disabled>
                 </div>
                 <small style="color: #666; font-size: 13px; margin-top: 5px; display: block;">
                     <i class="fas fa-info-circle"></i> Email cannot be changed for security reasons
@@ -389,6 +390,24 @@
                     <i class="fas fa-key"></i> Change Password
                 </button>
             </div>
+            <div class="form-group">
+                <label class="form-label" style="color:#e74c3c;">
+                    <i class="fas fa-trash"></i> Delete Account
+                </label>
+
+                <div class="info-box" style="background:#fdecea; border-left-color:#e74c3c;">
+                    <i class="fas fa-exclamation-triangle" style="color:#e74c3c;"></i>
+                    <p style="color:#c0392b;">
+                        This action is permanent. All your data will be deleted.
+                    </p>
+                </div>
+
+                <button class="btn-primary"
+                    style="background:#e74c3c;"
+                    onclick="deleteAccount()">
+                    <i class="fas fa-trash"></i> Delete My Account
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -407,9 +426,9 @@
                 <div class="text-center mb-4">
                     <div id="avatarPreview" style="width: 150px; height: 150px; border-radius: 50%; margin: 0 auto; background: linear-gradient(135deg, #1da1f2, #0d8bd9); display: flex; align-items: center; justify-content: center; color: white; font-size: 60px; font-weight: 700; overflow: hidden; border: 4px solid #f0f0f0;">
                         @if(auth()->user()->avatar)
-                            <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
                         @else
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         @endif
                     </div>
                 </div>
@@ -417,14 +436,13 @@
                 <form id="avatarForm" onsubmit="uploadAvatar(event)">
                     <div class="mb-3">
                         <label class="form-label">Select New Avatar</label>
-                        <input 
-                            type="file" 
-                            class="form-control" 
-                            id="avatarInput" 
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="avatarInput"
                             accept="image/*"
                             onchange="previewAvatar(event)"
-                            style="border: 2px dashed #1da1f2; padding: 15px; border-radius: 10px;"
-                        >
+                            style="border: 2px dashed #1da1f2; padding: 15px; border-radius: 10px;">
                         <small style="color: #666; display: block; margin-top: 8px;">
                             <i class="fas fa-info-circle"></i> Max size: 2MB • Formats: JPG, PNG, GIF
                         </small>
@@ -463,25 +481,23 @@
                 <form id="changePasswordForm" onsubmit="changePassword(event)">
                     <div class="mb-3">
                         <label class="form-label">Current Password</label>
-                        <input 
-                            type="password" 
-                            class="form-input" 
-                            id="currentPassword" 
+                        <input
+                            type="password"
+                            class="form-input"
+                            id="currentPassword"
                             placeholder="Enter current password"
-                            required
-                        >
+                            required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">New Password</label>
-                        <input 
-                            type="password" 
-                            class="form-input" 
-                            id="newPassword" 
+                        <input
+                            type="password"
+                            class="form-input"
+                            id="newPassword"
                             placeholder="Enter new password"
                             minlength="8"
-                            required
-                        >
+                            required>
                         <small style="color: #666; display: block; margin-top: 5px;">
                             Minimum 8 characters
                         </small>
@@ -489,14 +505,13 @@
 
                     <div class="mb-3">
                         <label class="form-label">Confirm New Password</label>
-                        <input 
-                            type="password" 
-                            class="form-input" 
-                            id="confirmPassword" 
+                        <input
+                            type="password"
+                            class="form-input"
+                            id="confirmPassword"
                             placeholder="Confirm new password"
                             minlength="8"
-                            required
-                        >
+                            required>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -513,6 +528,51 @@
     </div>
 </div>
 
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" style="color:#e74c3c;">
+                    <i class="fas fa-trash"></i> Delete Account
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="info-box" style="background:#fdecea; border-left-color:#e74c3c;">
+                    <p style="color:#c0392b;">
+                        Enter your password to confirm account deletion.
+                    </p>
+                </div>
+
+                <input
+                    type="password"
+                    id="deletePassword"
+                    class="form-input"
+                    placeholder="Enter your password"
+                    required>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button class="btn-primary"
+                    style="background:#e74c3c;"
+                    onclick="deleteAccount()">
+                    Delete Account
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     // Open Avatar Modal
     function openAvatarModal() {
@@ -523,21 +583,21 @@
     // Preview Avatar
     function previewAvatar(event) {
         const file = event.target.files[0];
-        
+
         if (!file) return;
-        
+
         if (file.size > 2 * 1024 * 1024) {
             showNotification('File too large! Max 2MB', 'error');
             event.target.value = '';
             return;
         }
-        
+
         if (!file.type.startsWith('image/')) {
             showNotification('File must be an image!', 'error');
             event.target.value = '';
             return;
         }
-        
+
         const reader = new FileReader();
         reader.onload = function(e) {
             const preview = document.getElementById('avatarPreview');
@@ -549,22 +609,22 @@
     // Upload Avatar
     async function uploadAvatar(event) {
         event.preventDefault();
-        
+
         const fileInput = document.getElementById('avatarInput');
         const file = fileInput.files[0];
-        
+
         if (!file) {
             showNotification('Please select an image!', 'error');
             return;
         }
-        
+
         const uploadBtn = document.getElementById('uploadBtn');
         uploadBtn.disabled = true;
         uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-        
+
         const formData = new FormData();
         formData.append('avatar', file);
-        
+
         try {
             const response = await fetch('/profile/update-avatar', {
                 method: 'POST',
@@ -574,12 +634,12 @@
                 },
                 body: formData
             });
-            
+
             const result = await response.json();
-            
+
             if (response.ok && result.success) {
                 showNotification('Avatar updated successfully!', 'success');
-                
+
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
@@ -589,7 +649,7 @@
         } catch (error) {
             console.error('Upload error:', error);
             showNotification('Failed to upload avatar. Try again!', 'error');
-            
+
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Avatar';
         }
@@ -604,25 +664,25 @@
     // Change Password
     async function changePassword(event) {
         event.preventDefault();
-        
+
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-        
+
         if (newPassword !== confirmPassword) {
             showNotification('New passwords do not match!', 'error');
             return;
         }
-        
+
         if (newPassword.length < 8) {
             showNotification('Password must be at least 8 characters!', 'error');
             return;
         }
-        
+
         const changeBtn = document.getElementById('changePasswordBtn');
         changeBtn.disabled = true;
         changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
-        
+
         try {
             const response = await fetch('/profile/change-password', {
                 method: 'POST',
@@ -637,14 +697,14 @@
                     new_password_confirmation: confirmPassword
                 })
             });
-            
+
             const result = await response.json();
-            
+
             if (response.ok && result.success) {
                 showNotification('Password changed successfully!', 'success');
-                
+
                 document.getElementById('changePasswordForm').reset();
-                
+
                 setTimeout(() => {
                     bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
                 }, 1500);
@@ -664,22 +724,87 @@
     function showNotification(message, type = 'info') {
         const existing = document.querySelector('.notification');
         if (existing) existing.remove();
-        
+
         const notification = document.createElement('div');
         notification.className = 'notification';
-        
+
         if (type === 'error') {
             notification.style.background = '#e74c3c';
         } else if (type === 'success') {
             notification.style.background = '#2ecc71';
         }
-        
+
         notification.textContent = message;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.remove();
         }, 3000);
+    }
+
+    function openDeleteAccountModal() {
+        const modal = new bootstrap.Modal(
+            document.getElementById('deleteAccountModal')
+        );
+        modal.show();
+    }
+
+    async function deleteAccount() {
+
+        const {
+            value: password
+        } = await Swal.fire({
+            title: 'Enter Password',
+            text: 'Confirm your password to delete account',
+            icon: 'warning',
+            input: 'password',
+            inputPlaceholder: 'Your password',
+            showCancelButton: true,
+            confirmButtonText: 'Delete Account',
+            confirmButtonColor: '#e74c3c'
+        });
+
+        if (!password) return;
+
+        try {
+            const response = await fetch('/profile/delete-account', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    password
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Account Deleted',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 1500);
+
+            } else {
+                throw new Error(result.message || 'Wrong password');
+            }
+
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed',
+                text: error.message
+            });
+        }
     }
 </script>
 @endsection

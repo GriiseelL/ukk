@@ -96,7 +96,23 @@ class PostController extends Controller
             ->whereIn('id', $allowedUserIds) // Hanya yang difollow + user sendiri
             ->get();
 
-        return view('homepage', compact('posts', 'usersWithStories'));
+        // ============================
+        // SUGGESTED USERS
+        // ============================
+
+        $suggestedUsers = User::where('id', '!=', $authUserId)
+            ->where('role', 'user')
+            ->whereNotIn('id', function ($q) use ($authUserId) {
+                $q->select('user_following')
+                    ->from('friends')
+                    ->where('user_id', $authUserId);
+            })
+            ->inRandomOrder()
+            ->limit(5)
+            ->get(); // Ini akan mengambil semua kolom
+            // dd($suggestedUsers);
+
+        return view('homepage', compact('posts', 'usersWithStories', 'suggestedUsers'));
     }
 
     // ============================================
@@ -182,19 +198,19 @@ class PostController extends Controller
 
     public function destroy($id)
     {
-        // 1. Coba cari di posts biasa
+        // 1. Cari di post biasa
         $post = Posts::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
 
-        // 2. Kalau tidak ada, coba cari di flipside_posts
+        // 2. Jika tidak ada → cari di flipside
         if (!$post) {
             $post = FlipPosts::where('id', $id)
                 ->where('user_id', Auth::id())
                 ->first();
         }
 
-        // 3. Kalau tetap tidak ketemu → error
+        // 3. Jika tetap tidak ada
         if (!$post) {
             return response()->json([
                 'success' => false,
@@ -202,16 +218,15 @@ class PostController extends Controller
             ], 404);
         }
 
-        // 4. Hapus media kalau ada
-        foreach ($post->media as $media) {
-            Storage::disk('public')->delete($media->file_path);
-            $media->delete();
+        // 4. Hapus media
+        if ($post->media) {
+            foreach ($post->media as $media) {
+                Storage::disk('public')->delete($media->file_path);
+                $media->delete();
+            }
         }
 
-        $post->delete();
-
-
-        // 5. Hapus record
+        // 5. Hapus post
         $post->delete();
 
         return response()->json([

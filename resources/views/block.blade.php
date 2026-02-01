@@ -224,7 +224,7 @@
         <div class="blocked-actions">
             <button onclick="unblockUser({{ $user->id }})" class="btn-action btn-secondary-action">
                 <i class="fas fa-unlock"></i>
-                Unblock {{ '@' . $username }}
+                Unblock {{ $username }}
             </button>
 
             <a href="/" class="btn-action btn-primary-action">
@@ -272,7 +272,7 @@
         <h1 class="blocked-title">Content Unavailable</h1>
 
         <div class="blocked-username">
-            <i class="fas fa-at"></i>{{ '@' . $username }}
+            <i class="fas fa-at"></i>{{ $username }}
 
         </div>
 
@@ -316,12 +316,31 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     async function unblockUser(userId) {
-        if (!confirm('Are you sure you want to unblock this user?')) {
+        // ✅ GANTI DENGAN SWEETALERT2
+        const result = await Swal.fire({
+            title: 'Unblock User?',
+            html: 'Are you sure you want to <strong>unblock</strong> this user?<br><small style="color: #666;">They will be able to see your profile again.</small>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#27ae60',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-unlock"></i> Yes, Unblock',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+            reverseButtons: true,
+            customClass: {
+                popup: 'swal2-notification',
+                title: 'swal2-notification-title',
+                confirmButton: 'swal2-confirm-btn',
+                cancelButton: 'swal2-cancel-btn'
+            }
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
-
         try {
             const response = await fetch(`/block/destroy/${userId}`, {
                 method: 'DELETE',

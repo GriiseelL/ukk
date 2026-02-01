@@ -44,7 +44,7 @@ class FlipPosts extends Model
     {
         return $this->hasMany(FlipsideLike::class, 'flipside_post_id');
     }
-
+ 
 
     public function flipsideComments()
     {

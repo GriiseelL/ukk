@@ -1057,7 +1057,7 @@ transform: scale(1.1);
                                 <span>Report User</span>
                             </div>
                             
-                            <div class="dropdown-menu-item danger" onclick="toggleBlock({{ $user->id }})">
+                           <div class="dropdown-menu-item danger" onclick="toggleBlock({{ $user->id }}, this)">
                                 <i class="fas {{ $isUserBlocked ?? false ? 'fa-user-check' : 'fa-ban' }}"></i>
                                 <span id="blockMenuText">{{ $isUserBlocked ?? false ? 'Unblock User' : 'Block User' }}</span>
                             </div>
@@ -1211,9 +1211,9 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
 
                                 <!-- Post Interactions -->
                                 <div class="post-interactions">
-                                    <button class="interaction-btn 
+                                   <button class="interaction-btn 
                                         {{ $isFlipside 
-                                            ? ($post->flipsideLikes && $post->flipsideLikes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
+                                            ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
                                             : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
                                         }}"
                                         onclick="toggleLike({{ $post->id }}, this)"
@@ -1221,27 +1221,22 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
                                         <i class="fas fa-heart"></i>
                                         <span>
                                             {{ $isFlipside 
-                                                ? ($post->flipsideLikes ? $post->flipsideLikes->count() : 0) 
+                                                ? ($post->Likes ? $post->Likes->count() : 0) 
                                                 : ($post->likes ? $post->likes->count() : 0) 
                                             }}
                                         </span>
                                     </button>
 
-                                    <button class="interaction-btn" onclick="openComments({{ $post->id }})">
-                                        <i class="fas fa-comment"></i>
-                                        <span>
-                                            {{ $isFlipside
-                                                ? ($post->flipsideComments?->count() ?? 0)
-                                                : ($post->comments?->count() ?? 0)
-                                            }}
-                                        </span>                                    
-                                    </button>
-                                    
-                                    <button class="interaction-btn" onclick="sharePost({{ $post->id }})">
-                                        <i class="fas fa-share"></i>
-                                        Share
-                                    </button>
-                                </div>
+                                     @if(!$isFlipside)
+                        <button class="interaction-btn" onclick="openComments({{ $post->id }}, 'main')">
+                            <i class="fas fa-comment"></i>
+                            <span>{{ $post->comments?->count() ?? 0 }}</span>
+                        </button>
+                        <button class="interaction-btn">
+                            <i class="fas fa-share"></i>
+                            Share
+                        </button>
+                        @endif
                             </div>
                         @empty
                             <div class="empty-state">
@@ -1328,6 +1323,8 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
     </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Initialize variables
     const isFlipsideView = {{ $isFlipsideView ? 'true' : 'false' }};
@@ -1335,56 +1332,63 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
     let isUserFollowing = {{ ($isFollowing ?? false) ? 'true' : 'false' }};
     
     // Toggle like functionality
-    async function toggleLike(postId, button) {
-        const icon = button.querySelector('i');
-        const count = button.querySelector('span');
-        let currentCount = parseInt(count.textContent);
-        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const liked = button.classList.contains("liked");
-        
-        const type = window.appData?.isFlipside ? 'flipside' : 'main';
-        button.disabled = true;
+async function toggleLike(postId, button) {
+    const count = button.querySelector('span');
+    let currentCount = parseInt(count.textContent);
+    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const liked = button.classList.contains("liked");
 
-        try {
-            const endpoint = liked 
-                ? `/like/destroy/${postId}/${type}`
-                : `/like/store/${postId}/${type}`;
+    const isFlipside = window.appData?.isFlipside || false;
+    button.disabled = true;
 
-            const response = await fetch(endpoint, {
-                method: liked ? "DELETE" : "POST",
-                headers: {
-                    "X-CSRF-TOKEN": csrf,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                }
-            });
+    try {
+        let endpoint, method;
 
-            const result = await response.json();
-
-            if (response.ok) {
-                if (!liked) {
-                    button.classList.add("liked");
-                    count.textContent = currentCount + 1;
-                    showNotification("❤️ Liked!");
-                } else {
-                    button.classList.remove("liked");
-                    count.textContent = Math.max(0, currentCount - 1);
-                    showNotification("💔 Unliked");
-                }
-            } else {
-                if (response.status === 409) {
-                    showNotification(liked ? "⚠️ Already unliked" : "⚠️ Already liked");
-                } else {
-                    throw new Error(result.message || "Failed to toggle like");
-                }
-            }
-        } catch (error) {
-            console.error("Like error:", error);
-            showNotification("⚠️ Network error!");
-        } finally {
-            button.disabled = false;
+        if (isFlipside) {
+            endpoint = liked
+                ? `/like/flipsideDestroy/${postId}`
+                : `/like/flipsideStore/${postId}`;
+            method = liked ? "DELETE" : "POST";
+        } else {
+            endpoint = liked
+                ? `/like/destroy/${postId}`
+                : `/like/store/${postId}`;
+            method = liked ? "DELETE" : "POST";
         }
+
+        const response = await fetch(endpoint, {
+            method,
+            headers: {
+                "X-CSRF-TOKEN": csrf,
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            if (!liked) {
+                button.classList.add("liked");
+                count.textContent = result.likes_count;
+                showNotification("❤️ Liked!");
+            } else {
+                button.classList.remove("liked");
+                count.textContent = result.likes_count;
+                showNotification("💔 Unliked");
+            }
+        } else {
+            throw new Error(result.message || "Failed to toggle like");
+        }
+
+    } catch (error) {
+        console.error("Like error:", error);
+        showNotification("⚠️ Network error!");
+    } finally {
+        button.disabled = false;
     }
+}
+
 
     // Follow functionality
     function toggleFollow(userId) {
@@ -1751,7 +1755,19 @@ onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
     }
 
     async function deleteComment(commentId, postId) {
-        if (!confirm('Hapus komentar ini?')) return;
+      const result = await Swal.fire({
+        title: 'Hapus Comment?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
 
         try {
             const type = window.appData.isFlipside ? 'flipside' : 'main';
@@ -2015,8 +2031,20 @@ function renderUserList(users, title, isFollowingList = false) {
     }
 
     async function unfollowUser(userId, button) {
-        if (!confirm('Unfollow this user?')) return;
-        
+      const result = await Swal.fire({
+        title: 'Unfollow User?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Unfollow!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
         const userItem = button.closest('.user-list-item');
         const originalHTML = button.innerHTML;
         button.disabled = true;
@@ -2083,8 +2111,19 @@ function renderUserList(users, title, isFollowingList = false) {
     }
 
     async function removeFollower(userId, button) {
-        if (!confirm('Remove this follower?')) return;
-        
+      const result = await Swal.fire({
+        title: 'Hapus Follower?',
+        text: "Tindakan ini tidak dapat dibatalkan!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;        
         const userItem = button.closest('.user-list-item');
         const originalHTML = button.innerHTML;
         button.disabled = true;
@@ -2195,79 +2234,130 @@ function renderUserList(users, title, isFollowingList = false) {
         showNotification('📝 Report feature coming soon!');
     }
 
-    async function toggleBlock(userId) {
-        const menu = document.getElementById('profileDropdownMenu');
-        menu.classList.remove('show');
-        
-        const isBlocked = {{ $isUserBlocked ?? false ? 'true' : 'false' }};
-        
-        const confirmMessage = isBlocked 
-            ? 'Are you sure you want to unblock this user?' 
-            : 'Are you sure you want to block this user?\n\nBlocking will:\n• Remove follow relationships\n• Hide their posts from your feed\n• Prevent them from seeing your profile\n• Block all interactions';
-        
-        if (!confirm(confirmMessage)) {
-            return;
-        }
-        
-        const blockMenuText = document.getElementById('blockMenuText');
-        const originalText = blockMenuText ? blockMenuText.textContent : '';
-        
-        if (blockMenuText) {
-            blockMenuText.textContent = 'Processing...';
-        }
-        
-        try {
-            const response = await fetch(`/block/store/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+   async function toggleBlock(userId, button) {
+    const isBlocked = button.classList.contains('blocked');
+    const isFlipside = window.appData?.isFlipside || false;
+    
+    // ✅ SweetAlert2 Confirmation
+    const result = await Swal.fire({
+        title: isBlocked ? 'Unblock User?' : 'Block User?',
+        html: isBlocked 
+            ? 'Are you sure you want to <strong>unblock</strong> this user?<br><small style="color: #666;">They will be able to see your profile again.</small>'
+            : `
+                Are you sure you want to <strong>block</strong> this user?<br><br>
+                <div style="text-align: left; background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 12px; border-radius: 4px; margin: 10px 0;">
+                    <small style="color: #e74c3c; font-weight: 600;">⚠️ Blocking will:</small><br>
+                    <small style="color: #666; line-height: 1.6;">
+                        • Remove follow relationships<br>
+                        • Hide their posts from your feed<br>
+                        • Prevent them from seeing your profile<br>
+                        • Block all interactions
+                    </small>
+                </div>
+                <small style="color: #666;">This action cannot be undone easily.</small>
+            `,
+        icon: isBlocked ? 'question' : 'warning',
+        showCancelButton: true,
+        confirmButtonColor: isBlocked ? '#27ae60' : '#e74c3c',
+        cancelButtonColor: isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#6c757d',
+        confirmButtonText: isBlocked ? '<i class="fas fa-unlock"></i> Unblock' : '<i class="fas fa-ban"></i> Block',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal2-notification',
+            title: 'swal2-notification-title',
+            confirmButton: 'swal2-confirm-btn',
+            cancelButton: 'swal2-cancel-btn'
+        },
+        didOpen: (popup) => {
+            if (isFlipside) {
+                popup.style.background = '#1a1a1a';
+                popup.style.border = '2px solid rgba(255, 0, 128, 0.3)';
+                const title = popup.querySelector('.swal2-title');
+                if (title) {
+                    title.style.color = 'white';
+                    title.style.background = 'linear-gradient(135deg, #FF0080, #7928CA)';
+                    title.style.webkitBackgroundClip = 'text';
+                    title.style.webkitTextFillColor = 'transparent';
                 }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                if (result.blocked) {
-                    showNotification('🚫 User blocked successfully');
-                    
-                    if (blockMenuText) {
-                        blockMenuText.textContent = 'Unblock User';
-                        const icon = blockMenuText.previousElementSibling;
-                        if (icon) {
-                            icon.className = 'fas fa-user-check';
-                        }
-                    }
-                    
-                      setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    showNotification('✅ User unblocked successfully');
-                    
-                    if (blockMenuText) {
-                        blockMenuText.textContent = 'Block User';
-                        const icon = blockMenuText.previousElementSibling;
-                        if (icon) {
-                            icon.className = 'fas fa-ban';
-                        }
-                    }
-                    
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                }
-            } else {
-                throw new Error(result.message || 'Failed to toggle block');
             }
-        } catch (error) {
-            console.error('Block error:', error);
-            if (blockMenuText) {
-                blockMenuText.textContent = originalText;
-            }
-            showNotification('❌ Error: ' + error.message);
         }
+    });
+
+    // ✅ Jika user cancel, langsung return
+    if (!result.isConfirmed) {
+        return;
     }
+
+    // ✅ Update UI text
+    const blockMenuText = document.getElementById('blockMenuText');
+    const originalText = blockMenuText ? blockMenuText.textContent : '';
+    
+    if (blockMenuText) {
+        blockMenuText.textContent = 'Processing...';
+    }
+
+    try {
+        // ✅ DYNAMIC ENDPOINT based on isBlocked status
+        const endpoint = isBlocked 
+            ? `/block/remove/${userId}` 
+            : `/block/store/${userId}`;
+        
+        const method = isBlocked ? 'DELETE' : 'POST';
+        
+        const response = await fetch(endpoint, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (!isBlocked) {
+                // ✅ BLOCKED successfully
+                showNotification('🚫 User blocked successfully');
+                
+                if (blockMenuText) {
+                    blockMenuText.textContent = 'Unblock User';
+                    const icon = blockMenuText.previousElementSibling;
+                    if (icon) {
+                        icon.className = 'fas fa-user-check';
+                    }
+                }
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                // ✅ UNBLOCKED successfully
+                showNotification('✅ User unblocked successfully');
+                
+                if (blockMenuText) {
+                    blockMenuText.textContent = 'Block User';
+                    const icon = blockMenuText.previousElementSibling;
+                    if (icon) {
+                        icon.className = 'fas fa-ban';
+                    }
+                }
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        } else {
+            throw new Error(data.message || 'Failed to toggle block');
+        }
+    } catch (error) {
+        console.error('Block error:', error);
+        if (blockMenuText) {
+            blockMenuText.textContent = originalText;
+        }
+        showNotification('❌ Error: ' + error.message);
+    }
+}
 
     // Notification function
     function showNotification(message) {

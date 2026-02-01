@@ -42,7 +42,7 @@ class LikeController extends Controller
                 'receiver_id' => $post->user_id,
                 'type' => 'like',
                 'reference_id' => $post->id,
-                'post_id' =>$post->id, // ⚠️ BARIS INI HARUS ADA!
+                'post_id' => $post->id, // ⚠️ BARIS INI HARUS ADA!
                 'message' => $user->username . ' menyukai postinganmu'
             ]);
         }
@@ -117,7 +117,7 @@ class LikeController extends Controller
     }
 
     // Flipside - destroy
-    public function destroyFlip(Request $request, $postId)
+    public function flipsideDelete(Request $request, $postId)
     {
         $user = auth()->user();
 
@@ -143,4 +143,5 @@ class LikeController extends Controller
             'likes_count' => $flipsidePost->likes()->count()
         ]);
     }
+
 }

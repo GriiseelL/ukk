@@ -9,18 +9,6 @@ use Illuminate\Http\Request;
 
 class FollowController extends Controller
 {
-
-    // public function index()
-    // {
-    //     // $data = User::get();
-
-    //     // view()->share([
-    //     //     'user' => $data
-    //     // ]);
-
-    //     return view('akunPrib');
-    // }\
-
     public function getFollowers()
     {
         $user = auth()->user();
@@ -42,7 +30,10 @@ class FollowController extends Controller
         $user = auth()->user();
 
         if ($user->id == $followingId) {
-            return response()->json(['error' => 'tidak bisa follow diri sendiri'], 400);
+            return response()->json([
+                'success' => false,
+                'error' => 'tidak bisa follow diri sendiri'
+            ], 400);
         }
 
         $existing = Friends::where('user_id', $user->id)
@@ -56,8 +47,9 @@ class FollowController extends Controller
             $followersCount = Friends::where('user_following', $followingId)->count();
 
             return response()->json([
+                'success' => true,
                 'message' => 'unfollow success',
-                'following' => false,
+                'following' => false, // ✅ JavaScript butuh ini
                 'followers_count' => $followersCount
             ]);
         }
@@ -74,23 +66,22 @@ class FollowController extends Controller
             'receiver_id' => $followingId,
             'type' => 'follow',
             'reference_id' => $followingId,
-            'message' => $user->username . ' mulai mengikutimu'
+            'message' => $user->username . ' mulai mengikutimu',
+            'is_read' => 0 // ✅ Tambahkan ini
         ]);
 
         $followersCount = Friends::where('user_following', $followingId)->count();
 
         return response()->json([
+            'success' => true, // ✅ Tambahkan ini
             'message' => 'berhasil follow',
-            'following' => true,
+            'following' => true, // ✅ JavaScript butuh ini
             'followers_count' => $followersCount
         ]);
     }
 
-
-
     public function destroy($followingId)
     {
-
         $user = auth()->user();
 
         $deleted = Friends::where('user_id', $user->id)
@@ -98,14 +89,19 @@ class FollowController extends Controller
             ->delete();
 
         if ($deleted) {
+            $followersCount = Friends::where('user_following', $followingId)->count();
+
             return response()->json([
+                'success' => true, // ✅ Tambahkan ini
                 'message' => 'unfoll success',
-                'data' => null,
+                'following' => false, // ✅ JavaScript butuh ini
+                'followers_count' => $followersCount,
                 'status' => 200
             ]);
         }
 
         return response()->json([
+            'success' => false, // ✅ Tambahkan ini
             'message' => 'not found',
             'status' => 409
         ], 409);

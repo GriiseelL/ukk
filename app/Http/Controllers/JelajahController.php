@@ -20,6 +20,7 @@ class JelajahController extends Controller // atau nama controller yang sesuai
         $currentUserId = auth()->id();
 
         $search = User::where('id', '!=', $currentUserId)
+            ->where('role', 'user') // ⬅️ sembunyikan admin
             ->when($keyword, function ($query, $keyword) {
                 return $query->where(function ($q) use ($keyword) {
                     $q->where('name', 'like', '%' . $keyword . '%')
@@ -27,6 +28,7 @@ class JelajahController extends Controller // atau nama controller yang sesuai
                 });
             })
             ->get();
+
 
         $search->each(function ($user) use ($currentUserId) {
 
@@ -156,8 +158,17 @@ class JelajahController extends Controller // atau nama controller yang sesuai
         // Get posts based on view mode
         if ($isFlipsideView && $hasFlipsideAccess) {
             // Flipside posts from new table
+            // Flipside posts
             $posts = FlipPosts::where('user_id', $user->id)
-                ->with(['user', 'flipsideLikes', 'flipsideComments'])
+                ->with([
+                    'user',
+                    'flipsideComments',
+                    'likes' => function ($query) use ($authUser) {
+                        if ($authUser) {
+                            $query->where('user_id', $authUser->id); // Hanya like dari user yang sedang login
+                        }
+                    }
+                ])
                 ->latest()
                 ->get();
             $flipsidePosts = $posts;

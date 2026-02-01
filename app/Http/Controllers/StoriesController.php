@@ -71,7 +71,7 @@ class StoriesController extends Controller
         // ✅ FIX: Validasi yang lebih flexible
         $validated = $request->validate([
             'type' => 'required|in:text,image,video',
-            'privacy' => 'required|in:everyone,close-friends,private',
+            'privacy' => 'required|in:everyone, close-friends,private,only_me',
             'caption' => 'nullable|string|max:255',
             'text_content' => 'nullable|string|max:255',
             'background' => 'nullable|string',
@@ -93,15 +93,12 @@ class StoriesController extends Controller
                 $story->text_content = $request->text_content;
                 $story->background = $request->background;
             } else {
+                // ✅ PERBAIKAN: Gunakan kolom 'media' (bukan image_path/video_path)
                 if ($request->hasFile('media')) {
                     $file = $request->file('media');
                     $path = $file->store('stories', 'public');
 
-                    if ($request->type === 'image') {
-                        $story->image_path = $path;
-                    } else {
-                        $story->video_path = $path;
-                    }
+                    $story->media = $path; // ✅ Ubah dari image_path/video_path ke media
                 }
             }
 
@@ -190,8 +187,8 @@ class StoriesController extends Controller
                 'request_data' => [
                     'type' => $request->type,
                     'privacy' => $request->privacy,
-                    'close_friends_type' => gettype($request->close_friends),
-                    'close_friends_value' => $request->close_friends
+                    'close_friends_type' => gettype($request->close_friends ?? null),
+                    'close_friends_value' => $request->close_friends ?? null
                 ]
             ]);
 
@@ -232,13 +229,9 @@ class StoriesController extends Controller
     public function destroy(Request $request)
     {
         try {
-            // Ambil ID dari request body
             $storyId = $request->input('id');
-
-            // Cari story berdasarkan id (primary key)
             $story = Stories::find($storyId);
 
-            // Cek apakah story ditemukan
             if (!$story) {
                 return response()->json([
                     'success' => false,
@@ -246,7 +239,6 @@ class StoriesController extends Controller
                 ], 404);
             }
 
-            // Cek apakah user adalah pemilik story
             if ($story->user_id !== Auth::id()) {
                 return response()->json([
                     'success' => false,
@@ -254,12 +246,11 @@ class StoriesController extends Controller
                 ], 403);
             }
 
-            // Hapus file (jika ada)
+            // ✅ Hapus file media (ubah dari 'media' property ke 'media' column)
             if ($story->media && Storage::disk('public')->exists($story->media)) {
                 Storage::disk('public')->delete($story->media);
             }
 
-            // Hapus story
             $story->delete();
 
             return response()->json([

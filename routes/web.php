@@ -47,10 +47,10 @@ Route::prefix('posts')->name('posts.')->group(function () {
 
 // LIKE
 Route::prefix('like')->middleware('auth')->group(function () {
-    Route::post('/store/{postId}/{type}', [LikeController::class, 'store']);
+    Route::post('/store/{postId}', [LikeController::class, 'store']);
     Route::delete('/destroy/{postId}/{type}', [LikeController::class, 'destroy']);
-    Route::get('/like/count/{postId}/{type}', [LikeController::class, 'count']);
     Route::post('flipsideStore/{postId}', [LikeController::class, 'storeFlip']);
+    Route::delete('flipsideDestroy/{postId}', [LikeController::class, 'flipsideDelete']);
 });
 
 
@@ -83,6 +83,10 @@ Route::middleware(UserMiddleware::class)->group(function () {
         return view('profilePage');
     })->name('profilepPage');
 });
+
+Route::post('/profile/delete-account', [SettingController::class, 'deleteAccount'])
+    ->middleware('auth');
+
 
 // di routes/web.php
 Route::get('/profilePage/{username}', [JelajahController::class, 'show'])->name('profilePage');
@@ -127,7 +131,7 @@ Route::get('/notifications', [NotifikasiController::class, 'index'])->name('noti
 
 Route::post('/notifications/read', [NotifikasiController::class, 'markAllAsRead'])->name('notifications.markAllAsRead')
     ->middleware('auth');
-    
+
 Route::post('/notifications/read/{id}', [NotifikasiController::class, 'markAsReadSingle'])->name('notifications.markAsReadSingle')
     ->middleware('auth');
 

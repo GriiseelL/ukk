@@ -16,7 +16,7 @@
         margin: 0 auto;
         padding: 0 15px;
         animation: fadeIn 0.6s ease-out;
-        margin-left: -25px;
+        margin-left: 25px;
     }
 
     @keyframes fadeIn {

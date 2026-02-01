@@ -113,4 +113,28 @@ class SettingController extends Controller
             ], 500);
         }
     }
+
+    public function deleteAccount(Request $request)
+    {
+        $request->validate([
+            'password' => 'required'
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Wrong password'
+            ], 403);
+        }
+
+        Auth::logout();
+
+        $user->delete(); // atau forceDelete()
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
 }
