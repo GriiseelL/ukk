@@ -1136,157 +1136,156 @@ transform: scale(1.1);
 
             <!-- Content Area -->
             <div class="content-area">
-                <!-- Posts Content -->
-                <div id="posts-content">
-                    <div class="posts-stream">
-                        @forelse($displayPosts as $post)
-                            <div class="post-item" data-post-id="{{ $post->id }}">
-                                @if($isFlipsideView)
-                                <span class="post-flipside-badge">🔒 Flipside</span>
-                                @endif
-
-                                <div class="d-flex align-items-center mb-2">
-                                    @php
-                                        $postUserProfileLink = auth()->check() && auth()->id() === $post->user->id 
-                                            ? '/profile' 
-                                            : '/profilePage/' . $post->user->username;
-                                    @endphp
-                                    
-                                    <a href="{{ $postUserProfileLink }}" style="text-decoration: none;">
-                                        @if($post->user->avatar)
-                                            <img src="{{ asset('storage/' . $post->user->avatar) }}" 
-                                                 alt="{{ $post->user->name }}"
-                                                 class="rounded-circle me-2" 
-                                                 style="width:40px; height:40px; object-fit:cover; cursor: pointer;">
-                                        @else
-                                            <div class="rounded-circle me-2 d-flex justify-content-center align-items-center {{ $isFlipsideView ? 'text-white' : 'bg-primary text-white' }}"
-                                                 style="width:40px; height:40px; {{ $isFlipsideView ? 'background: linear-gradient(135deg, #FF0080, #7928CA);' : '' }} font-weight: bold; cursor: pointer;">
-                                                {{ strtoupper(substr($post->user->name, 0, 2)) }}
-                                            </div>
-                                        @endif
-                                    </a>
-                                    
-                                    <div>
-                                        <a href="{{ $postUserProfileLink }}" style="text-decoration: none;">
-                                            <strong style="color: {{ $isFlipsideView ? 'white' : 'inherit' }}; cursor: pointer;">{{ $post->user->name }}</strong>
-                                        </a>
-                                        <a href="{{ $postUserProfileLink }}" style="text-decoration: none;">
-                                            <span style="color: {{ $isFlipsideView ? 'rgba(255,255,255,0.6)' : '#666' }}; cursor: pointer;">{{ '@' . $post->user->username }}</span>
-                                        </a>
-                                        <span style="color: {{ $isFlipsideView ? 'rgba(255,255,255,0.5)' : '#666' }};">· {{ $post->created_at->diffForHumans() }}</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="post-content mb-2">
-                                    {!! nl2br(e($post->caption)) !!}
-                                   {{-- Multi-media support --}}
-@if($post->media && $post->media->count() > 0)
-<div class="mt-3 media-grid media-count-{{ $post->media->count() }}">
-@foreach($post->media as $medium)
-@php
-$ext = strtolower(pathinfo($medium->file_path, PATHINFO_EXTENSION));
-@endphp
-<div class="media-item">
-{{-- IMAGE --}}
-@if(in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']))
-<img
-src="{{ asset('storage/' . $medium->file_path) }}"
-alt="Post image"
-onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')"
->
-{{-- VIDEO --}}
-@elseif(in_array($ext, ['mp4', 'mov', 'webm']))
-<div class="post-video-container">
-<video muted playsinline preload="metadata" controls>
-<source src="{{ asset('storage/' . $medium->file_path) }}" type="{{ $medium->mime_type }}">
-</video>
-<button class="mute-btn">🔇</button>
-</div>
-@endif
-</div>
-@endforeach
-</div>
-@endif
-                                </div>
-
-                                <!-- Post Interactions -->
-                                <div class="post-interactions">
-                                   <button class="interaction-btn 
-                                        {{ $isFlipside 
-                                            ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                                            : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                                        }}"
-                                        onclick="toggleLike({{ $post->id }}, this)"
-                                    >
-                                        <i class="fas fa-heart"></i>
-                                        <span>
-                                            {{ $isFlipside 
-                                                ? ($post->Likes ? $post->Likes->count() : 0) 
-                                                : ($post->likes ? $post->likes->count() : 0) 
-                                            }}
-                                        </span>
-                                    </button>
-
-                                     @if(!$isFlipside)
-                        <button class="interaction-btn" onclick="openComments({{ $post->id }}, 'main')">
-                            <i class="fas fa-comment"></i>
-                            <span>{{ $post->comments?->count() ?? 0 }}</span>
-                        </button>
-                        <button class="interaction-btn">
-                            <i class="fas fa-share"></i>
-                            Share
-                        </button>
-                        @endif
-                            </div>
-                        @empty
-                            <div class="empty-state">
-                                <i class="fas {{ $isFlipsideView ? 'fa-ghost' : 'fa-camera' }}"></i>
-                                <h4>{{ $isFlipsideView ? 'Belum ada konten Flipside' : 'Belum ada postingan' }}</h4>
-                                <p>{{ $isFlipsideView ? 'Konten secret belum ada.' : 'Postingan akan muncul di sini.' }}</p>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-
-                <!-- Media Content -->
-   <!-- Media Content -->
-@if(!$isFlipsideView)
-<div id="media-content" class="hidden">
-    @if($allMedia && $allMedia->count() > 0)
-        <div class="media-gallery-grid">
-            @foreach($allMedia as $media)
-                @php
-                    $ext = strtolower(pathinfo($media->file_path, PATHINFO_EXTENSION));
-                    $isVideo = in_array($ext, ['mp4', 'mov', 'webm']);
-                    $src = $media->url;
-                @endphp
-                
-                <div class="media-gallery-item {{ $isVideo ? 'has-video' : '' }}">
-                    @if(!$isVideo)
-                        <img src="{{ $src }}" 
-                             alt="Media"
-                             onclick="openImageModal('{{ $src }}')">
-                    @else
-                        <div class="post-video-container">
-                            <video controls muted playsinline>
-                                <source src="{{ $src }}" type="{{ $media->mime_type ?? 'video/mp4' }}">
-                            </video>
-                            <span class="video-play-icon">▶</span>
-                        </div>
+    <!-- Posts Content -->
+    <div id="posts-content">
+        <div class="posts-stream">
+            @forelse($displayPosts as $post)
+                <div class="post-item" data-post-id="{{ $post->id }}">
+                    @if($isFlipsideView)
+                    <span class="post-flipside-badge">🔒 Flipside</span>
                     @endif
+
+                    <div class="d-flex align-items-center mb-2">
+                        @php
+                            $postUserProfileLink = auth()->check() && auth()->id() === $post->user->id 
+                                ? '/profile' 
+                                : '/profilePage/' . $post->user->username;
+                        @endphp
+                        
+                        <a href="{{ $postUserProfileLink }}" style="text-decoration: none;">
+                            @if($post->user->avatar)
+                                <img src="{{ asset('storage/' . $post->user->avatar) }}" 
+                                     alt="{{ $post->user->name }}"
+                                     class="rounded-circle me-2" 
+                                     style="width:40px; height:40px; object-fit:cover; cursor: pointer;">
+                            @else
+                                <div class="rounded-circle me-2 d-flex justify-content-center align-items-center {{ $isFlipsideView ? 'text-white' : 'bg-primary text-white' }}"
+                                     style="width:40px; height:40px; {{ $isFlipsideView ? 'background: linear-gradient(135deg, #FF0080, #7928CA);' : '' }} font-weight: bold; cursor: pointer;">
+                                    {{ strtoupper(substr($post->user->name, 0, 2)) }}
+                                </div>
+                            @endif
+                        </a>
+                        
+                        <div>
+                            <a href="{{ $postUserProfileLink }}" style="text-decoration: none;">
+                                <strong style="color: {{ $isFlipsideView ? 'white' : 'inherit' }}; cursor: pointer;">{{ $post->user->name }}</strong>
+                            </a>
+                            <a href="{{ $postUserProfileLink }}" style="text-decoration: none;">
+                                <span style="color: {{ $isFlipsideView ? 'rgba(255,255,255,0.6)' : '#666' }}; cursor: pointer;">{{ '@' . $post->user->username }}</span>
+                            </a>
+                            <span style="color: {{ $isFlipsideView ? 'rgba(255,255,255,0.5)' : '#666' }};">· {{ $post->created_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="post-content mb-2">
+                        {!! nl2br(e($post->caption)) !!}
+                        
+                        {{-- Multi-media support --}}
+                        @if($post->media && $post->media->count() > 0)
+                        <div class="mt-3 media-grid media-count-{{ $post->media->count() }}">
+                            @foreach($post->media as $medium)
+                                @php
+                                    $ext = strtolower(pathinfo($medium->file_path, PATHINFO_EXTENSION));
+                                @endphp
+                                <div class="media-item">
+                                    {{-- IMAGE --}}
+                                    @if(in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']))
+                                        <img src="{{ asset('storage/' . $medium->file_path) }}"
+                                             alt="Post image"
+                                             onclick="openImageModal('{{ asset('storage/' . $medium->file_path) }}')">
+                                    {{-- VIDEO --}}
+                                    @elseif(in_array($ext, ['mp4', 'mov', 'webm']))
+                                        <div class="post-video-container">
+                                            <video muted playsinline preload="metadata" controls>
+                                                <source src="{{ asset('storage/' . $medium->file_path) }}" type="{{ $medium->mime_type }}">
+                                            </video>
+                                            <button class="mute-btn">🔇</button>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Post Interactions -->
+                    <div class="post-interactions">
+                        <button class="interaction-btn 
+                            {{ $isFlipside 
+                                ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
+                                : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
+                            }}"
+                            onclick="toggleLike({{ $post->id }}, this)">
+                            <i class="fas fa-heart"></i>
+                            <span>
+                                {{ $isFlipside 
+                                    ? ($post->Likes ? $post->Likes->count() : 0) 
+                                    : ($post->likes ? $post->likes->count() : 0) 
+                                }}
+                            </span>
+                        </button>
+
+                        @if(!$isFlipside)
+                            <button class="interaction-btn" onclick="openComments({{ $post->id }}, 'main')">
+                                <i class="fas fa-comment"></i>
+                                <span>{{ $post->comments?->count() ?? 0 }}</span>
+                            </button>
+                            <button class="interaction-btn">
+                                <i class="fas fa-share"></i>
+                                Share
+                            </button>
+                        @endif
+                    </div>
+                </div> {{-- 👈 INI YANG KURANG! TUTUP .post-item --}}
+                
+            @empty
+                <div class="empty-state">
+                    <i class="fas {{ $isFlipsideView ? 'fa-ghost' : 'fa-camera' }}"></i>
+                    <h4>{{ $isFlipsideView ? 'Belum ada konten Flipside' : 'Belum ada postingan' }}</h4>
+                    <p>{{ $isFlipsideView ? 'Konten secret belum ada.' : 'Postingan akan muncul di sini.' }}</p>
                 </div>
-            @endforeach
+            @endforelse
         </div>
-    @else
-        <div class="empty-state">
-            <i class="fas fa-images"></i>
-            <h4>Belum ada media</h4>
-            <p>Media dari postingan akan muncul di sini.</p>
-        </div>
+    </div>
+
+    <!-- Media Content -->
+    @if(!$isFlipsideView)
+    <div id="media-content" class="hidden">
+        @if($allMedia && $allMedia->count() > 0)
+            <div class="media-gallery-grid">
+                @foreach($allMedia as $media)
+                    @php
+                        $ext = strtolower(pathinfo($media->file_path, PATHINFO_EXTENSION));
+                        $isVideo = in_array($ext, ['mp4', 'mov', 'webm']);
+                        $src = $media->url;
+                    @endphp
+                    
+                    <div class="media-gallery-item {{ $isVideo ? 'has-video' : '' }}">
+                        @if(!$isVideo)
+                            <img src="{{ $src }}" 
+                                 alt="Media"
+                                 onclick="openImageModal('{{ $src }}')">
+                        @else
+                            <div class="post-video-container">
+                                <video controls muted playsinline>
+                                    <source src="{{ $src }}" type="{{ $media->mime_type ?? 'video/mp4' }}">
+                                </video>
+                                <span class="video-play-icon">▶</span>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="empty-state">
+                <i class="fas fa-images"></i>
+                <h4>Belum ada media</h4>
+                <p>Media dari postingan akan muncul di sini.</p>
+            </div>
+        @endif
+    </div>
     @endif
 </div>
-@endif
-            </div>
         </div>
     </div>
 </div>
