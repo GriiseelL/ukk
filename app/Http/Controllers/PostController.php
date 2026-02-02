@@ -53,6 +53,7 @@ class PostController extends Controller
                 });
         }
 
+
         // Ambil ID stories yang di-hide dari user saat ini
         $hiddenStoryIds = DB::table('story_hidden_users')
             ->where('user_id', $authUserId)
@@ -65,6 +66,22 @@ class PostController extends Controller
             ->pluck('user_following')
             ->toArray();
 
+
+
+        $friendPosts = Posts::with(['user', 'likes', 'media'])
+            ->whereIn('user_id', $followedUserIds)
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->get();
+
+
+        $randomPosts = Posts::with(['user', 'likes', 'media'])
+            ->whereNotIn('user_id', $followedUserIds)
+            ->where('user_id', '!=', $authUserId)
+            ->withCount(['likes', 'comments'])
+            ->inRandomOrder()
+            ->limit(5)
+            ->get();
         // Gabungkan dengan ID user sendiri
         $allowedUserIds = array_merge([$authUserId], $followedUserIds);
 
@@ -110,9 +127,39 @@ class PostController extends Controller
             ->inRandomOrder()
             ->limit(5)
             ->get(); // Ini akan mengambil semua kolom
-            // dd($suggestedUsers);
+        // dd($suggestedUsers);
 
-        return view('homepage', compact('posts', 'usersWithStories', 'suggestedUsers'));
+        $posts = collect();
+        $randomIndex = 0;
+
+        foreach ($friendPosts as $index => $post) {
+            // Post teman
+            $post->is_liked_by_auth_user = $post->likes()
+                ->where('user_id', $authUserId)
+                ->exists();
+
+            $posts->push($post);
+
+            // Setiap 3 post teman → sisipkan 1 random
+            if (($index + 1) % 3 === 0 && isset($randomPosts[$randomIndex])) {
+                $random = $randomPosts[$randomIndex];
+                $random->is_liked_by_auth_user = $random->likes()
+                    ->where('user_id', $authUserId)
+                    ->exists();
+
+                $posts->push($random);
+                $randomIndex++;
+            }
+        }
+
+
+        return view('homepage', compact(
+            'posts',
+            'usersWithStories',
+            'suggestedUsers',
+            'usersWithStories',
+            'suggestedUsers'
+        ));
     }
 
     // ============================================
