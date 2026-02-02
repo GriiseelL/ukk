@@ -8,6 +8,8 @@
         max-width: 700px;
         margin: 30px auto;
         padding: 0 15px;
+        margin-top: 70px;
+        margin-left: 50px;
     }
 
     .post-card {

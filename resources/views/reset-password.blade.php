@@ -202,6 +202,7 @@
         }
 
         @keyframes float {
+
             0%,
             100% {
                 transform: translateY(0px) rotate(0deg);
@@ -264,6 +265,26 @@
             color: #6c757d;
             margin-top: 0.5rem;
         }
+
+        .password-checklist {
+            list-style: none;
+            padding-left: 0;
+            font-size: 0.85rem;
+        }
+
+        .password-checklist li {
+            margin-bottom: 4px;
+            color: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .password-checklist li.valid {
+            color: #28a745;
+        }
+
+        .password-checklist i {
+            margin-right: 6px;
+        }
     </style>
 </head>
 
@@ -300,11 +321,11 @@
                                         <span class="input-group-text">
                                             <i class="fas fa-lock"></i>
                                         </span>
-                                        <input 
-                                            type="password" 
-                                            name="password" 
+                                        <input
+                                            type="password"
+                                            name="password"
                                             id="password"
-                                            class="form-control" 
+                                            class="form-control"
                                             placeholder="Password Baru"
                                             required
                                             minlength="8">
@@ -315,20 +336,29 @@
                                     <div class="password-strength">
                                         <div class="password-strength-bar" id="strengthBar"></div>
                                     </div>
-                                    <p class="password-hint">
+                                    <!-- <p class="password-hint">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Minimal 8 karakter
-                                    </p>
+                                        Minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan simbol
+                                    </p> -->
+                                    <ul class="password-checklist mt-2" id="passwordChecklist">
+                                        <li id="chk-length"><i class="fa-solid fa-circle-xmark"></i> Minimal 8 karakter</li>
+                                        <li id="chk-lower"><i class="fa-solid fa-circle-xmark"></i> Huruf kecil (a-z)</li>
+                                        <li id="chk-upper"><i class="fa-solid fa-circle-xmark"></i> Huruf besar (A-Z)</li>
+                                        <li id="chk-number"><i class="fa-solid fa-circle-xmark"></i> Angka (0-9)</li>
+                                        <li id="chk-symbol"><i class="fa-solid fa-circle-xmark"></i> Simbol (@$!%*#?&)</li>
+                                    </ul>
+
+
 
                                     <div class="input-group">
                                         <span class="input-group-text">
                                             <i class="fas fa-lock"></i>
                                         </span>
-                                        <input 
-                                            type="password" 
-                                            name="password_confirmation" 
+                                        <input
+                                            type="password"
+                                            name="password_confirmation"
                                             id="password_confirmation"
-                                            class="form-control" 
+                                            class="form-control"
                                             placeholder="Ulangi Password"
                                             required
                                             minlength="8">
@@ -367,7 +397,7 @@
         function togglePassword(inputId, toggleBtn) {
             const input = document.getElementById(inputId);
             const icon = toggleBtn.querySelector('i');
-            
+
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.remove('fa-eye');
@@ -383,42 +413,47 @@
         const passwordInput = document.getElementById('password');
         const strengthBar = document.getElementById('strengthBar');
 
+        // Checklist elements
+        const chkLength = document.getElementById('chk-length');
+        const chkLower = document.getElementById('chk-lower');
+        const chkUpper = document.getElementById('chk-upper');
+        const chkNumber = document.getElementById('chk-number');
+        const chkSymbol = document.getElementById('chk-symbol');
+
         passwordInput.addEventListener('input', function() {
-            const password = this.value;
+            const val = this.value;
             let strength = 0;
 
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]+/)) strength++;
-            if (password.match(/[A-Z]+/)) strength++;
-            if (password.match(/[0-9]+/)) strength++;
-            if (password.match(/[$@#&!]+/)) strength++;
+            toggleCheck(chkLength, val.length >= 8);
+            toggleCheck(chkLower, /[a-z]/.test(val));
+            toggleCheck(chkUpper, /[A-Z]/.test(val));
+            toggleCheck(chkNumber, /[0-9]/.test(val));
+            toggleCheck(chkSymbol, /[@$!%*#?&]/.test(val));
+
+            if (val.length >= 8) strength++;
+            if (/[a-z]/.test(val)) strength++;
+            if (/[A-Z]/.test(val)) strength++;
+            if (/[0-9]/.test(val)) strength++;
+            if (/[@$!%*#?&]/.test(val)) strength++;
 
             strengthBar.className = 'password-strength-bar';
 
-            if (strength <= 2) {
-                strengthBar.classList.add('strength-weak');
-            } else if (strength <= 4) {
-                strengthBar.classList.add('strength-medium');
+            if (strength <= 2) strengthBar.classList.add('strength-weak');
+            else if (strength <= 4) strengthBar.classList.add('strength-medium');
+            else strengthBar.classList.add('strength-strong');
+        });
+
+        function toggleCheck(element, condition) {
+            const icon = element.querySelector('i');
+            if (condition) {
+                element.classList.add('valid');
+                icon.className = 'fa-solid fa-circle-check';
             } else {
-                strengthBar.classList.add('strength-strong');
+                element.classList.remove('valid');
+                icon.className = 'fa-solid fa-circle-xmark';
             }
-        });
+        }
 
-        // Password confirmation validation
-        const form = document.querySelector('form');
-        const confirmPassword = document.getElementById('password_confirmation');
-
-        form.addEventListener('submit', function(e) {
-            if (passwordInput.value !== confirmPassword.value) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Password Tidak Cocok!',
-                    text: 'Pastikan kedua password yang Anda masukkan sama.',
-                    confirmButtonColor: '#667eea'
-                });
-            }
-        });
 
         // Add entrance animation
         window.addEventListener('load', function() {
@@ -434,7 +469,7 @@
         });
 
         // Handle validation errors
-        @if($errors->any())
+        @if($errors -> any())
         document.addEventListener("DOMContentLoaded", function() {
             Swal.fire({
                 icon: 'error',

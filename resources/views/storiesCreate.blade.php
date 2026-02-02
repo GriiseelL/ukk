@@ -431,20 +431,20 @@
         }
 
         .close-friends-section {
+            display: none;
+            /* ⬅️ ini kunci utama */
             background: rgba(29, 161, 242, 0.03);
             border: 2px solid rgba(29, 161, 242, 0.1);
             border-radius: 16px;
             padding: 20px;
             margin-top: 15px;
-            max-height: 0;
-            overflow: hidden;
             transition: all 0.4s ease;
         }
 
         .close-friends-section.show {
-            max-height: 400px;
-            overflow-y: auto;
+            display: block;
         }
+
 
         .friends-header {
             font-size: 15px;
@@ -1151,19 +1151,32 @@
             selectedPrivacy = type;
             document.getElementById('privacyInput').value = type;
 
+            // aktifkan radio UI
             document.querySelectorAll('.privacy-option').forEach(op => {
                 op.classList.remove('active');
             });
-
-            event.currentTarget.classList.add('active');
+            const clicked = document.querySelector(`.privacy-option[onclick*="${type}"]`);
+            if (clicked) clicked.classList.add('active');
 
             const closeFriendsSection = document.getElementById('closeFriendsSection');
+
             if (type === 'close-friends') {
+                // ✅ tampilkan section
                 closeFriendsSection.classList.add('show');
+                loadFriendsList();
             } else {
+                // ✅ sembunyikan saja
                 closeFriendsSection.classList.remove('show');
+
+                // reset pilihan teman
+                selectedFriends.clear();
+                document.querySelectorAll('.checkbox-custom').forEach(cb => {
+                    cb.classList.remove('checked');
+                });
             }
         }
+
+
 
         function toggleFriend(id) {
             const checkbox = document.getElementById('checkbox-' + id);
@@ -1210,7 +1223,7 @@
             }
 
             cropper = new Cropper(image, {
-                aspectRatio: 9 / 16,
+                aspectRatio: NaN, // bebas rasio (landscape / portrait)
                 viewMode: 1,
                 dragMode: 'move',
                 autoCropArea: 1,
@@ -1272,6 +1285,14 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
 
+            const publishBtn = document.getElementById('publishBtn');
+            const originalText = publishBtn.innerHTML;
+
+            // Disable button
+            publishBtn.disabled = true;
+            publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
+            publishBtn.style.pointerEvents = 'none';
+
             const caption = document.getElementById('captionInput').value;
             const type = currentType;
 
@@ -1279,12 +1300,14 @@
             formData.append('type', type);
             formData.append('privacy', selectedPrivacy);
 
+            /* ================= TEXT STORY ================= */
             if (type === 'text') {
                 const textContent = document.getElementById('textInput').value;
                 const background = selectedBackground;
 
                 if (!textContent.trim()) {
                     showNotification("Tulis teks untuk story!", 'error');
+                    resetButton();
                     return;
                 }
 
@@ -1294,10 +1317,14 @@
                 if (caption && caption.trim()) {
                     formData.append('caption', caption);
                 }
+            }
 
-            } else {
+            /* ================= MEDIA STORY ================= */
+            else {
+
                 if (!croppedImageBlob && !originalImageFile) {
                     showNotification("Pilih gambar atau video terlebih dahulu!", 'error');
+                    resetButton();
                     return;
                 }
 
@@ -1305,33 +1332,28 @@
                 formData.append('media', croppedImageBlob || originalImageFile);
             }
 
-            // ✅ FIX: Kirim data close friends dengan benar
+            /* ================= CLOSE FRIENDS ================= */
             if (selectedPrivacy === "close-friends") {
+
                 if (selectedFriends.size === 0) {
                     showNotification("Pilih minimal 1 teman untuk close friends!", 'error');
+                    resetButton();
                     return;
                 }
 
-                // Kirim sebagai array biasa, bukan JSON string
-                selectedFriends.forEach(friendId => {
-                    formData.append('close_friends[]', friendId);
+                selectedFriends.forEach(id => {
+                    formData.append('close_friends[]', id);
                 });
-
-                // Debug log
-                console.log('Selected friends:', Array.from(selectedFriends));
             }
 
-            // Debug: tampilkan semua data FormData
-            console.log('FormData contents:');
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
-
+            /* ================= SEND ================= */
             try {
+
                 const csrf = document.querySelector('meta[name="csrf-token"]');
 
                 if (!csrf) {
                     showNotification("CSRF token tidak ditemukan!", "error");
+                    resetButton();
                     return;
                 }
 
@@ -1345,23 +1367,36 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    const errData = await response.json();
+                    throw new Error(errData.message || "Upload gagal");
                 }
 
                 const result = await response.json();
 
                 if (result.success) {
                     showNotification("Story berhasil diupload!");
-                    setTimeout(() => window.location.href = "{{ route('stories') }}", 1000);
+                    setTimeout(() => {
+                        window.location.href = "{{ route('stories') }}";
+                    }, 1000);
                 } else {
                     showNotification(result.message || "Gagal upload story!", "error");
+                    resetButton();
                 }
+
             } catch (err) {
-                console.error('Upload error:', err);
+                console.error(err);
                 showNotification("Error: " + err.message, "error");
+                resetButton();
+            }
+
+            /* ================= HELPER ================= */
+            function resetButton() {
+                publishBtn.disabled = false;
+                publishBtn.innerHTML = originalText;
+                publishBtn.style.pointerEvents = 'auto';
             }
         }
+
 
         function showNotification(msg, type = "success") {
             const notif = document.createElement("div");

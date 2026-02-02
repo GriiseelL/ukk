@@ -4,6 +4,8 @@ $isFlipsideView = request()->is('*/flipside') || request()->get('view') === 'fli
 $isFlipside = request()->is('flipside*') || (isset($flipsidePosts) && count($flipsidePosts) > 0);
 $displayPosts = $isFlipsideView ? ($flipsidePosts ?? []) : ($posts ?? []);
 $isOwnProfile = auth()->check() && auth()->id() === $user->id;
+$currentUserId = auth()->id() ?? null;
+$currentUserFollowing = $currentUserId ? \App\Models\User::find($currentUserId)?->following : [];
 @endphp
 
 @extends('layout.layarUtama')
@@ -20,7 +22,9 @@ $isOwnProfile = auth()->check() && auth()->id() === $user->id;
         followers: @json($followers),
         following: @json($following),
         userId: {{ $user->id }},
-        user: @json($user ?? [])
+        user: @json($user ?? []),
+        currentUserFollowing: @json($currentUserFollowing), // ✅ ADD THIS
+
     };
 </script>
 
@@ -1209,33 +1213,77 @@ transform: scale(1.1);
                     </div>
 
                     <!-- Post Interactions -->
-                    <div class="post-interactions">
-                        <button class="interaction-btn 
-                            {{ $isFlipside 
-                                ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                                : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                            }}"
-                            onclick="toggleLike({{ $post->id }}, this)">
-                            <i class="fas fa-heart"></i>
-                            <span>
-                                {{ $isFlipside 
-                                    ? ($post->Likes ? $post->Likes->count() : 0) 
-                                    : ($post->likes ? $post->likes->count() : 0) 
-                                }}
-                            </span>
-                        </button>
+                <div class="post-interactions">
+    <!-- Like Button -->
+    <button class="interaction-btn
+    {{ $isFlipside
+        ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '')
+        : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '')
+    }}"
+    onclick="toggleLike({{ $post->id }}, this)"
+    >                            
+        <i class="fas fa-heart"></i>
+        <span>
+        {{ $isFlipside
+            ? ($post->Likes ? $post->Likes->count() : 0)
+            : ($post->likes ? $post->likes->count() : 0)
+        }}
+        </span>
+    </button>
+    
+    @if(!$isFlipside)
+    <!-- Share Button -->
+    <button class="interaction-btn">
+        <i class="fas fa-share"></i>
+        Share
+    </button>
+    @endif
+</div>
 
-                        @if(!$isFlipside)
-                            <button class="interaction-btn" onclick="openComments({{ $post->id }}, 'main')">
-                                <i class="fas fa-comment"></i>
-                                <span>{{ $post->comments?->count() ?? 0 }}</span>
-                            </button>
-                            <button class="interaction-btn">
-                                <i class="fas fa-share"></i>
-                                Share
-                            </button>
-                        @endif
-                    </div>
+<!-- Quick Comment Section (DI BAWAH LIKE BUTTON) -->
+@if(!$isFlipside)
+<div class="quick-comment-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid {{ $isFlipside ? 'rgba(255, 255, 255, 0.1)' : '#e1e8ed' }};">
+    <!-- Comment Count Link (BUKA MODAL SAAT DIKLIK) -->
+    <div style="margin-bottom: 10px;">
+        <a href="#" onclick="openComments({{ $post->id }}, 'main'); return false;" 
+           style="color: {{ $isFlipside ? 'rgba(255,255,255,0.7)' : '#1da1f2' }}; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; padding: 3px 0; transition: opacity 0.3s;"
+           onmouseover="this.style.opacity='0.8'"
+           onmouseout="this.style.opacity='1'">
+            {{ $post->comments_count ?? 0 }} comments
+        </a>
+    </div>
+    
+    <!-- Quick Comment Input (LANGSUNG KETIK DI SINI) -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+        @if(auth()->user()->avatar)
+        <img src="{{ asset('storage/' . auth()->user()->avatar) }}" 
+             alt="Your avatar" 
+             style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+        @else
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #1da1f2, #0d8bd9); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">
+            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+        </div>
+        @endif
+        
+        <input 
+            type="text" 
+            class="quick-comment-input form-control"
+            data-post-id="{{ $post->id }}"
+            placeholder="Add a comment..."
+            style="flex: 1; border: none; border-radius: 20px; padding: 8px 15px; background: {{ $isFlipside ? 'rgba(255,255,255,0.05)' : '#f5f7fa' }}; color: {{ $isFlipside ? 'white' : '#1a1a1a' }}; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
+            onkeypress="handleQuickCommentKeyPress(event, {{ $post->id }})">
+        
+        <button 
+            class="btn btn-sm quick-comment-btn"
+            onclick="submitQuickComment({{ $post->id }})"
+            style="background: linear-gradient(135deg, #1da1f2, #0d8bd9); color: white; border: none; border-radius: 20px; padding: 6px 15px; font-weight: 600; font-size: 13px; box-shadow: 0 2px 6px rgba(29, 161, 242, 0.3); transition: all 0.3s ease;"
+            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(29, 161, 242, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(29, 161, 242, 0.3)'">
+            Post
+        </button>
+    </div>
+</div>
+@endif
                 </div> {{-- 👈 INI YANG KURANG! TUTUP .post-item --}}
                 
             @empty
@@ -1331,121 +1379,151 @@ transform: scale(1.1);
     let isUserFollowing = {{ ($isFollowing ?? false) ? 'true' : 'false' }};
     
     // Toggle like functionality
-async function toggleLike(postId, button) {
-    const count = button.querySelector('span');
-    let currentCount = parseInt(count.textContent);
-    const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const liked = button.classList.contains("liked");
+    async function toggleLike(postId, button) {
+        const count = button.querySelector('span');
+        let currentCount = parseInt(count.textContent);
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const liked = button.classList.contains("liked");
 
-    const isFlipside = window.appData?.isFlipside || false;
-    button.disabled = true;
+        const isFlipside = window.appData?.isFlipside || false;
+        button.disabled = true;
 
-    try {
-        let endpoint, method;
+        try {
+            let endpoint, method;
 
-        if (isFlipside) {
-            endpoint = liked
-                ? `/like/flipsideDestroy/${postId}`
-                : `/like/flipsideStore/${postId}`;
-            method = liked ? "DELETE" : "POST";
-        } else {
-            endpoint = liked
-                ? `/like/destroy/${postId}`
-                : `/like/store/${postId}`;
-            method = liked ? "DELETE" : "POST";
-        }
-
-        const response = await fetch(endpoint, {
-            method,
-            headers: {
-                "X-CSRF-TOKEN": csrf,
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            }
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            if (!liked) {
-                button.classList.add("liked");
-                count.textContent = result.likes_count;
-                showNotification("❤️ Liked!");
+            if (isFlipside) {
+                endpoint = liked
+                    ? `/like/flipsideDestroy/${postId}`
+                    : `/like/flipsideStore/${postId}`;
+                method = liked ? "DELETE" : "POST";
             } else {
-                button.classList.remove("liked");
-                count.textContent = result.likes_count;
-                showNotification("💔 Unliked");
+                endpoint = liked
+                    ? `/like/destroy/${postId}`
+                    : `/like/store/${postId}`;
+                method = liked ? "DELETE" : "POST";
             }
-        } else {
-            throw new Error(result.message || "Failed to toggle like");
+
+            const response = await fetch(endpoint, {
+                method,
+                headers: {
+                    "X-CSRF-TOKEN": csrf,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                if (!liked) {
+                    button.classList.add("liked");
+                    count.textContent = result.likes_count;
+                    showNotification("❤️ Liked!");
+                } else {
+                    button.classList.remove("liked");
+                    count.textContent = result.likes_count;
+                    showNotification("💔 Unliked");
+                }
+            } else {
+                throw new Error(result.message || "Failed to toggle like");
+            }
+
+        } catch (error) {
+            console.error("Like error:", error);
+            showNotification("⚠️ Network error!");
+        } finally {
+            button.disabled = false;
         }
-
-    } catch (error) {
-        console.error("Like error:", error);
-        showNotification("⚠️ Network error!");
-    } finally {
-        button.disabled = false;
     }
-}
-
 
     // Follow functionality
-    function toggleFollow(userId) {
+        function toggleFollow(userId) {
         @auth
-            const btn = document.getElementById('followBtn');
-            const textEl = btn.querySelector('.follow-text');
-            const originalText = textEl.textContent;
+        const btn = document.getElementById('followBtn');
+        const textEl = btn.querySelector('.follow-text');
+        const originalText = textEl.textContent;
+        textEl.textContent = 'Loading...';
+        btn.disabled = true;
+
+        fetch(`/follow/store/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.json();
+        })
+        .then(data => {
+            const followersCount = document.getElementById('followersCount');
             
-            textEl.textContent = 'Loading...';
-            btn.disabled = true;
+            // ✅ UPDATE window.appData.followers DI SINI!
+            if (!window.appData.followers) {
+                window.appData.followers = [];
+            }
             
-            fetch(`/follow/store/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network error');
-                return response.json();
-            })
-            .then(data => {
-                const followersCount = document.getElementById('followersCount');
-                
-                if (data.following) {
-                    btn.classList.add('following');
-                    textEl.textContent = 'Following';
-                    followersCount.textContent = data.followers_count || 0;
-                    
-                    btn.onmouseenter = () => textEl.textContent = 'Unfollow';
-                    btn.onmouseleave = () => textEl.textContent = 'Following';
-                    
-                    showNotification('✅ Now following user!');
-                } else {
-                    btn.classList.remove('following');
-                    textEl.textContent = 'Follow';
-                    followersCount.textContent = data.followers_count || 0;
-                    
-                    btn.onmouseenter = null;
-                    btn.onmouseleave = null;
-                    
-                    showNotification('❌ Unfollowed user');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                textEl.textContent = originalText;
-                showNotification('❌ Error: Unable to follow user');
-            })
-            .finally(() => {
-                btn.disabled = false;
+            const currentUserId = {{ auth()->id() ?? 0 }};
+            const currentUserData = {
+                id: currentUserId,
+                name: "{{ auth()->user()->name ?? '' }}",
+                username: "{{ auth()->user()->username ?? '' }}",
+                avatar: "{{ auth()->user()->avatar ?? '' }}"
+            };
+            
+            const followerExists = window.appData.followers.some(f => {
+                const follower = f.follower || f;
+                return follower.id === currentUserId;
             });
+            
+            if (!followerExists && data.following) {
+                window.appData.followers.push({
+                    follower: currentUserData,
+                    follower_id: currentUserId
+                });
+            }
+            
+            if (data.following) {
+                btn.classList.add('following');
+                textEl.textContent = 'Following';
+                followersCount.textContent = data.followers_count || 0;
+                btn.onmouseenter = () => textEl.textContent = 'Unfollow';
+                btn.onmouseleave = () => textEl.textContent = 'Following';
+                showNotification('✅ Now following user!');
+            } else {
+                // Unfollow case
+                btn.classList.remove('following');
+                textEl.textContent = 'Follow';
+                followersCount.textContent = data.followers_count || 0;
+                btn.onmouseenter = null;
+                btn.onmouseleave = null;
+                
+                // ✅ Remove dari followers array
+                window.appData.followers = window.appData.followers.filter(f => {
+                    const follower = f.follower || f;
+                    return follower.id !== currentUserId;
+                });
+                
+                showNotification('❌ Unfollowed user');
+            }
+            
+            // ✅ UPDATE MODAL JIKA TERBUKA
+            updateModalIfOpen();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            textEl.textContent = originalText;
+            showNotification('❌ Error: Unable to follow user');
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
         @else
-            showNotification('Please login to follow users');
-            window.location.href = '/login';
+        showNotification('Please login to follow users');
+        window.location.href = '/';
         @endauth
-    }
+        }
 
     // Tab functionality
     function showTab(tabName) {
@@ -1517,8 +1595,6 @@ async function toggleLike(postId, button) {
         try {
             const type = window.appData.isFlipside ? 'flipside' : 'main';
             
-            console.log('Opening comments for post:', postId, 'type:', type);
-            
             const response = await fetch(`/comment/index/${postId}/${type}`, {
                 headers: {
                     'Accept': 'application/json',
@@ -1531,8 +1607,6 @@ async function toggleLike(postId, button) {
             }
 
             const result = await response.json();
-            console.log('Comments result:', result);
-            
             let comments = result.data || result.comments || [];
 
             showCommentsModal(postId, comments);
@@ -1561,7 +1635,6 @@ async function toggleLike(postId, button) {
 
         const isFlipside = window.appData?.isFlipside || false;
         
-        // Build comments HTML
         let commentsHtml = '';
         
         if (comments.length > 0) {
@@ -1631,44 +1704,6 @@ async function toggleLike(postId, button) {
                 <div id="commentsContainer" style="flex: 1; overflow-y: auto; padding: 20px;">
                     ${commentsHtml}
                 </div>
-
-                <div style="padding: 20px; border-top: 1px solid ${isFlipside ? 'rgba(255, 255, 255, 0.1)' : '#e1e8ed'};">
-                    <form onsubmit="submitComment(event, ${postId})" style="display: flex; gap: 12px; align-items: flex-start;">
-                        <textarea 
-                            id="commentInput-${postId}" 
-                            placeholder="Tulis komentar..." 
-                            required
-                            rows="2"
-                            style="flex: 1; 
-                                   padding: 12px 16px; 
-                                   border: 2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e1e8ed'}; 
-                                   border-radius: 12px; 
-                                   outline: none; 
-                                   background: ${isFlipside ? '#0d0d0d' : 'white'};
-                                   color: ${isFlipside ? 'white' : '#1a1a1a'};
-                                   transition: all 0.3s ease;
-                                   font-family: inherit;
-                                   resize: vertical;
-                                   min-height: 45px;"
-                            onfocus="this.style.borderColor='${isFlipside ? '#FF0080' : '#1da1f2'}'"
-                            onblur="this.style.borderColor='${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e1e8ed'}'"></textarea>
-                        <button type="submit" 
-                                style="background: ${isFlipside ? 'linear-gradient(135deg, #FF0080, #7928CA)' : 'linear-gradient(135deg, #1da1f2, #0d8bd9)'}; 
-                                       color: white; 
-                                       border: none; 
-                                       padding: 12px 24px; 
-                                       border-radius: 12px; 
-                                       font-weight: 600; 
-                                       cursor: pointer; 
-                                       transition: all 0.3s ease;
-                                       white-space: nowrap;
-                                       align-self: flex-start;"
-                                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px ${isFlipside ? 'rgba(255, 0, 128, 0.4)' : 'rgba(29, 161, 242, 0.4)'}'"
-                                onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
-                            <i class="fas fa-paper-plane"></i> Post
-                        </button>
-                    </form>
-                </div>
             </div>
         `;
 
@@ -1684,94 +1719,99 @@ async function toggleLike(postId, button) {
         }
     }
 
-    async function submitComment(event, postId) {
-        event.preventDefault();
+    // async function submitComment(event, postId) {
+    //     event.preventDefault();
         
-        const commentInput = document.getElementById('commentInput-' + postId);
-        const text = commentInput.value.trim();
+    //     const commentInput = document.getElementById('commentInput-' + postId);
+    //     const text = commentInput.value.trim();
 
-        if (!text) {
-            showNotification("⚠️ Komentar tidak boleh kosong!");
+    //     if (!text) {
+    //         showNotification("⚠️ Komentar tidak boleh kosong!");
+    //         return;
+    //     }
+
+    //     commentInput.disabled = true;
+
+    //     try {
+    //         const type = window.appData.isFlipside ? 'flipside' : 'main';
+            
+    //         const response = await fetch('/comment/store', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+    //                 'Accept': 'application/json'
+    //             },
+    //             body: JSON.stringify({
+    //                 post_id: postId,
+    //                 content: text,
+    //                 type: type
+    //             })
+    //         });
+
+    //         const result = await response.json();
+
+    //         if (response.ok && result.success) {
+    //             commentInput.value = '';
+    //             showNotification('✅ Komentar berhasil dikirim!');
+                
+    //             const postItem = document.querySelector(`[data-post-id="${postId}"]`);
+    //             if (postItem) {
+    //                 const commentBtn = postItem.querySelector('.interaction-btn:nth-child(2) span');
+    //                 if (commentBtn) {
+    //                     const currentCount = parseInt(commentBtn.textContent) || 0;
+    //                     commentBtn.textContent = currentCount + 1;
+    //                 }
+    //             }
+                
+    //             setTimeout(() => {
+    //                 closeCommentsModal();
+    //                 openComments(postId);
+    //             }, 1000);
+    //         } else {
+    //             if (result.errors) {
+    //                 const errorMessages = Object.values(result.errors).flat().join(', ');
+    //                 showNotification('❌ ' + errorMessages);
+    //             } else {
+    //                 showNotification('❌ ' + (result.message || 'Failed to post comment'));
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error('Error submitting comment:', error);
+    //         showNotification("❌ Terjadi kesalahan jaringan");
+    //     } finally {
+    //         commentInput.disabled = false;
+    //     }
+    // }
+
+    async function deleteComment(commentId, postId) {
+        const modal = document.getElementById('commentsModal');
+        
+        if (modal) {
+            modal.style.display = 'none';
+        }
+
+        const result = await Swal.fire({
+            title: 'Hapus Comment?',
+            text: "Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
+            if (modal) {
+                modal.style.display = 'flex';
+            }
             return;
         }
 
-        commentInput.disabled = true;
-
         try {
-            const type = window.appData.isFlipside ? 'flipside' : 'main';
-            
-            console.log('Submitting comment:', { post_id: postId, content: text, type: type });
-            
-            const response = await fetch('/comment/store', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    post_id: postId,
-                    content: text,
-                    type: type
-                })
-            });
-
-            const result = await response.json();
-            
-            console.log('Comment response:', result);
-
-            if (response.ok && result.success) {
-                commentInput.value = '';
-                showNotification('✅ Komentar berhasil dikirim!');
-                
-                const postItem = document.querySelector(`[data-post-id="${postId}"]`);
-                if (postItem) {
-                    const commentBtn = postItem.querySelector('.interaction-btn:nth-child(2) span');
-                    if (commentBtn) {
-                        const currentCount = parseInt(commentBtn.textContent) || 0;
-                        commentBtn.textContent = currentCount + 1;
-                    }
-                }
-                
-                setTimeout(() => {
-                    closeCommentsModal();
-                    openComments(postId);
-                }, 1000);
-            } else {
-                if (result.errors) {
-                    const errorMessages = Object.values(result.errors).flat().join(', ');
-                    showNotification('❌ ' + errorMessages);
-                } else {
-                    showNotification('❌ ' + (result.message || 'Failed to post comment'));
-                }
-            }
-        } catch (error) {
-            console.error('Error submitting comment:', error);
-            showNotification("❌ Terjadi kesalahan jaringan");
-        } finally {
-            commentInput.disabled = false;
-        }
-    }
-
-    async function deleteComment(commentId, postId) {
-      const result = await Swal.fire({
-        title: 'Hapus Comment?',
-        text: "Tindakan ini tidak dapat dibatalkan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
-    });
-
-    if (!result.isConfirmed) return;
-
-        try {
-            const type = window.appData.isFlipside ? 'flipside' : 'main';
-            
-            const response = await fetch(`/comment/destroy/${commentId}/${type}`, {
+            const response = await fetch(`/comment/destroy/${commentId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1783,6 +1823,10 @@ async function toggleLike(postId, button) {
 
             if (response.ok && result.success) {
                 showNotification('✅ Komentar berhasil dihapus!');
+                
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
                 
                 const commentElement = document.querySelector(`.comment-item-${commentId}`);
                 if (commentElement) {
@@ -1810,10 +1854,16 @@ async function toggleLike(postId, button) {
                     }
                 }
             } else {
-                showNotification('❌ ' + (result.message || 'Failed to delete comment'));
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
+                showNotification('❌ ' + (result.message || 'Gagal menghapus komentar'));
             }
         } catch (error) {
             console.error('Error deleting comment:', error);
+            if (modal) {
+                modal.style.display = 'flex';
+            }
             showNotification('❌ Terjadi kesalahan jaringan');
         }
     }
@@ -1830,7 +1880,6 @@ async function toggleLike(postId, button) {
         return Math.floor(seconds / 604800) + 'w';
     }
 
-    // Share post
     function sharePost(postId) {
         const url = `${window.location.origin}/posts/${postId}`;
         if (navigator.share) {
@@ -1864,348 +1913,480 @@ async function toggleLike(postId, button) {
         }
     }
 
-function renderUserList(users, title, isFollowingList = false) {
-    const container = document.getElementById("userListContainer");
-    const modalTitle = document.getElementById("userListTitle");
-    const isFlipside = window.appData.isFlipside;
+    function renderUserList(users, title, isFollowingList = false) {
+        const container = document.getElementById("userListContainer");
+        const modalTitle = document.getElementById("userListTitle");
+        const isFlipside = window.appData.isFlipside;
 
-    modalTitle.innerText = title;
-    container.innerHTML = "";
+        modalTitle.innerText = title;
+        container.innerHTML = "";
 
-    if (!users || users.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center;padding:40px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
-                <i class="fas fa-users" style="font-size:48px;margin-bottom:16px;display:block;"></i>
-                <p style="font-size:16px;margin:0;">No ${title.toLowerCase()}</p>
-            </div>
-        `;
-        openUserListModal();
-        return;
+        if (!users || users.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
+                    <i class="fas fa-users" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+                    <p style="font-size:16px;margin:0;">No ${title.toLowerCase()}</p>
+                </div>
+            `;
+            openUserListModal();
+            return;
+        }
+
+        users.forEach(user => {
+            const userData = user.follower || user.following || user.followed || user;
+            const userId = userData.id;
+            const userName = userData.name || 'Unknown';
+            const userUsername = userData.username || 'unknown';
+            
+            const loggedInUsername = window.appData.user.username;
+
+            let profileLink = `/profilePage/${userUsername}`;
+            if (userUsername === loggedInUsername) {
+                profileLink = `/profile`;
+            }
+            
+            const avatar = userData.avatar
+                ? `/storage/${userData.avatar}`
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=667eea&color=fff`;
+
+            let actionButton = '';
+            
+            if (window.appData.isOwnProfile) {
+                if (isFollowingList) {
+                    actionButton = `
+                        <button onclick="unfollowUser(${userId}, this)" 
+                                style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                                onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
+                                onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
+                            Following
+                        </button>
+                    `;
+                } else {
+                    actionButton = `
+                        <button onclick="removeFollower(${userId}, this)" 
+                                style="padding:8px 16px;background-color:#fee2e2;color:#dc2626;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                                onmouseover="this.style.backgroundColor='#fecaca'"
+                                onmouseout="this.style.backgroundColor='#fee2e2'">
+                            Remove
+                        </button>
+                    `;
+                }
+           } else if (userId !== {{ auth()->id() ?? 0 }}) {
+        // ✅ FIX: Use currentUserFollowing instead of following
+        const isFollowing = window.appData.currentUserFollowing &&
+            window.appData.currentUserFollowing.some(f => {
+                const followingUser = f.following || f.followed || f;
+                return followingUser.id === userId;
+            });
+        
+        if (isFollowing) {
+            actionButton = `
+            <button onclick="unfollowUser(${userId}, this)"
+            style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+            onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
+            onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
+            Following
+            </button>
+            `;
+        } else {
+            actionButton = `
+            <button onclick="followUser(${userId}, this)"
+            style="padding:8px 16px;background-color:#3b82f6;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+            onmouseover="this.style.backgroundColor='#2563eb'"
+            onmouseout="this.style.backgroundColor='#3b82f6'">
+            Follow
+            </button>
+            `;
+        }
     }
 
-    users.forEach(user => {
-        const userData = user.follower || user.following || user;
-        const userId = userData.id;
-        const userName = userData.name || 'Unknown';
-        const userUsername = userData.username || 'unknown';
-        
-        const loggedInUsername = window.appData.user.username;
-
-        let profileLink = `/profilePage/${userUsername}`;
-        if (userUsername === loggedInUsername) {
-            profileLink = `/profile`;
-        }
-        
-        const avatar = userData.avatar
-            ? `/storage/${userData.avatar}`
-            : `https://ui-avatars.com/api/?name=${userName}&background=667eea&color=fff`;
-
-        let actionButton = '';
-        
-        if (window.appData.isOwnProfile) {
-            if (isFollowingList) {
-                actionButton = `
-                    <button onclick="unfollowUser(${userId}, this)" 
-                            style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
-                            onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
-                            onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
-                        Following
-                    </button>
-                `;
-            } else {
-                actionButton = `
-                    <button onclick="removeFollower(${userId}, this)" 
-                            style="padding:8px 16px;background-color:#fee2e2;color:#dc2626;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
-                            onmouseover="this.style.backgroundColor='#fecaca'"
-                            onmouseout="this.style.backgroundColor='#fee2e2'">
-                        Remove
-                    </button>
-                `;
-            }
-        } else if (userId !== {{ auth()->id() ?? 0 }}) {
-            const isFollowing = window.appData.following && 
-                               window.appData.following.some(f => {
-                                   const followingUser = f.following || f;
-                                   return followingUser.id === userId;
-                               });
-            
-            if (isFollowing) {
-                actionButton = `
-                    <button onclick="unfollowUser(${userId}, this)" 
-                            style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
-                            onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
-                            onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
-                        Following
-                    </button>
-                `;
-            } else {
-                actionButton = `
-                    <button onclick="followUser(${userId}, this)" 
-                            style="padding:8px 16px;background-color:#3b82f6;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
-                            onmouseover="this.style.backgroundColor='#2563eb'"
-                            onmouseout="this.style.backgroundColor='#3b82f6'">
-                        Follow
-                    </button>
-                `;
-            }
-        }
-
-        container.innerHTML += `
-            <div class="user-list-item" data-user-id="${userId}" 
-                 style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${isFlipside ? '#1a1a1a' : 'white'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e5e7eb'};border-radius:12px;margin-bottom:10px;transition:all 0.3s ease;">
-                <div style="display:flex;align-items:center;gap:12px;flex:1;">
-                    <a href="${profileLink}" onclick="closeUserListModal()" style="display:inline-block;width:48px;height:48px;overflow:hidden;border-radius:50%;border:2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#e5e7eb'};">
-                        <img src="${avatar}" 
-                             style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-                    </a>
-                    <div style="flex:1;">
-                        <a href="${profileLink}" onclick="closeUserListModal()" style="text-decoration:none;">
-                            <div style="font-weight:600;font-size:15px;color:${isFlipside ? 'white' : '#1a1a1a'};">
-                                ${userName}
-                            </div>
+            container.innerHTML += `
+                <div class="user-list-item" data-user-id="${userId}" 
+                     style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${isFlipside ? '#1a1a1a' : 'white'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e5e7eb'};border-radius:12px;margin-bottom:10px;transition:all 0.3s ease;">
+                    <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                        <a href="${profileLink}" onclick="closeUserListModal()" style="display:inline-block;width:48px;height:48px;overflow:hidden;border-radius:50%;border:2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#e5e7eb'};">
+                            <img src="${avatar}" 
+                                 style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
                         </a>
-                        <div style="color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};font-size:13px;">@${userUsername}</div>
+                        <div style="flex:1;">
+                            <a href="${profileLink}" onclick="closeUserListModal()" style="text-decoration:none;">
+                                <div style="font-weight:600;font-size:15px;color:${isFlipside ? 'white' : '#1a1a1a'};">
+                                    ${userName}
+                                </div>
+                            </a>
+                            <div style="color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};font-size:13px;">@${userUsername}</div>
+                        </div>
                     </div>
+                    ${actionButton}
                 </div>
-                ${actionButton}
-            </div>
-        `;
-    });
+            `;
+        });
 
-    openUserListModal();
+        openUserListModal();
+    }
+
+    // ✅ FOLLOW USER - REALTIME UPDATE
+async function followUser(userId, button) {
+    const originalHTML = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        const response = await fetch(`/follow/store/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.following) {
+            const currentUserId = {{ auth()->id() ?? 0 }};
+            
+            const targetUserData = {
+                id: userId,
+                name: document.querySelector('.profile-name')?.textContent?.trim() || 'User',
+                username: "{{ $user->username ?? 'user' }}",
+                avatar: "{{ $user->avatar ?? '' }}"
+            };
+            
+            // ✅ INISIALISASI currentUserFollowing (BUKAN followers/following)
+            if (!window.appData.currentUserFollowing) {
+                window.appData.currentUserFollowing = [];
+            }
+            
+            // ✅ Update CURRENT USER'S FOLLOWING (BUKAN profile owner's data!)
+            const followingExists = window.appData.currentUserFollowing.some(f => {
+                const followed = f.followed || f.following || f;
+                return followed.id === userId;
+            });
+            
+            if (!followingExists) {
+                window.appData.currentUserFollowing.push({
+                    following: targetUserData,
+                    followed: targetUserData,
+                    followed_id: userId
+                });
+            }
+            
+            console.log('✅ Data updated:', {
+                currentUserFollowing: window.appData.currentUserFollowing.length
+            });
+            
+            // ✅ Update button
+            button.style.cssText = 'padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;';
+            button.innerHTML = 'Following';
+            button.setAttribute('onclick', `unfollowUser(${userId}, this)`);
+            button.onmouseover = function() { 
+                this.style.backgroundColor='#ef4444';
+                this.textContent = 'Unfollow'; 
+            };
+            button.onmouseout = function() { 
+                this.style.backgroundColor='#10b981';
+                this.textContent = 'Following'; 
+            };
+            
+            showNotification('✅ Now following!');
+        } else {
+            throw new Error('Failed to follow');
+        }
+    } catch (error) {
+        console.error('Follow error:', error);
+        button.innerHTML = originalHTML;
+        showNotification('❌ Failed to follow');
+    } finally {
+        button.disabled = false;
+    }
+}
+// ✅ UNFOLLOW USER - REALTIME UPDATE (NO CONFIRMATION)
+// ✅ UNFOLLOW USER - REALTIME UPDATE (NO CONFIRMATION)
+async function unfollowUser(userId, button) {
+    const originalHTML = button.innerHTML;
+    const originalStyle = button.style.cssText;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        const response = await fetch(`/follow/destroy/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.message === 'unfoll success') {
+            const currentUserId = {{ auth()->id() ?? 0 }};
+            
+            // ✅ HANYA UPDATE DATA ANDA SENDIRI
+            if (!window.appData.currentUserFollowing) {
+                window.appData.currentUserFollowing = [];
+            }
+            
+            // Hapus dari daftar pengikut Anda
+            window.appData.currentUserFollowing = window.appData.currentUserFollowing.filter(f => {
+                const followed = f.followed || f.following || f;
+                return followed.id !== userId;
+            });
+            
+            console.log('✅ Data updated:', {
+                currentUserFollowing: window.appData.currentUserFollowing.length
+            });
+            
+            // ✅ Update BUTTON - LANGSUNG GANTI
+            button.style.cssText = 'padding:8px 16px;background-color:#3b82f6;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;';
+            button.innerHTML = 'Follow';
+            button.setAttribute('onclick', `followUser(${userId}, this)`);
+            button.onmouseover = function() {
+                this.style.backgroundColor = '#2563eb';
+            };
+            button.onmouseout = function() {
+                this.style.backgroundColor = '#3b82f6';
+            };
+            button.disabled = false;
+            
+            showNotification('✅ Unfollowed successfully');
+        } else {
+            throw new Error('Failed to unfollow');
+        }
+    } catch (error) {
+        console.error('Unfollow error:', error);
+        button.innerHTML = originalHTML;
+        button.style.cssText = originalStyle;
+        button.disabled = false;
+        showNotification('❌ Failed to unfollow');
+    }
 }
 
+    // ✅ FUNGSI KUNCI: Update modal yang sedang terbuka
+    function updateModalIfOpen() {
+        const modal = document.getElementById('userListModal');
+        const modalTitle = document.getElementById('userListTitle');
+        const container = document.getElementById('userListContainer');
+        
+        if (!modal || modal.style.display !== 'flex' || !modalTitle || !container) {
+            console.log('❌ Modal not open, skipping update');
+            return;
+        }
+        
+        const titleText = modalTitle.textContent;
+        
+        console.log('🔥 Updating modal:', titleText);
+        console.log('📊 Current data:', {
+            followers: window.appData.followers?.length || 0,
+            following: window.appData.following?.length || 0
+        });
+        
+        // Modal FOLLOWERS
+        if (titleText.includes('Followers')) {
+            console.log('🔥 Re-rendering Followers modal...');
+            const followers = window.appData.followers || [];
+            
+            // ⚠️ JANGAN PANGGIL openUserListModal() karena modal sudah terbuka!
+            // Hanya update title dan container
+            modalTitle.innerText = `Followers (${followers.length})`;
+            container.innerHTML = "";
+            
+            if (followers.length === 0) {
+                const isFlipside = window.appData.isFlipside;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
+                        <i class="fas fa-users" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+                        <p style="font-size:16px;margin:0;">No followers</p>
+                    </div>
+                `;
+            } else {
+                // Render ulang list tanpa membuka modal baru
+                followers.forEach(user => {
+                    const userData = user.follower || user;
+                    const userId = userData.id;
+                    const userName = userData.name || 'Unknown';
+                    const userUsername = userData.username || 'unknown';
+                    const isFlipside = window.appData.isFlipside;
+                    
+                    const loggedInUsername = window.appData.user.username;
+                    let profileLink = `/profilePage/${userUsername}`;
+                    if (userUsername === loggedInUsername) {
+                        profileLink = `/profile`;
+                    }
+                    
+                    const avatar = userData.avatar
+                        ? `/storage/${userData.avatar}`
+                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=667eea&color=fff`;
+
+                    const actionButton = window.appData.isOwnProfile
+                        ? `<button onclick="removeFollower(${userId}, this)" 
+                                style="padding:8px 16px;background-color:#fee2e2;color:#dc2626;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                                onmouseover="this.style.backgroundColor='#fecaca'"
+                                onmouseout="this.style.backgroundColor='#fee2e2'">
+                            Remove
+                        </button>`
+                        : '';
+
+                    container.innerHTML += `
+                        <div class="user-list-item" data-user-id="${userId}" 
+                             style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${isFlipside ? '#1a1a1a' : 'white'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e5e7eb'};border-radius:12px;margin-bottom:10px;transition:all 0.3s ease;">
+                            <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                                <a href="${profileLink}" onclick="closeUserListModal()" style="display:inline-block;width:48px;height:48px;overflow:hidden;border-radius:50%;border:2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#e5e7eb'};">
+                                    <img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                                </a>
+                                <div style="flex:1;">
+                                    <a href="${profileLink}" onclick="closeUserListModal()" style="text-decoration:none;">
+                                        <div style="font-weight:600;font-size:15px;color:${isFlipside ? 'white' : '#1a1a1a'};">
+                                            ${userName}
+                                        </div>
+                                    </a>
+                                    <div style="color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};font-size:13px;">@${userUsername}</div>
+                                </div>
+                            </div>
+                            ${actionButton}
+                        </div>
+                    `;
+                });
+            }
+        }
+        
+        // Modal FOLLOWING
+        else if (titleText.includes('Following')) {
+            console.log('🔥 Re-rendering Following modal...');
+            const following = window.appData.following || [];
+            
+            modalTitle.innerText = `Following (${following.length})`;
+            container.innerHTML = "";
+            
+            if (following.length === 0) {
+                const isFlipside = window.appData.isFlipside;
+                container.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
+                        <i class="fas fa-user-friends" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+                        <p style="font-size:16px;margin:0;">No following</p>
+                    </div>
+                `;
+            } else {
+                following.forEach(user => {
+                    const userData = user.following || user.followed || user;
+                    const userId = userData.id;
+                    const userName = userData.name || 'Unknown';
+                    const userUsername = userData.username || 'unknown';
+                    const isFlipside = window.appData.isFlipside;
+                    
+                    const loggedInUsername = window.appData.user.username;
+                    let profileLink = `/profilePage/${userUsername}`;
+                    if (userUsername === loggedInUsername) {
+                        profileLink = `/profile`;
+                    }
+                    
+                    const avatar = userData.avatar
+                        ? `/storage/${userData.avatar}`
+                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=667eea&color=fff`;
+
+                    const actionButton = `
+                        <button onclick="unfollowUser(${userId}, this)" 
+                                style="padding:8px 16px;background-color:#10b981;color:white;border:none;border-radius:9999px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s ease;"
+                                onmouseover="this.style.backgroundColor='#ef4444';this.textContent='Unfollow'"
+                                onmouseout="this.style.backgroundColor='#10b981';this.textContent='Following'">
+                            Following
+                        </button>
+                    `;
+
+                    container.innerHTML += `
+                        <div class="user-list-item" data-user-id="${userId}" 
+                             style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${isFlipside ? '#1a1a1a' : 'white'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.2)' : '#e5e7eb'};border-radius:12px;margin-bottom:10px;transition:all 0.3s ease;">
+                            <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                                <a href="${profileLink}" onclick="closeUserListModal()" style="display:inline-block;width:48px;height:48px;overflow:hidden;border-radius:50%;border:2px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#e5e7eb'};">
+                                    <img src="${avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                                </a>
+                                <div style="flex:1;">
+                                    <a href="${profileLink}" onclick="closeUserListModal()" style="text-decoration:none;">
+                                        <div style="font-weight:600;font-size:15px;color:${isFlipside ? 'white' : '#1a1a1a'};">
+                                            ${userName}
+                                        </div>
+                                    </a>
+                                    <div style="color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};font-size:13px;">@${userUsername}</div>
+                                </div>
+                            </div>
+                            ${actionButton}
+                        </div>
+                    `;
+                });
+            }
+        }
+    }
+
+    // ✅ Update followers count di stats section secara real-time
+        function updateFollowersCount(newCount) {
+        const followersCountEl = document.getElementById('followersCount');
+        if (followersCountEl) {
+        followersCountEl.textContent = newCount.toLocaleString();
+        }
+        }
+
+        // ✅ Force refresh modal jika terbuka setelah follow/unfollow
+        function refreshOpenModalIfNeeded() {
+        const modal = document.getElementById('userListModal');
+        if (modal && modal.style.display === 'flex') {
+        const modalTitle = document.getElementById('userListTitle');
+        if (modalTitle) {
+        const titleText = modalTitle.textContent;
+        if (titleText.includes('Followers')) {
+        showFollowers(); // Re-render
+        }
+        }
+        }
+        }
+
+    // ✅ Show modals pertama kali
     function showFollowers() {
-        const followers = window.appData.followers || [];
-        console.log('Followers data:', followers);
-        renderUserList(followers, "Followers", false);
+        console.log('📊 Showing followers:', window.appData.followers?.length || 0);
+        renderUserList(window.appData.followers || [], `Followers (${(window.appData.followers || []).length})`, false);
     }
 
     function showFollowing() {
-        const following = window.appData.following || [];
-        console.log('Following data:', following);
-        renderUserList(following, "Following", true);
+        console.log('📊 Showing following:', window.appData.following?.length || 0);
+        renderUserList(window.appData.following || [], `Following (${(window.appData.following || []).length})`, true);
     }
 
-    async function followUser(userId, button) {
-        const originalHTML = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        try {
-            const response = await fetch(`/follow/store/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success && result.following) {
-                button.className = 'px-4 py-2 bg-green-500 hover:bg-red-500 text-white rounded-full text-sm font-semibold transition-all duration-300';
-                button.innerHTML = 'Following';
-                button.setAttribute('onclick', `unfollowUser(${userId}, this)`);
-                button.onmouseover = function() { this.textContent = 'Unfollow'; };
-                button.onmouseout = function() { this.textContent = 'Following'; };
-                
-                showNotification('✅ Now following!');
-                
-                const followingCount = document.getElementById('followingCount');
-                if (followingCount) {
-                    const currentCount = parseInt(followingCount.textContent.replace(/,/g, ''));
-                    followingCount.textContent = (currentCount + 1).toLocaleString();
-                }
-            } else {
-                throw new Error('Failed to follow');
-            }
-        } catch (error) {
-            console.error('Follow error:', error);
-            button.innerHTML = originalHTML;
-            showNotification('❌ Failed to follow');
-        } finally {
-            button.disabled = false;
-        }
-    }
-
-    async function unfollowUser(userId, button) {
-      const result = await Swal.fire({
-        title: 'Unfollow User?',
-        text: "Tindakan ini tidak dapat dibatalkan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Unfollow!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
-    });
-
-    if (!result.isConfirmed) return;
-
-        const userItem = button.closest('.user-list-item');
-        const originalHTML = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        try {
-            const response = await fetch(`/follow/destroy/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.message === 'unfoll success') {
-                if (userItem) {
-                    userItem.style.transition = 'all 0.3s ease';
-                    userItem.style.opacity = '0';
-                    userItem.style.transform = 'translateX(100%)';
-                    
-                    setTimeout(() => {
-                        userItem.remove();
-                        
-                        const container = document.getElementById('userListContainer');
-                        const remaining = container.querySelectorAll('.user-list-item').length;
-                        
-                        const modalTitle = document.getElementById('userListTitle');
-                        if (modalTitle) {
-                            const titleText = modalTitle.textContent.split('(')[0].trim();
-                            modalTitle.textContent = `${titleText} (${remaining})`;
-                        }
-                        
-                        if (remaining === 0) {
-                            const isFlipside = window.appData.isFlipside;
-                            const titleText = modalTitle.textContent.includes('Following') ? 'Following' : 'Followers';
-                            container.innerHTML = `
-                                <div style="text-align:center;padding:40px 20px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
-                                    <i class="fas fa-user-slash" style="font-size:3rem;opacity:0.3;margin-bottom:15px;display:block;"></i>
-                                    <p style="margin:0;">${titleText === 'Following' ? 'Belum mengikuti siapa pun' : 'Belum ada followers'}</p>
-                                </div>
-                            `;
-                        }
-                    }, 300);
-                }
-                
-                showNotification('✅ Unfollowed successfully');
-                
-                const followingCount = document.getElementById('followingCount');
-                if (followingCount) {
-                    const currentCount = parseInt(followingCount.textContent.replace(/,/g, ''));
-                    followingCount.textContent = Math.max(0, currentCount - 1).toLocaleString();
-                }
-            } else {
-                throw new Error('Failed to unfollow');
-            }
-        } catch (error) {
-            console.error('Unfollow error:', error);
-            button.innerHTML = originalHTML;
-            button.disabled = false;
-            showNotification('❌ Failed to unfollow');
-        }
-    }
-
-    async function removeFollower(userId, button) {
-      const result = await Swal.fire({
-        title: 'Hapus Follower?',
-        text: "Tindakan ini tidak dapat dibatalkan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
-    });
-
-    if (!result.isConfirmed) return;        
-        const userItem = button.closest('.user-list-item');
-        const originalHTML = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        
-        try {
-            const response = await fetch(`/follow/remove/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-                if (userItem) {
-                    userItem.style.transition = 'all 0.3s ease';
-                    userItem.style.opacity = '0';
-                    userItem.style.transform = 'translateX(100%)';
-                    
-                    setTimeout(() => {
-                        userItem.remove();
-                        
-                        const container = document.getElementById('userListContainer');
-                        const remaining = container.querySelectorAll('.user-list-item').length;
-                        
-                        const modalTitle = document.getElementById('userListTitle');
-                        if (modalTitle) {
-                            modalTitle.textContent = `Followers (${remaining})`;
-                        }
-                        
-                        const followersCount = document.getElementById('followersCount');
-                        if (followersCount) {
-                            const currentCount = parseInt(followersCount.textContent.replace(/,/g, ''));
-                            followersCount.textContent = Math.max(0, currentCount - 1).toLocaleString();
-                        }
-                        
-                        if (remaining === 0) {
-                            const isFlipside = window.appData.isFlipside;
-                            container.innerHTML = `
-                                <div style="text-align:center;padding:40px 20px;color:${isFlipside ? 'rgba(255,255,255,0.6)' : '#666'};">
-                                    <i class="fas fa-user-slash" style="font-size:3rem;opacity:0.3;margin-bottom:15px;display:block;"></i>
-                                    <p style="margin:0;">Belum ada followers</p>
-                                </div>
-                            `;
-                        }
-                    }, 300);
-                }
-                
-                showNotification('✅ ' + result.message);
-            } else {
-                throw new Error(result.message || 'Failed to remove follower');
-            }
-        } catch (error) {
-            console.error('Remove follower error:', error);
-            button.innerHTML = originalHTML;
-            button.disabled = false;
-            showNotification('❌ ' + (error.message || 'Failed to remove follower'));
-        }
-    }
-
-    // Send message
     function sendMessage(userId) {
         showNotification('📩 Message feature coming soon!');
     }
 
-    // Share profile
-    function shareProfile(url) {
-        if (navigator.share) {
-            navigator.share({
-                title: '{{ $user->name }} - Telava Profile',
-                url: url
-            });
-        } else {
-            navigator.clipboard.writeText(url).then(() => {
-                showNotification('🔗 Profile link copied to clipboard!');
-            });
-        }
+  function shareProfile(url) {
+    // ✅ Dapatkan URL lengkap
+    const fullUrl = window.location.origin + url;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ $user->name }} - Telava Profile',
+            url: fullUrl
+        })
+        .then(() => {
+            showNotification('✅ Profile shared successfully!');
+        })
+        .catch(error => {
+            console.error('Share error:', error);
+            fallbackToCopy(fullUrl);
+        });
+    } else {
+        fallbackToCopy(fullUrl);
     }
+}
 
-    // Profile menu functions
+function fallbackToCopy(url) {
+    // ✅ Pastikan URL lengkap
+    navigator.clipboard.writeText(url)
+        .then(() => {
+            showNotification('🔗 Profile link copied to clipboard!');
+        })
+        .catch(error => {
+            console.error('Clipboard error:', error);
+            showNotification('❌ Failed to copy link');
+        });
+}
+
     function toggleProfileMenu(event) {
         event.stopPropagation();
         const menu = document.getElementById('profileDropdownMenu');
@@ -2233,132 +2414,106 @@ function renderUserList(users, title, isFollowingList = false) {
         showNotification('📝 Report feature coming soon!');
     }
 
-   async function toggleBlock(userId, button) {
-    const isBlocked = button.classList.contains('blocked');
-    const isFlipside = window.appData?.isFlipside || false;
-    
-    // ✅ SweetAlert2 Confirmation
-    const result = await Swal.fire({
-        title: isBlocked ? 'Unblock User?' : 'Block User?',
-        html: isBlocked 
-            ? 'Are you sure you want to <strong>unblock</strong> this user?<br><small style="color: #666;">They will be able to see your profile again.</small>'
-            : `
-                Are you sure you want to <strong>block</strong> this user?<br><br>
-                <div style="text-align: left; background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 12px; border-radius: 4px; margin: 10px 0;">
-                    <small style="color: #e74c3c; font-weight: 600;">⚠️ Blocking will:</small><br>
-                    <small style="color: #666; line-height: 1.6;">
-                        • Remove follow relationships<br>
-                        • Hide their posts from your feed<br>
-                        • Prevent them from seeing your profile<br>
-                        • Block all interactions
-                    </small>
-                </div>
-                <small style="color: #666;">This action cannot be undone easily.</small>
-            `,
-        icon: isBlocked ? 'question' : 'warning',
-        showCancelButton: true,
-        confirmButtonColor: isBlocked ? '#27ae60' : '#e74c3c',
-        cancelButtonColor: isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#6c757d',
-        confirmButtonText: isBlocked ? '<i class="fas fa-unlock"></i> Unblock' : '<i class="fas fa-ban"></i> Block',
-        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal2-notification',
-            title: 'swal2-notification-title',
-            confirmButton: 'swal2-confirm-btn',
-            cancelButton: 'swal2-cancel-btn'
-        },
-        didOpen: (popup) => {
-            if (isFlipside) {
-                popup.style.background = '#1a1a1a';
-                popup.style.border = '2px solid rgba(255, 0, 128, 0.3)';
-                const title = popup.querySelector('.swal2-title');
-                if (title) {
-                    title.style.color = 'white';
-                    title.style.background = 'linear-gradient(135deg, #FF0080, #7928CA)';
-                    title.style.webkitBackgroundClip = 'text';
-                    title.style.webkitTextFillColor = 'transparent';
-                }
-            }
-        }
-    });
-
-    // ✅ Jika user cancel, langsung return
-    if (!result.isConfirmed) {
-        return;
-    }
-
-    // ✅ Update UI text
-    const blockMenuText = document.getElementById('blockMenuText');
-    const originalText = blockMenuText ? blockMenuText.textContent : '';
-    
-    if (blockMenuText) {
-        blockMenuText.textContent = 'Processing...';
-    }
-
-    try {
-        // ✅ DYNAMIC ENDPOINT based on isBlocked status
-        const endpoint = isBlocked 
-            ? `/block/remove/${userId}` 
-            : `/block/store/${userId}`;
+    async function toggleBlock(userId, button) {
+        const isBlocked = button.classList.contains('blocked');
+        const isFlipside = window.appData?.isFlipside || false;
         
-        const method = isBlocked ? 'DELETE' : 'POST';
-        
-        const response = await fetch(endpoint, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
+        const result = await Swal.fire({
+            title: isBlocked ? 'Unblock User?' : 'Block User?',
+            html: isBlocked 
+                ? 'Are you sure you want to <strong>unblock</strong> this user?<br><small style="color: #666;">They will be able to see your profile again.</small>'
+                : `
+                    Are you sure you want to <strong>block</strong> this user?<br><br>
+                    <div style="text-align: left; background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 12px; border-radius: 4px; margin: 10px 0;">
+                        <small style="color: #e74c3c; font-weight: 600;">⚠️ Blocking will:</small><br>
+                        <small style="color: #666; line-height: 1.6;">
+                            • Remove follow relationships<br>
+                            • Hide their posts from your feed<br>
+                            • Prevent them from seeing your profile<br>
+                            • Block all interactions
+                        </small>
+                    </div>
+                    <small style="color: #666;">This action cannot be undone easily.</small>
+                `,
+            icon: isBlocked ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: isBlocked ? '#27ae60' : '#e74c3c',
+            cancelButtonColor: isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#6c757d',
+            confirmButtonText: isBlocked ? '<i class="fas fa-unlock"></i> Unblock' : '<i class="fas fa-ban"></i> Block',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+            reverseButtons: true
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            if (!isBlocked) {
-                // ✅ BLOCKED successfully
-                showNotification('🚫 User blocked successfully');
-                
-                if (blockMenuText) {
-                    blockMenuText.textContent = 'Unblock User';
-                    const icon = blockMenuText.previousElementSibling;
-                    if (icon) {
-                        icon.className = 'fas fa-user-check';
-                    }
-                }
-                
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                // ✅ UNBLOCKED successfully
-                showNotification('✅ User unblocked successfully');
-                
-                if (blockMenuText) {
-                    blockMenuText.textContent = 'Block User';
-                    const icon = blockMenuText.previousElementSibling;
-                    if (icon) {
-                        icon.className = 'fas fa-ban';
-                    }
-                }
-                
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }
-        } else {
-            throw new Error(data.message || 'Failed to toggle block');
-        }
-    } catch (error) {
-        console.error('Block error:', error);
-        if (blockMenuText) {
-            blockMenuText.textContent = originalText;
-        }
-        showNotification('❌ Error: ' + error.message);
-    }
-}
 
-    // Notification function
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        const blockMenuText = document.getElementById('blockMenuText');
+        const originalText = blockMenuText ? blockMenuText.textContent : '';
+        
+        if (blockMenuText) {
+            blockMenuText.textContent = 'Processing...';
+        }
+
+        try {
+            const endpoint = isBlocked 
+                ? `/block/remove/${userId}` 
+                : `/block/store/${userId}`;
+            
+            const method = isBlocked ? 'DELETE' : 'POST';
+            
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (!isBlocked) {
+                    showNotification('🚫 User blocked successfully');
+                    
+                    if (blockMenuText) {
+                        blockMenuText.textContent = 'Unblock User';
+                        const icon = blockMenuText.previousElementSibling;
+                        if (icon) {
+                            icon.className = 'fas fa-user-check';
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showNotification('✅ User unblocked successfully');
+                    
+                    if (blockMenuText) {
+                        blockMenuText.textContent = 'Block User';
+                        const icon = blockMenuText.previousElementSibling;
+                        if (icon) {
+                            icon.className = 'fas fa-ban';
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } else {
+                throw new Error(data.message || 'Failed to toggle block');
+            }
+        } catch (error) {
+            console.error('Block error:', error);
+            if (blockMenuText) {
+                blockMenuText.textContent = originalText;
+            }
+            showNotification('❌ Error: ' + error.message);
+        }
+    }
+
     function showNotification(message) {
         const existingNotifications = document.querySelectorAll('.custom-notification');
         existingNotifications.forEach(notification => {
@@ -2405,7 +2560,6 @@ function renderUserList(users, title, isFollowingList = false) {
         }, 3000);
     }
 
-    // Close image modal on click outside
     window.onclick = function(event) {
         const imageModal = document.getElementById('imageModal');
         if (event.target === imageModal) {
@@ -2413,7 +2567,6 @@ function renderUserList(users, title, isFollowingList = false) {
         }
     }
 
-    // Close on ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeImageModal();
@@ -2422,7 +2575,6 @@ function renderUserList(users, title, isFollowingList = false) {
         }
     });
 
-    // Animate posts on page load
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             document.querySelectorAll('.post-item').forEach((card, index) => {
@@ -2436,6 +2588,133 @@ function renderUserList(users, title, isFollowingList = false) {
             });
         }, 300);
     });
+
+    // ============================================================
+// QUICK COMMENT FUNCTIONALITY
+// ============================================================
+
+// Submit comment from quick input
+// ✅ PASTE INI DI FILE BLADE KAMU (REPLACE FUNGSI submitQuickComment)
+
+window.submitQuickComment = async function(postId, button = null) {
+    const input = document.querySelector(`.quick-comment-input[data-post-id="${postId}"]`);
+    const text = input.value.trim();
+    
+    if (!text) {
+        input.focus();
+        return;
+    }
+    
+    // ✅ CARA LEBIH AMAN: Cari button dari input yang sama
+    if (!button) {
+        const postContainer = input.closest('.post-item');
+        if (postContainer) {
+            button = postContainer.querySelector('.quick-comment-btn');
+        }
+    }
+    
+    // ✅ DISABLE BUTTON JIKA ADA
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    }
+    
+    try {
+        // ✅ Deteksi type berdasarkan mode
+        const type = window.appData.isFlipside ? 'flipside' : 'main';
+        
+        const response = await fetch('/comment/store', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                post_id: postId,
+                content: text,
+                type: type
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            // ✅ Clear input
+            input.value = '';
+            
+            // ✅ UPDATE COMMENT COUNT SECARA REALTIME (TANPA RELOAD!)
+            const postItem = document.querySelector(`[data-post-id="${postId}"]`);
+            if (postItem) {
+                // Cari link "X comments"
+                const commentLink = postItem.querySelector('.quick-comment-section a');
+                if (commentLink) {
+                    // Ambil count saat ini
+                    const match = commentLink.textContent.match(/(\d+)/);
+                    const currentCount = match ? parseInt(match[1]) : 0;
+                    const newCount = currentCount + 1;
+                    
+                    // ✅ UPDATE TEXT
+                    commentLink.textContent = `${newCount} comment${newCount !== 1 ? 's' : ''}`;
+                    
+                    // ✅ ANIMASI BERKEDIP UNTUK MEMBERIKAN FEEDBACK VISUAL
+                    commentLink.style.transition = 'all 0.3s ease';
+                    commentLink.style.transform = 'scale(1.2)';
+                    commentLink.style.fontWeight = 'bold';
+                    commentLink.style.color = '#10b981'; // Green color
+                    
+               setTimeout(() => {
+                    commentLink.style.transform = 'scale(1)';
+                    commentLink.style.fontWeight = '600';
+                    commentLink.style.color = window.appData.isFlipside
+                        ? 'rgba(255,255,255,0.7)'
+                        : '#1da1f2';
+                }, 300);
+
+                }
+            }
+            
+            // ✅ RE-ENABLE BUTTON
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = 'Post';
+            }
+            
+            showNotification('💬 Komentar berhasil diposting!');
+        } else {
+            throw new Error(result.message || 'Failed to post comment');
+        }
+    } catch (error) {
+        console.error('Quick comment error:', error);
+        showNotification(`❌ ${error.message || 'Failed to post comment'}`);
+        
+        // ✅ RE-ENABLE BUTTON JIKA ERROR
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = 'Post';
+        }
+    }
+};
+
+// Handle Enter key in quick comment input
+// Handle Enter key in quick comment input
+window.handleQuickCommentKeyPress = function(event, postId) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        // ✅ Tidak perlu button parameter
+        submitQuickComment(postId);
+    }
+};
+
+// Auto-resize quick comment input
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.quick-comment-input').forEach(input => {
+        input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+});
 </script>
 
 @endsection

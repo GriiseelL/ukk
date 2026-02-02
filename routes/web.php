@@ -48,7 +48,7 @@ Route::prefix('posts')->name('posts.')->group(function () {
 // LIKE
 Route::prefix('like')->middleware('auth')->group(function () {
     Route::post('/store/{postId}', [LikeController::class, 'store']);
-    Route::delete('/destroy/{postId}/{type}', [LikeController::class, 'destroy']);
+    Route::delete('/destroy/{postId}', [LikeController::class, 'destroy']);
     Route::post('flipsideStore/{postId}', [LikeController::class, 'storeFlip']);
     Route::delete('flipsideDestroy/{postId}', [LikeController::class, 'flipsideDelete']);
 });
@@ -126,7 +126,11 @@ Route::delete('stories/destroy', [StoriesController::class, 'destroy'])->name('d
 
 
 
+// Notifikasi routes
 Route::get('/notifications', [NotifikasiController::class, 'index'])->name('notifications.index')
+    ->middleware('auth');
+
+Route::get('/notifications/unread-count', [NotifikasiController::class, 'getUnreadCount'])->name('notifications.unreadCount')
     ->middleware('auth');
 
 Route::post('/notifications/read', [NotifikasiController::class, 'markAllAsRead'])->name('notifications.markAllAsRead')

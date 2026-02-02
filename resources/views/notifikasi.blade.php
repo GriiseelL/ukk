@@ -3,8 +3,16 @@
 @section('title', 'Notifikasi - Telava')
 
 @section('content')
-<meta name="csrf-token" content="{{ csrf_token() }}">
+@php
+// Ambil ID users yang sedang di-follow oleh user saat ini
+use Illuminate\Support\Facades\DB;
+$followingUserIds = DB::table('friends')
+->where('user_id', auth()->id())
+->pluck('user_following')
+->toArray();
+@endphp
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
     .main-content {
         margin-top: 70px;
@@ -505,11 +513,11 @@
                 </h1>
                 <div class="header-actions">
                     <div class="filter-dropdown">
-                        <button class="filter-btn" onclick="toggleFilterDropdown()">
+                        <!-- <button class="filter-btn" onclick="toggleFilterDropdown()">
                             <i class="fas fa-filter"></i>
                             Filter
                             <i class="fas fa-chevron-down"></i>
-                        </button>
+                        </button> -->
                     </div>
                     <button class="mark-read-btn" onclick="markAllAsRead()">
                         <i class="fas fa-check-double"></i>
@@ -564,15 +572,25 @@
     console.log(@json($notifications));
 
     // Sample notification data - replace with actual data from your backend
+    // ✅ Ambil data following dari server
+    const followingUserIds = @json($followingUserIds);
+    console.log('Following user IDs:', followingUserIds);
+
+    // Sample notification data - replace with actual data from your backend
     const notificationsFromServer = @json($notifications);
     let notifications = notificationsFromServer.map(n => {
         console.log('Processing notification:', {
             id: n.id,
             type: n.type,
+            sender_id: n.sender.id,
             post_id_from_n: n.post_id,
             post_id_from_post: n.post ? n.post.id : null,
             data: n.data
         });
+
+        // ✅ CEK APAKAH SUDAH FOLLOW USER INI
+        const isAlreadyFollowing = followingUserIds.includes(n.sender.id);
+        console.log(`User ${n.sender.id} is followed:`, isAlreadyFollowing);
 
         return {
             id: n.id,
@@ -592,8 +610,9 @@
                 minute: '2-digit'
             }),
             read: n.is_read == 1,
-            is_followed: n.is_followed ?? false,
-            post_id: n.post_id || (n.post ? n.post.id : null), // Coba ambil dari post juga
+            // ✅ GUNAKAN CEK YANG BENAR
+            is_followed: isAlreadyFollowing,
+            post_id: n.post_id || (n.post ? n.post.id : null),
             comment: n.data ? (typeof n.data === 'string' ? JSON.parse(n.data)?.comment : n.data.comment) : null
         };
     });
@@ -895,6 +914,34 @@
     }
 
     function followBack(notificationId, userId) {
+        const notification = notifications.find(n => n.id === notificationId);
+        if (!notification) return;
+
+        // ✅ Update UI langsung
+        notification.is_followed = true;
+
+        // ✅ Update button di DOM
+        const notificationItem = document.querySelector(`[data-id="${notificationId}"]`);
+        if (notificationItem) {
+            const actionButtons = `
+            <div class="notification-actions">
+                <button class="notification-btn primary" disabled style="background: linear-gradient(135deg, #28a745, #20c997);">
+                    <i class="fas fa-check-circle"></i> Diikuti
+                </button>
+                <button class="notification-btn" onclick="event.stopPropagation(); viewProfile('${notification.user.username}')">
+                    <i class="fas fa-eye"></i> Lihat Profil
+                </button>
+            </div>
+        `;
+
+            // Cari dan replace bagian action buttons
+            const actionsContainer = notificationItem.querySelector('.notification-actions');
+            if (actionsContainer) {
+                actionsContainer.outerHTML = actionButtons;
+            }
+        }
+
+        // ✅ Kirim request ke server
         fetch(`/follow/store/${userId}`, {
                 method: "POST",
                 headers: {
@@ -904,19 +951,19 @@
             .then(res => res.json())
             .then(data => {
                 if (data.following) {
-                    // Update status is_followed pada notifikasi
-                    const notification = notifications.find(n => n.id === notificationId);
-                    if (notification) {
-                        notification.is_followed = true;
-                    }
-                    loadNotifications(); // Reload untuk update button
-                    showNotification("Berhasil mengikuti balik");
+                    showNotification("✅ Berhasil mengikuti balik");
                 } else {
-                    showNotification("Berhenti mengikuti");
+                    showNotification("❌ Gagal follow user");
+                    // Rollback jika gagal
+                    notification.is_followed = false;
+                    loadNotifications();
                 }
             })
             .catch(() => {
-                showNotification("Gagal follow user");
+                showNotification("⚠️ Gagal follow user");
+                // Rollback jika error
+                notification.is_followed = false;
+                loadNotifications();
             });
     }
 

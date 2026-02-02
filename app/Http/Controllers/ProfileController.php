@@ -25,9 +25,13 @@ class ProfileController extends Controller
         // MAIN POSTS
         $posts = Posts::where('user_id', $user->id)
             ->with(['media', 'user'])
-            ->withCount(['likes as likes_count' => function ($q) {
-                $q->where('type', 'main');
-            }])
+            ->withCount([
+                'likes as likes_count' => function ($q) {
+                    $q->where('type', 'main');
+                },
+                'comments' // ✅ INI YANG KURANG
+
+            ])
             ->latest()
             ->get();
 
@@ -332,7 +336,7 @@ class ProfileController extends Controller
             'media.*' => 'file|mimetypes:image/jpeg,image/png,image/webp,video/mp4,video/quicktime|max:51200',
             'is_flipside' => 'required|boolean',
         ]);
-    
+
 
         DB::beginTransaction();
 

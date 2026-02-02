@@ -96,8 +96,21 @@ class ForgotPasswordController extends Controller
     {
         $request->validate([
             'token' => 'required',
-            'password' => 'required|min:8|confirmed'
+            'password' => [
+                'required',
+                'confirmed',
+                'min:8',
+                'regex:/[a-z]/',      // huruf kecil
+                'regex:/[A-Z]/',      // huruf besar (kapital)
+                'regex:/[0-9]/',      // angka
+                'regex:/[@$!%*#?&]/', // simbol
+            ],
+        ], [
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'password.regex' => 'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol.',
         ]);
+
 
         $reset = DB::table('password_resets')
             ->where('token', $request->token)

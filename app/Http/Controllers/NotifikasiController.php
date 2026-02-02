@@ -40,6 +40,18 @@ class NotifikasiController extends Controller
 
 
     // Mark single notification as read
+    public function getUnreadCount()
+    {
+        $count = Notification::where('receiver_id', auth()->id())
+            ->where('is_read', 0)
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
+
+    // ... rest of the methods
+
+    // Mark single notification as read
     public function markAsReadSingle($id)
     {
         $notification = Notification::where('id', $id)

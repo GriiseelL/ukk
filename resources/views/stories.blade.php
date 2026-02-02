@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -81,8 +82,13 @@
         }
 
         @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
         }
 
         .progress-segment.viewed .progress-fill {
@@ -199,8 +205,27 @@
         .story-media video {
             width: 100%;
             height: 100%;
+            object-fit: contain;
+            background: black;
+        }
+
+
+        /* Orientation Helper */
+        .story-media.landscape img,
+        .story-media.landscape video {
+            object-fit: contain;
+        }
+
+        .story-media.portrait img,
+        .story-media.portrait video {
             object-fit: cover;
         }
+
+        .story-media.square img,
+        .story-media.square video {
+            object-fit: cover;
+        }
+
 
         .story-text-overlay {
             position: relative;
@@ -242,15 +267,20 @@
             background: transparent;
             border: none;
             cursor: pointer;
-            z-index: 10;
+            z-index: 5;
         }
 
         .story-navigation:active {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .prev-story { left: 0; }
-        .next-story { right: 0; }
+        .prev-story {
+            left: 0;
+        }
+
+        .next-story {
+            right: 0;
+        }
 
         .close-story {
             position: absolute;
@@ -361,11 +391,141 @@
         .story-menu-item.mute-story {
             color: #ffa502;
         }
+
+        /* POPUP NOTIFICATION STYLE */
+        .story-post-action {
+            position: fixed;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: slideUp .4s ease;
+            pointer-events: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            min-width: 320px;
+            max-width: 90vw;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 50%) translateY(40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, 50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .post-action-text {
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+            font-size: 18px;
+            padding: 8px 0;
+        }
+
+        .post-action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .post-action-buttons button {
+            flex: 1;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+
+        .post-action-buttons button:active {
+            transform: scale(0.95);
+        }
+
+        .view-btn {
+            background: #444;
+            color: #fff;
+        }
+
+        .view-btn:hover {
+            background: #555;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: #fff;
+        }
+
+        .add-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Overlay gelap di belakang popup */
+        .story-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 250;
+            display: none;
+        }
+
+        .story-overlay.active {
+            display: block;
+        }
+
+        /* Nonaktifkan navigasi saat popup muncul */
+        .story-viewer.popup-active .story-navigation {
+            pointer-events: none;
+        }
+
+        .story-viewer.popup-active {
+            filter: blur(4px);
+        }
     </style>
 </head>
+
 <body>
     <div class="story-container">
-        <div class="story-viewer">
+        <!-- Overlay gelap -->
+        @if(session('story_created'))
+        <div class="story-overlay active" id="storyOverlay"></div>
+        @endif
+
+        <!-- Popup notifikasi -->
+        @if(session('story_created'))
+        <div class="story-post-action" id="storyPostAction">
+            <div class="post-action-text">
+                🎉 Story berhasil dibuat!
+            </div>
+
+            <div class="post-action-buttons">
+                <button class="view-btn" onclick="hidePostAction()">
+                    👁️ Lihat Story
+                </button>
+
+                <button class="add-btn" onclick="goAddStory()">
+                    ➕ Tambah Story Lagi
+                </button>
+            </div>
+        </div>
+        @endif
+
+        <div class="story-viewer" id="storyViewer">
             <button class="close-story" onclick="closeStory()">
                 <i class="fas fa-times"></i>
             </button>
@@ -387,14 +547,11 @@
                     <button class="story-btn" onclick="toggleMute()">
                         <i class="fas fa-volume-up" id="muteBtn"></i>
                     </button>
-                    <button class="story-btn" onclick="toggleMenu()">
+                    <button class="story-btn" id="storyMenuBtn" onclick="toggleStoryMenu()">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
+
                     <div class="story-menu-dropdown" id="storyMenu">
-                        <div class="story-menu-item mute-story" onclick="muteStoryUser()" style="display: none;">
-                            <i class="fas fa-volume-mute"></i>
-                            <span>Mute this story</span>
-                        </div>
                         <div class="story-menu-item delete" onclick="deleteStory()" style="display: none;">
                             <i class="fas fa-trash"></i>
                             <span>Delete Story</span>
@@ -413,45 +570,99 @@
 
             <button class="story-navigation prev-story" onclick="prevStory()"></button>
             <button class="story-navigation next-story" onclick="nextStory()"></button>
-
-            <div class="story-actions">
-                <input type="text" class="story-input" placeholder="Send message" />
-                <button class="story-action-btn" onclick="likeStory()">
-                    <i class="fas fa-heart"></i>
-                </button>
-                <button class="story-action-btn">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
         </div>
     </div>
 
     @php
     $storiesData = $stories->sortBy('created_at')->values()->map(function($story) {
-        return [
-            'id' => $story->id,
-            'type' => $story->type,
-            'media' => $story->media ? asset('storage/'.$story->media) : null,
-            'caption' => $story->caption,
-            'text_content' => $story->text_content ?? null,
-            'background' => $story->background ?? 'linear-gradient(135deg, #667eea, #764ba2)',
-            'created_at' => $story->created_at->diffForHumans(),
-            'user' => [
-                'id' => $story->user->id,
-                'name' => $story->user->name,
-                'avatar_url' => $story->user->avatar ? asset('storage/'.$story->user->avatar) : null,
-            ],
-        ];
+    return [
+    'id' => $story->id,
+    'type' => $story->type,
+    'media' => $story->media ? asset('storage/'.$story->media) : null,
+    'caption' => $story->caption,
+    'text_content' => $story->text_content ?? null,
+    'background' => $story->background ?? 'linear-gradient(135deg, #667eea, #764ba2)',
+    'created_at' => $story->created_at->diffForHumans(),
+    'user' => [
+    'id' => $story->user->id,
+    'name' => $story->user->name,
+    'avatar_url' => $story->user->avatar ? asset('storage/'.$story->user->avatar) : null,
+    ],
+    ];
     });
     @endphp
 
     <script>
         const stories = @json($storiesData);
-        const currentUserId = {{ Auth::id() }};
-        
+      const currentUserId = Number({{ Auth::id() }});
+
+        function initPopupState() {
+            const popup = document.getElementById('storyPostAction');
+            const viewer = document.getElementById('storyViewer');
+            const overlay = document.getElementById('storyOverlay');
+
+            if (popup) {
+                viewer.classList.add('popup-active');
+                if (overlay) overlay.classList.add('active');
+                // Pause story saat popup muncul
+                isPlaying = false;
+                cancelAnimationFrame(progressRAF);
+            }
+        }
+
+        function hidePostAction() {
+            const popup = document.getElementById('storyPostAction');
+            const viewer = document.getElementById('storyViewer');
+            const overlay = document.getElementById('storyOverlay');
+
+            if (popup) {
+                popup.style.animation = 'slideUp 0.3s ease reverse';
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                    viewer.classList.remove('popup-active');
+                    if (overlay) overlay.classList.remove('active');
+
+                    // Resume story
+                    isPlaying = true;
+                    document.getElementById("playBtn").className = 'fas fa-pause';
+                    if (activeVideo) activeVideo.play();
+                    startProgress();
+                }, 300);
+            }
+        }
+
+        function goAddStory() {
+            // Clean up before redirect
+            stopAndClearActiveVideo();
+            cancelAnimationFrame(progressRAF);
+            document.getElementById('storyMenu').classList.remove('active');
+
+            const popup = document.getElementById('storyPostAction');
+            const overlay = document.getElementById('storyOverlay');
+            const viewer = document.getElementById('storyViewer');
+
+            if (popup) {
+                popup.classList.add('hiding');
+                if (overlay) overlay.classList.remove('active');
+                viewer.classList.remove('popup-active');
+
+                setTimeout(() => {
+                    window.location.href = "{{ route('stories.create') }}";
+                }, 300);
+            } else {
+                window.location.href = "{{ route('stories.create') }}";
+            }
+        }
+
+        function toggleStoryMenu() {
+            const menu = document.getElementById('storyMenu');
+            if (!menu) return;
+            menu.classList.toggle('active');
+        }
+
         console.log('Stories loaded:', stories);
         console.log('Current user:', currentUserId);
-        
+
         if (!stories || stories.length === 0) {
             alert('No stories available');
             window.location.href = "{{ route('homepage') }}";
@@ -478,12 +689,21 @@
         const storyContent = document.getElementById("storyContent");
 
         function updateStoryMenu(story) {
-            const muteMenuItem = document.querySelector('.story-menu-item.mute-story');
+            const menuBtn = document.getElementById('storyMenuBtn');
             const deleteMenuItem = document.querySelector('.story-menu-item.delete');
+            const menu = document.getElementById('storyMenu');
+
+            if (!menuBtn || !menu) return;
+
             const isOwnStory = story.user && story.user.id === currentUserId;
-            
-            if (muteMenuItem) muteMenuItem.style.display = isOwnStory ? 'none' : 'flex';
-            if (deleteMenuItem) deleteMenuItem.style.display = isOwnStory ? 'flex' : 'none';
+
+            menuBtn.style.display = isOwnStory ? 'flex' : 'none';
+
+            if (deleteMenuItem) {
+                deleteMenuItem.style.display = isOwnStory ? 'flex' : 'none';
+            }
+
+            menu.classList.remove('active');
         }
 
         function loadStory(index) {
@@ -539,8 +759,7 @@
                 totalDuration = totalDurationDefault;
                 renderProgressSegments();
                 if (isPlaying) startProgress(totalDuration);
-            }
-            else if (story.type === "image" && story.media) {
+            } else if (story.type === "image" && story.media) {
                 storyContent.classList.add('has-media');
                 storyTextOverlay.style.display = 'none';
 
@@ -558,8 +777,7 @@
                     storyCaption.textContent = story.caption;
                     storyCaption.style.display = 'block';
                 }
-            }
-            else if (story.type === "video" && story.media) {
+            } else if (story.type === "video" && story.media) {
                 storyContent.classList.add('has-media');
                 storyTextOverlay.style.display = 'none';
 
@@ -669,11 +887,11 @@
         function togglePlay() {
             isPlaying = !isPlaying;
             document.getElementById("playBtn").className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
-            
+
             if (activeVideo) {
                 isPlaying ? activeVideo.play() : activeVideo.pause();
             }
-            
+
             if (isPlaying) {
                 startProgress();
             } else {
@@ -700,20 +918,22 @@
             if (confirm(`Mute stories from ${story.user.name}?`)) {
                 document.getElementById('storyMenu').classList.remove('active');
                 fetch('/stories/mute-user', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ user_id: story.user.id })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Story muted!');
-                        closeStory();
-                    }
-                });
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            user_id: story.user.id
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Story muted!');
+                            closeStory();
+                        }
+                    });
             }
         }
 
@@ -722,25 +942,27 @@
             if (confirm('Delete this story?')) {
                 document.getElementById('storyMenu').classList.remove('active');
                 fetch('/stories/destroy', {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ id: story.id })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        stories.splice(currentIndex, 1);
-                        if (stories.length === 0) {
-                            closeStory();
-                        } else {
-                            if (currentIndex >= stories.length) currentIndex--;
-                            loadStory(currentIndex);
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            id: story.id
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            stories.splice(currentIndex, 1);
+                            if (stories.length === 0) {
+                                closeStory();
+                            } else {
+                                if (currentIndex >= stories.length) currentIndex--;
+                                loadStory(currentIndex);
+                            }
                         }
-                    }
-                });
+                    });
             }
         }
 
@@ -750,7 +972,9 @@
             }
         });
 
+        initPopupState();
         loadStory(currentIndex);
     </script>
 </body>
+
 </html>

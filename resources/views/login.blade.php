@@ -467,7 +467,7 @@
 
                                 <!-- Register Form -->
                                 <div id="register-tab" class="tab-content">
-                                    <form action="{{ route('auth.regis') }}" method="POST">
+                                    <form action="{{ route('auth.regis') }}" method="POST" id="registerForm">
                                         @csrf
                                         <div class="input-group">
                                             <span class="input-group-text">
@@ -490,12 +490,36 @@
                                             <input name="email" type="email" class="form-control" placeholder="Email Address" required>
                                         </div>
 
+                                        <!-- Input Password -->
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-lock"></i>
                                             </span>
-                                            <input name="password" type="password" class="form-control" placeholder="Password" required>
+
+                                            <input name="password"
+                                                type="password"
+                                                id="registerPassword"
+                                                class="form-control"
+                                                placeholder="Password"
+                                                required>
                                         </div>
+
+                                        <!-- Strength Bar -->
+                                        <div class="progress mt-2" style="height: 6px;">
+                                            <div id="passwordStrengthBar" class="progress-bar" style="width: 0%"></div>
+                                        </div>
+
+                                        <!-- Status Text -->
+                                        <small id="passwordStrengthText" class="d-block mt-1"></small>
+
+                                        <!-- Rules Checklist -->
+                                        <ul class="list-unstyled mt-2 small" id="passwordRules">
+                                            <li id="rule-length">❌ Minimal 8 karakter</li>
+                                            <li id="rule-lower">❌ Huruf kecil (a-z)</li>
+                                            <li id="rule-upper">❌ Huruf besar (A-Z)</li>
+                                            <li id="rule-number">❌ Angka (0-9)</li>
+                                        </ul>
+
 
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="terms" required>
@@ -524,6 +548,89 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        const passwordInput = document.getElementById("registerPassword");
+        const bar = document.getElementById("passwordStrengthBar");
+        const text = document.getElementById("passwordStrengthText");
+
+        const ruleLength = document.getElementById("rule-length");
+        const ruleLower = document.getElementById("rule-lower");
+        const ruleUpper = document.getElementById("rule-upper");
+        const ruleNumber = document.getElementById("rule-number");
+
+        passwordInput.addEventListener("input", function() {
+            const val = passwordInput.value;
+            let score = 0;
+
+            // Length
+            if (val.length >= 8) {
+                ruleLength.innerHTML = "✅ Minimal 8 karakter";
+                score++;
+            } else {
+                ruleLength.innerHTML = "❌ Minimal 8 karakter";
+            }
+
+            // Lowercase
+            if (/[a-z]/.test(val)) {
+                ruleLower.innerHTML = "✅ Huruf kecil (a-z)";
+                score++;
+            } else {
+                ruleLower.innerHTML = "❌ Huruf kecil (a-z)";
+            }
+
+            // Uppercase
+            if (/[A-Z]/.test(val)) {
+                ruleUpper.innerHTML = "✅ Huruf besar (A-Z)";
+                score++;
+            } else {
+                ruleUpper.innerHTML = "❌ Huruf besar (A-Z)";
+            }
+
+            // Number
+            if (/[0-9]/.test(val)) {
+                ruleNumber.innerHTML = "✅ Angka (0-9)";
+                score++;
+            } else {
+                ruleNumber.innerHTML = "❌ Angka (0-9)";
+            }
+
+            // Strength Result
+            if (score === 0) {
+                bar.style.width = "0%";
+                bar.className = "progress-bar";
+                text.innerHTML = "";
+            } else if (score === 1) {
+                bar.style.width = "25%";
+                bar.className = "progress-bar bg-danger";
+                text.innerHTML = "Sangat Lemah";
+            } else if (score === 2) {
+                bar.style.width = "50%";
+                bar.className = "progress-bar bg-warning";
+                text.innerHTML = "Lemah";
+            } else if (score === 3) {
+                bar.style.width = "75%";
+                bar.className = "progress-bar bg-info";
+                text.innerHTML = "Cukup Kuat";
+            } else if (score === 4) {
+                bar.style.width = "100%";
+                bar.className = "progress-bar bg-success";
+                text.innerHTML = "Password Kuat ✅";
+            }
+        });
+
+        document.getElementById("registerForm").addEventListener("submit", function(e) {
+            const pass = document.getElementById("registerPassword").value;
+            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+            if (!strongRegex.test(pass)) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: "error",
+                    title: "Password Lemah",
+                    text: "Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka."
+                });
+            }
+        });
+
         // Switch between tabs
         function switchTab(tabName) {
             // Hide all tabs
@@ -583,19 +690,19 @@
         // Add event listener for forgot password form
         document.addEventListener('DOMContentLoaded', function() {
             const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-            
+
             if (forgotPasswordForm) {
                 forgotPasswordForm.addEventListener('submit', function(e) {
                     e.preventDefault(); // Prevent immediate submit
-                    
+
                     const email = document.getElementById('forgotPasswordEmail').value;
                     const submitBtn = document.getElementById('sendResetBtn');
                     const originalBtnText = submitBtn.innerHTML;
-                    
+
                     // Show loading state
                     submitBtn.innerHTML = '<span class="loading"></span>Mengirim...';
                     submitBtn.disabled = true;
-                    
+
                     // Show SweetAlert immediately
                     Swal.fire({
                         icon: 'success',
@@ -612,7 +719,7 @@
                         // After SweetAlert closes, submit the form to Laravel
                         forgotPasswordForm.submit();
                     });
-                    
+
                     // Also submit after timer ends
                     setTimeout(() => {
                         if (!Swal.isVisible()) {
@@ -626,95 +733,95 @@
         // Check for Laravel errors and show SweetAlert
         window.addEventListener('DOMContentLoaded', function() {
             // Check for login errors
-            @if($errors->has('email') || $errors->has('password'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Login Gagal!',
-                    html: '@if($errors->has("email")){{ $errors->first("email") }}@elseif($errors->has("password")){{ $errors->first("password") }}@endif',
-                    confirmButtonText: 'Coba Lagi'
-                });
+            @if($errors -> has('email') || $errors -> has('password'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Login Gagal!',
+                html: '@if($errors->has("email")){{ $errors->first("email") }}@elseif($errors->has("password")){{ $errors->first("password") }}@endif',
+                confirmButtonText: 'Coba Lagi'
+            });
             @endif
 
             // Check for general authentication errors
             @if(session('error'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: '{{ session("error") }}',
-                    confirmButtonText: 'OK'
-                });
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '{{ session("error") }}',
+                confirmButtonText: 'OK'
+            });
             @endif
 
             // Check for account not found error
             @if(session('account_not_found'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Akun Tidak Ditemukan!',
-                    text: 'Email yang Anda masukkan tidak terdaftar. Silakan periksa kembali atau daftar akun baru.',
-                    confirmButtonText: 'OK',
-                    showCancelButton: true,
-                    cancelButtonText: 'Daftar Sekarang'
-                }).then((result) => {
-                    if (result.dismiss === Swal.DismissReason.cancel) {
-                        switchTab('register');
-                    }
-                });
+            Swal.fire({
+                icon: 'error',
+                title: 'Akun Tidak Ditemukan!',
+                text: 'Email yang Anda masukkan tidak terdaftar. Silakan periksa kembali atau daftar akun baru.',
+                confirmButtonText: 'OK',
+                showCancelButton: true,
+                cancelButtonText: 'Daftar Sekarang'
+            }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                    switchTab('register');
+                }
+            });
             @endif
 
             // Check for wrong password error
             @if(session('wrong_password'))
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Password Salah!',
-                    text: 'Password yang Anda masukkan tidak sesuai. Silakan coba lagi atau reset password Anda.',
-                    confirmButtonText: 'Coba Lagi',
-                    showCancelButton: true,
-                    cancelButtonText: 'Lupa Password?'
-                }).then((result) => {
-                    if (result.dismiss === Swal.DismissReason.cancel) {
-                        showForgotPassword(new Event('click'));
-                    }
-                });
+            Swal.fire({
+                icon: 'error',
+                title: 'Password Salah!',
+                text: 'Password yang Anda masukkan tidak sesuai. Silakan coba lagi atau reset password Anda.',
+                confirmButtonText: 'Coba Lagi',
+                showCancelButton: true,
+                cancelButtonText: 'Lupa Password?'
+            }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                    showForgotPassword(new Event('click'));
+                }
+            });
             @endif
 
             // Check for successful registration
             @if(session('registration_success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Registrasi Berhasil!',
-                    text: 'Akun Anda telah dibuat. Silakan login dengan email dan password Anda.',
-                    confirmButtonText: 'Login Sekarang'
-                }).then(() => {
-                    switchTab('login');
-                });
+            Swal.fire({
+                icon: 'success',
+                title: 'Registrasi Berhasil!',
+                text: 'Akun Anda telah dibuat. Silakan login dengan email dan password Anda.',
+                confirmButtonText: 'Login Sekarang'
+            }).then(() => {
+                switchTab('login');
+            });
             @endif
 
             // Check for successful password reset
             @if(session('password_reset_success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Password Berhasil Direset!',
-                    text: 'Password Anda telah berhasil direset. Silakan login dengan password baru Anda.',
-                    confirmButtonText: 'OK'
-                });
+            Swal.fire({
+                icon: 'success',
+                title: 'Password Berhasil Direset!',
+                text: 'Password Anda telah berhasil direset. Silakan login dengan password baru Anda.',
+                confirmButtonText: 'OK'
+            });
             @endif
 
             // Check for password reset email sent
             @if(session('reset_link_sent'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Email Terkirim!',
-                    html: 'Link reset password telah dikirim ke email Anda.<br><br>Silakan cek <strong>inbox</strong> atau folder <strong>spam</strong> email Anda.',
-                    confirmButtonText: 'OK',
-                    timer: 6000,
-                    timerProgressBar: true,
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
-                });
+            Swal.fire({
+                icon: 'success',
+                title: 'Email Terkirim!',
+                html: 'Link reset password telah dikirim ke email Anda.<br><br>Silakan cek <strong>inbox</strong> atau folder <strong>spam</strong> email Anda.',
+                confirmButtonText: 'OK',
+                timer: 6000,
+                timerProgressBar: true,
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp'
+                }
+            });
             @endif
         });
 

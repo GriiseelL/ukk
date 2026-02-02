@@ -175,9 +175,16 @@ class JelajahController extends Controller // atau nama controller yang sesuai
         } else {
             // Normal posts
             $posts = Posts::where('user_id', $user->id)
-                ->with(['user', 'likes', 'comments', 'media'])
+                ->with(['user', 'media'])
+                ->withCount([
+                    'likes as likes_count' => function ($q) {
+                        $q->where('type', 'main');
+                    },
+                    'comments as comments_count'
+                ])
                 ->latest()
                 ->get();
+
             $flipsidePosts = [];
         }
 

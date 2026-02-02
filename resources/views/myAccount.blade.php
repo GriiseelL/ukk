@@ -72,7 +72,7 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
     }
 
     .main-content {
-        margin-top: 55px;
+        margin-top: 65px;
         padding-bottom: 80px;
     }
 
@@ -1397,7 +1397,7 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
             <div class="content-area">
                 <div id="posts-content">
                     @forelse($displayPosts as $post)
-                    <div class="post-item">
+                    <div class="post-item" data-post-id="{{ $post->id }}">
                         @if($isFlipside)
                         <span class="post-flipside-badge">🔒 Flipside</span>
                         @endif
@@ -1486,33 +1486,77 @@ $displayPosts = $isFlipside ? ($flipsidePosts ?? []) : ($posts ?? []);
                     </div>
 
 
-                    <div class="post-interactions">
-                        <button class="interaction-btn 
-                            {{ $isFlipside 
-                                ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                                : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '') 
-                            }}"
-                            onclick="toggleLike({{ $post->id }}, this)"
-                        >                            <i class="fas fa-heart"></i>
+                <div class="post-interactions">
+                    <!-- Like Button -->
+                    <button class="interaction-btn
+                    {{ $isFlipside
+                        ? ($post->Likes && $post->Likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '')
+                        : ($post->likes && $post->likes->where('user_id', auth()->id())->count() > 0 ? 'liked' : '')
+                    }}"
+                    onclick="toggleLike({{ $post->id }}, this)"
+                    >                            
+                        <i class="fas fa-heart"></i>
                         <span>
-                            {{ $isFlipside 
-                                ? ($post->Likes ? $post->Likes->count() : 0) 
-                                : ($post->likes ? $post->likes->count() : 0) 
-                            }}
-                        </span>                        
-                        </button>
+                        {{ $isFlipside
+                            ? ($post->Likes ? $post->Likes->count() : 0)
+                            : ($post->likes ? $post->likes->count() : 0)
+                        }}
+                        </span>
+                    </button>
+                    
+                    @if(!$isFlipside)
+                    <!-- Share Button -->
+                    <button class="interaction-btn">
+                        <i class="fas fa-share"></i>
+                        Share
+                    </button>
+                    @endif
+                </div>
 
-                        @if(!$isFlipside)
-                        <button class="interaction-btn" onclick="openComments({{ $post->id }}, 'main')">
-                            <i class="fas fa-comment"></i>
-                            <span>{{ $post->comments?->count() ?? 0 }}</span>
-                        </button>
-                        <button class="interaction-btn">
-                            <i class="fas fa-share"></i>
-                            Share
-                        </button>
+                <!-- Quick Comment Section (DI BAWAH LIKE BUTTON) -->
+                    @if(!$isFlipside)
+            <div class="quick-comment-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid {{ $isFlipside ? 'rgba(255, 255, 255, 0.1)' : '#e1e8ed' }};">
+                <!-- Comment Count Link (BUKA MODAL SAAT DIKLIK) -->
+                <div style="margin-bottom: 10px;">
+                    <a href="#" onclick="openComments({{ $post->id }}, 'main'); return false;" 
+                    style="color: {{ $isFlipside ? 'rgba(255,255,255,0.7)' : '#1da1f2' }}; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; padding: 3px 0; transition: opacity 0.3s;"
+                    onmouseover="this.style.opacity='0.8'"
+                    onmouseout="this.style.opacity='1'">
+                        {{ $post->comments_count ?? 0 }} comments
+                    </a>
+                </div>
+                    
+                    <!-- Quick Comment Input (LANGSUNG KETIK DI SINI) -->
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        @if(auth()->user()->avatar)
+                        <img src="{{ asset('storage/' . auth()->user()->avatar) }}" 
+                            alt="Your avatar" 
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                        @else
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #1da1f2, #0d8bd9); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0;">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
                         @endif
+                        
+                        <input 
+                            type="text" 
+                            class="quick-comment-input form-control"
+                            data-post-id="{{ $post->id }}"
+                            placeholder="Add a comment..."
+                            style="flex: 1; border: none; border-radius: 20px; padding: 8px 15px; background: {{ $isFlipside ? 'rgba(255,255,255,0.05)' : '#f5f7fa' }}; color: {{ $isFlipside ? 'white' : '#1a1a1a' }}; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);"
+                            onkeypress="handleQuickCommentKeyPress(event, {{ $post->id }})">
+                        
+                        <button 
+                            class="btn btn-sm quick-comment-btn"
+                            onclick="submitQuickComment({{ $post->id }})"
+                            style="background: linear-gradient(135deg, #1da1f2, #0d8bd9); color: white; border: none; border-radius: 20px; padding: 6px 15px; font-weight: 600; font-size: 13px; box-shadow: 0 2px 6px rgba(29, 161, 242, 0.3); transition: all 0.3s ease;"
+                            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(29, 161, 242, 0.4)'"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(29, 161, 242, 0.3)'">
+                            Post
+                        </button>
                     </div>
+                </div>
+                @endif
                 </div>
                     @empty
                     <div class="empty-state">
@@ -2080,14 +2124,34 @@ async function openComments(postId) {
         }
 
         const isFlipside = window.appData.isFlipside;
-        commentsHtml += `</div><div style="padding:20px 0;border-top:1px solid ${isFlipside ? 'rgba(255, 255, 255, 0.1)' : '#eee'};"><div style="display:flex;gap:10px;align-items:flex-start;"><textarea class="form-control" id="commentInput-${postId}" placeholder="Tulis komentar..." rows="2" style="flex:1;border-radius:12px;background:${isFlipside ? '#1a1a1a' : 'white'};color:${isFlipside ? 'white' : 'inherit'};border:1px solid ${isFlipside ? 'rgba(255, 0, 128, 0.3)' : '#ddd'};"></textarea><button class="btn btn-primary" onclick="submitComment(${postId})" style="background:linear-gradient(135deg,#FF0080,#7928CA);border:none;border-radius:12px;padding:10px 20px;">Post</button></div></div>`;
 
         openModal(`Comments (${comments.length})`, commentsHtml);
+        attachReloadOnModalClose();
+
     } catch (error) {
         console.error("Error fetching comments:", error);
         showNotification("Error loading comments");
     }
 }
+
+function attachReloadOnModalClose() {
+
+    const modal = document.getElementById('commentsModal');
+    if (!modal) return;
+
+    const observer = new MutationObserver(() => {
+        if (getComputedStyle(modal).display === 'none') {
+            location.reload();
+        }
+    });
+
+    observer.observe(modal, {
+        attributes: true,
+        attributeFilter: ['style']
+    });
+
+}
+
 
 // UPDATE: submitComment function - TAMBAHKAN TYPE
 async function submitComment(postId) {
@@ -2149,55 +2213,77 @@ async function submitComment(postId) {
 
 // ✅ TAMBAHAN: Function untuk delete comment
 async function deleteComment(commentId, postId) {
-        const result = await Swal.fire({
-        title: 'Hapus Comment?',
-        text: "Tindakan ini tidak dapat dibatalkan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
-    });
+    const modal = document.getElementById('commentsModal');
 
-    if (!result.isConfirmed) return;
+    if (modal) modal.style.display = 'none';
+
+    const confirmed = confirm('Hapus komentar?\nTindakan ini tidak dapat dibatalkan!');
+    if (!confirmed) {
+        if (modal) modal.style.display = 'flex';
+        return;
+    }
 
     try {
         const response = await fetch(`/comment/destroy/${commentId}`, {
             method: 'DELETE',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json'
             }
         });
 
         const result = await response.json();
+        if (modal) modal.style.display = 'flex';
 
-        if (response.ok && result.success) {
-            // Remove comment element with animation
-            const commentElement = document.querySelector(`.comment-item-${commentId}`);
-            if (commentElement) {
-                commentElement.style.transition = 'all 0.3s ease';
-                commentElement.style.opacity = '0';
-                commentElement.style.transform = 'translateX(-100%)';
-                
-                setTimeout(() => {
-                    commentElement.remove();
-                    showNotification('🗑️ Komentar berhasil dihapus!');
-                    
-                    // Reload comments to update count
-                    setTimeout(() => openComments(postId), 500);
-                }, 300);
-            }
-        } else {
-            throw new Error(result.message || 'Failed to delete comment');
+        if (!response.ok || !result.success) {
+            alert('❌ ' + (result.message || 'Gagal menghapus komentar'));
+            return;
         }
+
+        alert('✅ Komentar berhasil dihapus!');
+
+        const commentElement = document.querySelector(`.comment-item-${commentId}`);
+        if (commentElement) {
+            commentElement.style.transition = 'all 0.3s ease';
+            commentElement.style.opacity = '0';
+            commentElement.style.transform = 'translateX(-20px)';
+
+            setTimeout(() => {
+                commentElement.remove();
+
+                // ===============================
+                // HITUNG ULANG SETELAH REMOVE
+                // ===============================
+                const commentsList = document.querySelector('#commentsModal .comments-list');
+                const totalComments = commentsList
+                    ? commentsList.querySelectorAll('[class^="comment-item-"]').length
+                    : 0;
+
+                // update title modal
+                const modalTitle = document.querySelector('#commentsModal h3');
+                if (modalTitle) {
+                    modalTitle.textContent = `💬 Comments (${totalComments})`;
+                }
+
+                // update count di post
+                const postItem = document.querySelector(`[data-post-id="${postId}"]`);
+                if (postItem) {
+                    const commentBtn = postItem.querySelector('.interaction-btn:nth-child(2) span');
+                    if (commentBtn) {
+                        commentBtn.textContent = totalComments;
+                    }
+                }
+
+            }, 300);
+        }
+
     } catch (error) {
-        console.error('Delete comment error:', error);
-        showNotification('❌ Gagal menghapus komentar!');
+        console.error(error);
+        if (modal) modal.style.display = 'flex';
+        alert('❌ Terjadi kesalahan jaringan');
     }
 }
+    
     @if(!$isFlipside)
     // Profile editing functions
     function editProfile() {
@@ -2705,10 +2791,13 @@ function showNotification(message) {
         document.body.style.overflow = 'hidden';
     }
 
-    function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+
+    location.reload(); // 👈 TAMBAHKAN INI
+}
+
 
     function showNotification(message) {
         const notification = document.createElement('div');
@@ -3364,7 +3453,7 @@ async function submitCommentFromModal(postId) {
 
 // ✅ Function untuk delete comment dari modal
 async function deleteCommentFromModal(commentId, postId) {
-        const result = await Swal.fire({
+    const confirmResult = await Swal.fire({
         title: 'Hapus Comment?',
         text: "Tindakan ini tidak dapat dibatalkan!",
         icon: 'warning',
@@ -3376,47 +3465,63 @@ async function deleteCommentFromModal(commentId, postId) {
         reverseButtons: true
     });
 
-    if (!result.isConfirmed) return;
+    if (!confirmResult.isConfirmed) return;
 
     try {
         const response = await fetch(`/comment/destroy/${commentId}`, {
             method: 'DELETE',
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json'
             }
         });
 
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            const commentElement = document.querySelector(`.comment-item-${commentId}`);
-            if (commentElement) {
-                commentElement.style.transition = 'all 0.3s ease';
-                commentElement.style.opacity = '0';
-                commentElement.style.transform = 'translateX(-100%)';
-                
-                setTimeout(() => {
-                    commentElement.remove();
-                    
-                    // Update counter
-                    const commentCountElement = document.querySelector(`#commentsCount-${postId} .comment-count-number`);
-                    if (commentCountElement) {
-                        const currentCount = parseInt(commentCountElement.textContent) || 0;
-                        commentCountElement.textContent = Math.max(0, currentCount - 1);
-                    }
-                    
-                    showNotification('🗑️ Comment deleted!');
-                }, 300);
-            }
-        } else {
-            throw new Error(result.message || 'Failed to delete');
+        const res = await response.json();
+        if (!response.ok || !res.success) {
+            throw new Error(res.message || 'Failed to delete');
         }
+
+        const commentElement = document.querySelector(`.comment-item-${commentId}`);
+        if (!commentElement) return;
+
+        commentElement.style.transition = 'all 0.3s ease';
+        commentElement.style.opacity = '0';
+        commentElement.style.transform = 'translateX(-100%)';
+
+        setTimeout(() => {
+            commentElement.remove();
+
+            // ==========================
+            // HITUNG ULANG (ANTI HOAX)
+            // ==========================
+            const commentsList = document.querySelector('#commentsModal .comments-list');
+            const totalComments = commentsList
+                ? commentsList.querySelectorAll('[class^="comment-item-"]').length
+                : 0;
+
+            // update counter di post
+            const commentCountElement = document.querySelector(
+                `#commentsCount-${postId} .comment-count-number`
+            );
+            if (commentCountElement) {
+                commentCountElement.textContent = totalComments;
+            }
+
+            // update title modal (kalau ada)
+            const modalTitle = document.querySelector('#commentsModal h3');
+            if (modalTitle) {
+                modalTitle.textContent = `💬 Comments (${totalComments})`;
+            }
+
+            showNotification('🗑️ Comment deleted!');
+        }, 300);
+
     } catch (error) {
         console.error('Delete error:', error);
         showNotification('❌ Failed to delete comment!');
     }
 }
+
 
     function handleCommentKeyPress(event, postId) {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -4632,6 +4737,142 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+// ============================================================
+// QUICK COMMENT FUNCTIONALITY
+// ============================================================
+
+// Submit comment from quick input
+// Submit comment from quick input
+window.submitQuickComment = async function(postId, button = null) {
+    const input = document.querySelector(`.quick-comment-input[data-post-id="${postId}"]`);
+    const text = input.value.trim();
+    
+    if (!text) {
+        input.focus();
+        return;
+    }
+    
+    // ✅ CARA LEBIH AMAN: Cari button dari input yang sama
+    if (!button) {
+        const postContainer = input.closest('.post-item');
+        if (postContainer) {
+            button = postContainer.querySelector('.quick-comment-btn');
+        }
+    }
+    
+    // ✅ DISABLE BUTTON JIKA ADA
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    }
+    
+    try {
+        // ✅ Deteksi type berdasarkan mode
+        const type = window.appData.isFlipside ? 'flipside' : 'main';
+        
+        const response = await fetch('/comment/store', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                post_id: postId,
+                content: text,
+                type: type
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            // ✅ Clear input
+            input.value = '';
+            
+            // ✅ UPDATE COMMENT COUNT SECARA REALTIME (TANPA RELOAD!)
+            const postItem = document.querySelector(`[data-post-id="${postId}"]`);
+            if (postItem) {
+                // Cari link "X comments"
+                const commentLink = postItem.querySelector('.quick-comment-section a');
+                if (commentLink) {
+                    // Ambil count saat ini
+                    const match = commentLink.textContent.match(/(\d+)/);
+                    const currentCount = match ? parseInt(match[1]) : 0;
+                    const newCount = currentCount + 1;
+                    
+                    // ✅ UPDATE TEXT
+                    commentLink.textContent = `${newCount} comment${newCount !== 1 ? 's' : ''}`;
+                    
+                    // ✅ ANIMASI BERKEDIP UNTUK MEMBERIKAN FEEDBACK VISUAL
+                    commentLink.style.transition = 'all 0.3s ease';
+                    commentLink.style.transform = 'scale(1.2)';
+                    commentLink.style.fontWeight = 'bold';
+                    commentLink.style.color = '#10b981'; // Green color
+                    
+               setTimeout(() => {
+                    commentLink.style.transform = 'scale(1)';
+                    commentLink.style.fontWeight = '600';
+                    commentLink.style.color = window.appData.isFlipside
+                        ? 'rgba(255,255,255,0.7)'
+                        : '#1da1f2';
+                }, 300);
+
+                }
+            }
+            
+            // ✅ RE-ENABLE BUTTON
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = 'Post';
+            }
+            
+            showNotification('💬 Komentar berhasil diposting!');
+        } else {
+            throw new Error(result.message || 'Failed to post comment');
+        }
+    } catch (error) {
+        console.error('Quick comment error:', error);
+        showNotification(`❌ ${error.message || 'Failed to post comment'}`);
+        
+        // ✅ RE-ENABLE BUTTON JIKA ERROR
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = 'Post';
+        }
+    }
+};
+
+// Handle Enter key in quick comment input
+// Handle Enter key in quick comment input
+window.handleQuickCommentKeyPress = function(event, postId) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        // ✅ Tidak perlu button parameter
+        submitQuickComment(postId);
+    }
+};
+
+// Auto-resize quick comment input
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.quick-comment-input').forEach(input => {
+        input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    });
+});
+
+document.addEventListener('click', function(e) {
+
+    // kalau klik tombol close (X)
+    if (e.target.closest('.close-modal')) {
+        location.reload();
+    }
+
+});
+
 </script>
 
 @endsection

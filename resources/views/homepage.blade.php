@@ -8,6 +8,7 @@
         margin-top: 70px;
         padding-bottom: 80px;
         margin-left: 0;
+        /* background-color: #fff; */
     }
 
     .like-btn.liked i {
@@ -1012,6 +1013,26 @@
         object-fit: cover;
         border-radius: 50%;
     }
+
+    /* Follow Button in Post */
+    .follow-btn-in-post {
+        background: linear-gradient(135deg, #1da1f2, #0d8bd9);
+        border: none;
+        box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .follow-btn-in-post:hover {
+        background: linear-gradient(135deg, #0d8bd9, #0a78c2);
+        box-shadow: 0 4px 12px rgba(29, 161, 242, 0.5);
+        transform: scale(1.05);
+    }
+
+    .follow-btn-in-post.btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
 </style>
 
 <div class="row">
@@ -1155,13 +1176,29 @@
                             </div>
 
                             <div class="flex-grow-1">
-                                <div class="d-flex align-items-center mb-2">
-                                    <a href="{{ $post->user->id === auth()->id() ? route('profile') : url('/profilePage/' . $post->user->username) }}"
-                                        class="text-decoration-none text-dark">
-                                        <strong class="me-2">{{ $post->user->name }}</strong>
-                                    </a>
-                                    <span class="text-muted">{{ '@' . $post->user->username }}</span>
-                                    <span class="text-muted ms-2">• {{ $post->created_at->diffForHumans() }}</span>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <a href="{{ $post->user->id === auth()->id() ? route('profile') : url('/profilePage/' . $post->user->username) }}"
+                                            class="text-decoration-none text-dark">
+                                            <strong class="me-2">{{ $post->user->name }}</strong>
+                                        </a>
+                                        <span class="text-muted">{{ '@' . $post->user->username }}</span>
+                                        <span class="text-muted ms-2">• {{ $post->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    {{-- Tombol Follow untuk user yang belum di-follow --}}
+                                    @php
+                                    $isFollowing = auth()->user()->following()->where('user_following', $post->user->id)->exists();
+                                    @endphp
+                                    @if(auth()->id() !== $post->user->id && !$isFollowing)
+                                    <button
+                                        class="btn btn-sm btn-primary follow-btn-in-post px-3 py-1"
+                                        onclick="followUserFromPost({{ $post->user->id }}, this)"
+                                        style="font-size: 12px; font-weight: 600; border-radius: 20px; transition: all 0.3s ease;"
+                                        onmouseover="this.style.transform='scale(1.05)'"
+                                        onmouseout="this.style.transform='scale(1)'">
+                                        <i class="fas fa-user-plus me-1"></i> Follow
+                                    </button>
+                                    @endif
                                 </div>
 
                                 <p class="mb-3">{{ $post->caption }}</p>
@@ -1345,7 +1382,61 @@
     </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+    // ============================================================
+    // FOLLOW USER DARI POST
+    // ============================================================
+    window.followUserFromPost = async function(userId, button) {
+        const originalHTML = button.innerHTML;
+        const originalClass = button.className;
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.className = 'btn btn-sm btn-secondary follow-btn-in-post px-3 py-1';
+
+        try {
+            const response = await fetch(`/follow/store/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // ✅ Update button UI
+                button.innerHTML = '<i class="fas fa-check me-1"></i> Following';
+                button.className = 'btn btn-sm btn-success follow-btn-in-post px-3 py-1';
+                button.disabled = true;
+
+                // ✅ Success notification
+                window.showNotification('✅ Now following ' + result.user_name + '!');
+
+                // ✅ Optional: Fade out button setelah 2 detik
+                setTimeout(() => {
+                    button.style.opacity = '0.6';
+                    button.style.transform = 'scale(0.95)';
+                }, 2000);
+
+            } else {
+                throw new Error(result.message || 'Failed to follow user');
+            }
+
+        } catch (error) {
+            console.error('Follow error:', error);
+            button.innerHTML = originalHTML;
+            button.className = originalClass;
+            button.disabled = false;
+
+            window.showNotification('❌ ' + (error.message || 'Failed to follow user'));
+        }
+    };
     // ============================================================
     // GLOBAL VARIABLES
     // ============================================================
@@ -1834,9 +1925,28 @@
             });
     };
 
-    window.deleteComment = function(commentId, postId) {
-        if (!confirm('Apakah Anda yakin ingin menghapus komentar ini?')) return;
+    window.deleteComment = async function(commentId, postId) {
+        // ✅ SweetAlert konfirmasi
+        const result = await Swal.fire({
+            title: 'Hapus Comment?',
+            text: "Tindakan ini tidak dapat dibatalkan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash"></i> Ya, Hapus!',
+            cancelButtonText: '<i class="fas fa-times"></i> Batal',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: 'btn btn-danger px-4',
+                cancelButton: 'btn btn-secondary px-4'
+            }
+        });
 
+        // ✅ Jika user cancel, stop
+        if (!result.isConfirmed) return;
+
+        // ✅ Proses delete
         const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`);
         if (commentItem) commentItem.style.opacity = '0.5';
 
@@ -1857,11 +1967,13 @@
                         setTimeout(() => {
                             commentItem.remove();
 
+                            // Update counter di detail post
                             const commentCountSpan = document.querySelector(`#commentsCount-${postId} .comment-count-number`);
                             if (commentCountSpan) {
                                 commentCountSpan.textContent = Math.max(0, parseInt(commentCountSpan.textContent) - 1);
                             }
 
+                            // Update counter di feed
                             const feedCommentBtn = document.querySelector(`button[onclick="showComments(${postId})"]`);
                             if (feedCommentBtn) {
                                 const currentCount = feedCommentBtn.textContent.match(/\d+/);
@@ -1869,12 +1981,15 @@
                                 feedCommentBtn.innerHTML = `<i class="far fa-comment"></i> ${newCount}`;
                             }
 
+                            // Show empty state jika tidak ada comment
                             const commentsList = document.getElementById(`commentsList-${postId}`);
                             if (commentsList && commentsList.children.length === 0) {
                                 commentsList.innerHTML = `<p class="text-muted text-center py-3" id="noCommentsMsg-${postId}">No comments yet. Be the first to comment!</p>`;
                             }
                         }, 300);
                     }
+
+                    // ✅ Success notification
                     window.showNotification('🗑️ Comment deleted successfully!');
                 } else {
                     throw new Error(data.message || 'Failed to delete comment');
@@ -1883,6 +1998,8 @@
             .catch(error => {
                 console.error('Error:', error);
                 if (commentItem) commentItem.style.opacity = '1';
+
+                // ✅ Error notification
                 window.showNotification('⚠️ Failed to delete comment. Please try again.');
             });
     };
