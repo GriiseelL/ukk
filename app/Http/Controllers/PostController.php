@@ -132,24 +132,50 @@ class PostController extends Controller
         $posts = collect();
         $randomIndex = 0;
 
-        foreach ($friendPosts as $index => $post) {
-            // Post teman
-            $post->is_liked_by_auth_user = $post->likes()
-                ->where('user_id', $authUserId)
-                ->exists();
+        // ============================
+        // JIKA USER SUDAH FOLLOW ORANG
+        // ============================
+        if ($friendPosts->count() > 0) {
 
-            $posts->push($post);
+            foreach ($friendPosts as $index => $post) {
 
-            // Setiap 3 post teman → sisipkan 1 random
-            if (($index + 1) % 3 === 0 && isset($randomPosts[$randomIndex])) {
-                $random = $randomPosts[$randomIndex];
-                $random->is_liked_by_auth_user = $random->likes()
+                // Post teman
+                $post->is_liked_by_auth_user = $post->likes()
                     ->where('user_id', $authUserId)
                     ->exists();
 
-                $posts->push($random);
-                $randomIndex++;
+                $posts->push($post);
+
+                // Setiap 3 post teman → sisipkan 1 random
+                if (($index + 1) % 3 === 0 && isset($randomPosts[$randomIndex])) {
+
+                    $random = $randomPosts[$randomIndex];
+                    $random->is_liked_by_auth_user = $random->likes()
+                        ->where('user_id', $authUserId)
+                        ->exists();
+
+                    $posts->push($random);
+                    $randomIndex++;
+                }
             }
+
+            // ============================
+            // JIKA BELUM FOLLOW SIAPA PUN
+            // ============================
+        } else {
+
+            $posts = Posts::with(['user', 'likes', 'media'])
+                ->where('user_id', '!=', $authUserId)
+                ->withCount(['likes', 'comments'])
+                ->inRandomOrder()
+                ->limit(10)
+                ->get()
+                ->map(function ($post) use ($authUserId) {
+                    $post->is_liked_by_auth_user = $post->likes()
+                        ->where('user_id', $authUserId)
+                        ->exists();
+                    return $post;
+                });
         }
 
 

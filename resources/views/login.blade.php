@@ -518,6 +518,7 @@
                                             <li id="rule-lower">❌ Huruf kecil (a-z)</li>
                                             <li id="rule-upper">❌ Huruf besar (A-Z)</li>
                                             <li id="rule-number">❌ Angka (0-9)</li>
+                                            <li id="rule-symbol">❌ Simbol (!@#$%^&*)</li>
                                         </ul>
 
 
@@ -556,6 +557,8 @@
         const ruleLower = document.getElementById("rule-lower");
         const ruleUpper = document.getElementById("rule-upper");
         const ruleNumber = document.getElementById("rule-number");
+        const ruleSymbol = document.getElementById("rule-symbol");
+
 
         passwordInput.addEventListener("input", function() {
             const val = passwordInput.value;
@@ -593,40 +596,49 @@
                 ruleNumber.innerHTML = "❌ Angka (0-9)";
             }
 
-            // Strength Result
+            // Symbol
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+                ruleSymbol.innerHTML = "✅ Simbol (!@#$%^&*)";
+                score++;
+            } else {
+                ruleSymbol.innerHTML = "❌ Simbol (!@#$%^&*)";
+            }
+
+            // Strength Result (max sekarang = 5)
             if (score === 0) {
                 bar.style.width = "0%";
                 bar.className = "progress-bar";
                 text.innerHTML = "";
-            } else if (score === 1) {
-                bar.style.width = "25%";
+            } else if (score <= 2) {
+                bar.style.width = "40%";
                 bar.className = "progress-bar bg-danger";
                 text.innerHTML = "Sangat Lemah";
-            } else if (score === 2) {
-                bar.style.width = "50%";
+            } else if (score === 3) {
+                bar.style.width = "60%";
                 bar.className = "progress-bar bg-warning";
                 text.innerHTML = "Lemah";
-            } else if (score === 3) {
-                bar.style.width = "75%";
+            } else if (score === 4) {
+                bar.style.width = "80%";
                 bar.className = "progress-bar bg-info";
                 text.innerHTML = "Cukup Kuat";
-            } else if (score === 4) {
+            } else if (score === 5) {
                 bar.style.width = "100%";
                 bar.className = "progress-bar bg-success";
-                text.innerHTML = "Password Kuat ✅";
+                text.innerHTML = "Password Sangat Kuat 🔥";
             }
         });
 
+
         document.getElementById("registerForm").addEventListener("submit", function(e) {
             const pass = document.getElementById("registerPassword").value;
-            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
             if (!strongRegex.test(pass)) {
                 e.preventDefault();
                 Swal.fire({
                     icon: "error",
                     title: "Password Lemah",
-                    text: "Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka."
+                    text: "Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, angka, dan simbol (!@#$%^&*)."
                 });
             }
         });

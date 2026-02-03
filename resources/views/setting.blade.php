@@ -452,7 +452,10 @@
                         <button type="submit" class="btn-primary" id="uploadBtn">
                             <i class="fas fa-upload"></i> Upload Avatar
                         </button>
-                        <button type="button" class="btn-secondary" data-bs-dismiss="modal">
+                        <button type="button"
+                            class="btn-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="resetPasswordForm()">
                             Cancel
                         </button>
                     </div>
@@ -501,6 +504,14 @@
                         <small style="color: #666; display: block; margin-top: 5px;">
                             Minimum 8 characters
                         </small>
+                        <ul class="list-unstyled mt-2 small" id="passwordRules">
+                            <li id="rule-length">❌ Minimal 8 karakter</li>
+                            <li id="rule-lower">❌ Huruf kecil (a-z)</li>
+                            <li id="rule-upper">❌ Huruf besar (A-Z)</li>
+                            <li id="rule-number">❌ Angka (0-9)</li>
+                            <li id="rule-symbol">❌ Simbol (!@#$%^&*)</li>
+                        </ul>
+
                     </div>
 
                     <div class="mb-3">
@@ -661,6 +672,12 @@
         modal.show();
     }
 
+    // function isStrongPassword(password) {
+    //     // minimal 8 karakter, ada huruf & angka
+    //     const regex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    //     return regex.test(password);
+    // }
+
     // Change Password
     async function changePassword(event) {
         event.preventDefault();
@@ -668,20 +685,43 @@
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+        if (!strongRegex.test(newPassword)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Weak Password',
+                text: 'Password must contain uppercase, lowercase, number, and symbol'
+            });
+            return;
+        }
+
 
         if (newPassword !== confirmPassword) {
-            showNotification('New passwords do not match!', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'New passwords do not match!'
+            });
             return;
         }
 
         if (newPassword.length < 8) {
-            showNotification('Password must be at least 8 characters!', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Weak Password',
+                text: 'Password must be at least 8 characters'
+            });
             return;
         }
 
-        const changeBtn = document.getElementById('changePasswordBtn');
-        changeBtn.disabled = true;
-        changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+        Swal.fire({
+            title: 'Changing Password...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
 
         try {
             const response = await fetch('/profile/change-password', {
@@ -701,22 +741,35 @@
             const result = await response.json();
 
             if (response.ok && result.success) {
-                showNotification('Password changed successfully!', 'success');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Password changed successfully!',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
 
                 document.getElementById('changePasswordForm').reset();
 
                 setTimeout(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
+                    bootstrap.Modal.getInstance(
+                        document.getElementById('forgotPasswordModal')
+                    ).hide();
                 }, 1500);
+
             } else {
                 throw new Error(result.message || 'Failed to change password');
             }
+
         } catch (error) {
-            console.error('Change password error:', error);
-            showNotification(error.message || 'Failed to change password!', 'error');
-        } finally {
-            changeBtn.disabled = false;
-            changeBtn.innerHTML = '<i class="fas fa-save"></i> Change Password';
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed',
+                text: error.message
+            });
+
         }
     }
 
@@ -806,5 +859,74 @@
             });
         }
     }
+
+
+    const newPasswordInput = document.getElementById('newPassword');
+
+    newPasswordInput.addEventListener('input', function() {
+        const value = this.value;
+
+        // 👉 Jika kosong, reset semua rule
+        if (value.length === 0) {
+            resetRule('rule-length');
+            resetRule('rule-lower');
+            resetRule('rule-upper');
+            resetRule('rule-number');
+            resetRule('rule-symbol');
+            return;
+        }
+
+        const hasLength = value.length >= 8;
+        const hasLower = /[a-z]/.test(value);
+        const hasUpper = /[A-Z]/.test(value);
+        const hasNumber = /\d/.test(value);
+        const hasSymbol = /[^A-Za-z0-9]/.test(value);
+
+        updateRule('rule-length', hasLength);
+        updateRule('rule-lower', hasLower);
+        updateRule('rule-upper', hasUpper);
+        updateRule('rule-number', hasNumber);
+        updateRule('rule-symbol', hasSymbol);
+    });
+
+    function updateRule(id, isValid) {
+        const el = document.getElementById(id);
+
+        if (isValid) {
+            el.innerHTML = '✅ ' + el.innerText.replace('❌ ', '').replace('✅ ', '');
+            el.style.color = '#2ecc71';
+        } else {
+            el.innerHTML = '❌ ' + el.innerText.replace('❌ ', '').replace('✅ ', '');
+            el.style.color = '#e74c3c';
+        }
+    }
+
+    function resetRule(id) {
+        const el = document.getElementById(id);
+        el.innerHTML = '❌ ' + el.innerText.replace('❌ ', '').replace('✅ ', '');
+        el.style.color = '#e74c3c';
+    }
+
+    function resetPasswordForm() {
+        const form = document.getElementById('changePasswordForm');
+        form.reset();
+
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+
+        resetRule('rule-length');
+        resetRule('rule-lower');
+        resetRule('rule-upper');
+        resetRule('rule-number');
+        resetRule('rule-symbol');
+    }
+
+
+
+    document.getElementById('forgotPasswordModal')
+        .addEventListener('hidden.bs.modal', function() {
+            resetPasswordForm();
+        });
 </script>
 @endsection

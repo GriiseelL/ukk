@@ -1033,6 +1033,114 @@
         background: linear-gradient(135deg, #28a745, #20c997);
         box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
+
+    .highlights-container {
+        gap: 14px;
+        overflow: visible !important;
+    }
+
+    /* ITEM */
+    .highlight-item {
+        width: 80px;
+        position: relative;
+        cursor: pointer;
+    }
+
+    /* RING */
+    .highlight-ring {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        padding: 2px;
+    }
+
+    .has-story {
+        background: linear-gradient(45deg, #ff00cc, #3333ff);
+    }
+
+    .no-story {
+        background: #ddd;
+    }
+
+    /* AVATAR */
+    .highlight-avatar {
+        width: 100%;
+        height: 100%;
+        background: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .highlight-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* PLACEHOLDER */
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        background: #888;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    /* ADD BUTTON */
+    .add-story-btn {
+        position: absolute;
+        bottom: 4px;
+        right: 4px;
+        width: 20px;
+        height: 20px;
+        background: #0095f6;
+        color: white;
+        border-radius: 50%;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* NAME */
+    .highlight-name {
+        font-size: 12px;
+        margin-top: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* MENU */
+    .story-menu {
+        position: absolute;
+        top: 110%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 160px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .2);
+        display: none;
+        z-index: 9999;
+        overflow: hidden;
+    }
+
+    .story-menu div {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .story-menu div:hover {
+        background: #f1f1f1;
+    }
+    
 </style>
 
 <div class="row">
@@ -1041,27 +1149,31 @@
         <div class="feed-container">
             <!-- Highlights Section -->
             <div class="highlights-section">
+
                 <div class="highlights-header d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0" style="font-size: 16px; font-weight: 600; color: #262626;">Stories</h6>
+                    <h6 class="mb-0" style="font-size:16px;font-weight:600;color:#262626;">
+                        Stories
+                    </h6>
                 </div>
 
-                <div class="highlights-container d-flex overflow-auto">
-                    {{-- Your Story --}}
+                <div class="highlights-container d-flex">
+
+                    {{-- ================= YOUR STORY ================= --}}
                     @php
                     $authUser = $usersWithStories->firstWhere('id', Auth::id());
                     $hasUserStory = $authUser && $authUser->stories->isNotEmpty();
                     @endphp
 
                     <div class="highlight-item text-center"
-                        onclick="handleYourStory({{ $hasUserStory ? 'true' : 'false' }}, '{{ Auth::user()->username }}')">
+                        onclick="handleYourStoryClick(event, {{ $hasUserStory ? 'true' : 'false' }})">
 
                         <div class="highlight-ring {{ $hasUserStory ? 'has-story' : 'no-story' }}">
                             <div class="highlight-avatar">
                                 @if(Auth::user()->avatar)
-                                <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Your Story">
+                                <img src="{{ asset('storage/'.Auth::user()->avatar) }}">
                                 @else
                                 <div class="avatar-placeholder">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                                    {{ strtoupper(substr(Auth::user()->name,0,2)) }}
                                 </div>
                                 @endif
                             </div>
@@ -1074,33 +1186,50 @@
                         </div>
 
                         <div class="highlight-name">Your Story</div>
+
+                        {{-- MENU --}}
+                        @if($hasUserStory)
+                        <div class="story-menu" id="yourStoryMenu">
+                            <div onclick="openStory('{{ Auth::user()->username }}')">
+                                👁 Lihat Story
+                            </div>
+
+                            <div onclick="openCreateStory()">
+                                ➕ Buat Story Lagi
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
-                    {{-- Stories dari user lain --}}
-                    @foreach($usersWithStories->where('id', '!=', Auth::id()) as $user)
+                    {{-- ================= OTHER USERS ================= --}}
+                    @foreach($usersWithStories->where('id','!=',Auth::id()) as $user)
+
                     <div class="highlight-item text-center"
                         onclick="openStory('{{ $user->username }}')">
 
                         <div class="highlight-ring has-story">
                             <div class="highlight-avatar">
                                 @if($user->avatar)
-                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}">
+                                <img src="{{ asset('storage/'.$user->avatar) }}">
                                 @else
-                                <div class="avatar-placeholder"
-                                    style="background: linear-gradient(135deg, #{{ substr(md5($user->id), 0, 6) }}, #{{ substr(md5($user->id + 1), 0, 6) }});">
-                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                <div class="avatar-placeholder">
+                                    {{ strtoupper(substr($user->name,0,2)) }}
                                 </div>
                                 @endif
                             </div>
                         </div>
 
                         <div class="highlight-name">
-                            {{ Str::limit($user->name, 10) }}
+                            {{ Str::limit($user->name,10) }}
                         </div>
+
                     </div>
+
                     @endforeach
+
                 </div>
             </div>
+
 
             <!-- Post Composer -->
             <form id="postForm"
@@ -1382,6 +1511,19 @@
     </div>
 </div>
 
+<div class="story-dropdown" id="yourStoryMenu">
+    @if($hasUserStory)
+    <div class="story-option" onclick="openStory('{{ Auth::user()->username }}')">
+        👁 Lihat Story
+    </div>
+    @endif
+
+    <div class="story-option" onclick="openCreateStoryModal()">
+        ➕ Buat Story
+    </div>
+</div>
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -1481,21 +1623,43 @@
     // ============================================================
 
     // Story Functions
-    window.handleYourStory = function(hasStory, username) {
-        if (hasStory) {
-            window.location.href = `/stories?user=${username}`;
-        } else {
-            window.location.href = '/stories/create';
+    function handleYourStoryClick(e, hasStory, username) {
+
+        // Kalau BELUM ADA STORY → langsung ke halaman create
+        if (!hasStory) {
+            window.location.href = "/stories/create";
+            return;
         }
-    };
 
-    window.openStory = function(username) {
-        window.location.href = `/stories?user=${username}`;
-    };
+        // Kalau ADA STORY → toggle menu
+        e.stopPropagation();
+        const menu = document.getElementById('yourStoryMenu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
 
-    window.openCreateStory = function() {
-        window.location.href = "{{ route('stories.create') }}";
-    };
+    // klik di luar nutup menu
+    document.addEventListener('click', function() {
+        const menu = document.getElementById('yourStoryMenu');
+        if (menu) menu.style.display = 'none';
+    });
+
+    function openCreateStory() {
+        window.location.href = "/stories/create";
+    }
+
+
+    function openStory(username) {
+        window.location.href = "/stories?user=" + username;
+    }
+
+
+    // window.openStory = function(username) {
+    //     window.location.href = `/stories?user=${username}`;
+    // };
+
+    // window.openCreateStory = function() {
+    //     window.location.href = "{{ route('stories.create') }}";
+    // };
 
     // Character Count
     window.updateCharCount = function() {

@@ -177,30 +177,57 @@
 
         .story-simulator {
             width: 100%;
-            height: 400px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 15px;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* FRAME STORY FIXED */
+        .story-preview-frame {
+            width: 100%;
+            max-width: 260px;
+            aspect-ratio: 9 / 16;
+            background: #000;
+            border-radius: 18px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            text-align: center;
-            padding: 20px;
+            margin: 0 auto;
+            transition: aspect-ratio 0.3s ease;
         }
 
-        .story-simulator.text-story {
+        /* MEDIA DI DALAM FRAME */
+        .story-preview-frame img,
+        .story-preview-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* Ketika aspect ratio dinamis */
+        .story-preview-frame.dynamic {
+            aspect-ratio: auto;
+            max-height: 500px;
+        }
+        
+        .story-preview-frame.dynamic img,
+        .story-preview-frame.dynamic video {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* TEXT STORY */
+        .story-preview-frame.text-story {
             background: var(--selected-bg, linear-gradient(135deg, #667eea, #764ba2));
         }
 
-        .story-simulator.image-story,
-        .story-simulator.video-story {
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        .story-text-content {
+        .story-preview-frame .story-text-content {
+            padding: 20px;
+            color: white;
+            text-align: center;
             font-size: 18px;
             font-weight: 600;
             line-height: 1.4;
@@ -211,13 +238,6 @@
         .placeholder-content {
             opacity: 0.7;
             font-style: italic;
-        }
-
-        .uploaded-media {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 15px;
         }
 
         .form-group {
@@ -432,7 +452,6 @@
 
         .close-friends-section {
             display: none;
-            /* ⬅️ ini kunci utama */
             background: rgba(29, 161, 242, 0.03);
             border: 2px solid rgba(29, 161, 242, 0.1);
             border-radius: 16px;
@@ -444,7 +463,6 @@
         .close-friends-section.show {
             display: block;
         }
-
 
         .friends-header {
             font-size: 15px;
@@ -879,9 +897,13 @@
                         <i class="fas fa-eye"></i>
                         Preview Story
                     </div>
-                    <div class="story-simulator text-story" id="storyPreview">
-                        <div class="story-text-content">
-                            <div class="placeholder-content">Tulis sesuatu untuk melihat preview...</div>
+                    <div class="story-simulator">
+                        <div class="story-preview-frame text-story" id="previewFrame" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <div class="story-text-content">
+                                <div class="placeholder-content">
+                                    Tulis sesuatu untuk melihat preview...
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -979,34 +1001,15 @@
             </div>
 
             <div class="crop-controls">
-                <button type="button" class="crop-btn" id="zoomIn">
-                    <i class="fas fa-search-plus"></i>
-                    Zoom In
-                </button>
-                <button type="button" class="crop-btn" id="zoomOut">
-                    <i class="fas fa-search-minus"></i>
-                    Zoom Out
-                </button>
-                <button type="button" class="crop-btn" id="rotateLeft">
-                    <i class="fas fa-undo"></i>
-                    Putar Kiri
-                </button>
-                <button type="button" class="crop-btn" id="rotateRight">
-                    <i class="fas fa-redo"></i>
-                    Putar Kanan
-                </button>
-                <button type="button" class="crop-btn" id="flipH">
-                    <i class="fas fa-arrows-alt-h"></i>
-                    Flip Horizontal
-                </button>
-                <button type="button" class="crop-btn" id="flipV">
-                    <i class="fas fa-arrows-alt-v"></i>
-                    Flip Vertikal
-                </button>
-                <button type="button" class="crop-btn" id="resetCrop">
-                    <i class="fas fa-sync"></i>
-                    Reset
-                </button>
+                <button type="button" class="crop-btn" onclick="setRatio(NaN)">Free</button>
+                <button type="button" class="crop-btn" onclick="setRatio(1)">1:1</button>
+                <button type="button" class="crop-btn" onclick="setRatio(4/5)">4:5</button>
+                <button type="button" class="crop-btn" onclick="setRatio(9/16)">9:16</button>
+                <button type="button" class="crop-btn" onclick="setRatio(16/9)">16:9</button>
+                <button type="button" class="crop-btn" id="zoomIn">+</button>
+                <button type="button" class="crop-btn" id="zoomOut">-</button>
+                <button type="button" class="crop-btn" id="rotateLeft">⟲</button>
+                <button type="button" class="crop-btn" id="rotateRight">⟳</button>
             </div>
 
             <div class="crop-actions">
@@ -1099,9 +1102,6 @@
             document.getElementById('zoomOut').addEventListener('click', () => cropper && cropper.zoom(-0.1));
             document.getElementById('rotateLeft').addEventListener('click', () => cropper && cropper.rotate(-45));
             document.getElementById('rotateRight').addEventListener('click', () => cropper && cropper.rotate(45));
-            document.getElementById('flipH').addEventListener('click', () => cropper && cropper.scaleX(-cropper.getData().scaleX || -1));
-            document.getElementById('flipV').addEventListener('click', () => cropper && cropper.scaleY(-cropper.getData().scaleY || -1));
-            document.getElementById('resetCrop').addEventListener('click', () => cropper && cropper.reset());
         }
 
         function selectStoryType(type) {
@@ -1111,26 +1111,35 @@
             document.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('active'));
             event.currentTarget.classList.add('active');
 
+            const previewFrame = document.getElementById('previewFrame');
+
             if (type === 'text') {
                 document.getElementById('textStoryFields').style.display = 'block';
                 document.getElementById('mediaStoryFields').style.display = 'none';
+                
+                // Reset ke text story
+                previewFrame.className = 'story-preview-frame text-story';
+                previewFrame.style.background = selectedBackground;
                 updateTextPreview();
             } else {
                 document.getElementById('textStoryFields').style.display = 'none';
                 document.getElementById('mediaStoryFields').style.display = 'block';
-                document.getElementById('storyPreview').innerHTML =
-                    '<div class="placeholder-content">Upload gambar atau video...</div>';
+                
+                // Reset ke media story
+                previewFrame.className = 'story-preview-frame';
+                previewFrame.style.background = '#000';
+                previewFrame.innerHTML = '<div class="placeholder-content" style="color: #999;">Upload gambar atau video...</div>';
             }
         }
 
         function updateTextPreview() {
             const text = document.getElementById('textInput').value;
-            const preview = document.getElementById('storyPreview');
+            const frame = document.getElementById('previewFrame');
 
             if (text.trim()) {
-                preview.innerHTML = `<div class="story-text-content">${text}</div>`;
+                frame.innerHTML = `<div class="story-text-content">${text}</div>`;
             } else {
-                preview.innerHTML = '<div class="story-text-content"><div class="placeholder-content">Tulis sesuatu untuk melihat preview...</div></div>';
+                frame.innerHTML = '<div class="story-text-content"><div class="placeholder-content">Tulis sesuatu untuk melihat preview...</div></div>';
             }
         }
 
@@ -1141,17 +1150,17 @@
             document.querySelectorAll('.bg-option').forEach(opt => opt.classList.remove('active'));
             event.currentTarget.classList.add('active');
 
-            // ✅ Update background preview langsung
-            const preview = document.getElementById('storyPreview');
-            preview.style.background = bg;
-            preview.style.setProperty('--selected-bg', bg);
+            // Update background preview
+            const frame = document.getElementById('previewFrame');
+            if (currentType === 'text') {
+                frame.style.background = bg;
+            }
         }
 
         function selectPrivacy(type) {
             selectedPrivacy = type;
             document.getElementById('privacyInput').value = type;
 
-            // aktifkan radio UI
             document.querySelectorAll('.privacy-option').forEach(op => {
                 op.classList.remove('active');
             });
@@ -1161,22 +1170,16 @@
             const closeFriendsSection = document.getElementById('closeFriendsSection');
 
             if (type === 'close-friends') {
-                // ✅ tampilkan section
                 closeFriendsSection.classList.add('show');
                 loadFriendsList();
             } else {
-                // ✅ sembunyikan saja
                 closeFriendsSection.classList.remove('show');
-
-                // reset pilihan teman
                 selectedFriends.clear();
                 document.querySelectorAll('.checkbox-custom').forEach(cb => {
                     cb.classList.remove('checked');
                 });
             }
         }
-
-
 
         function toggleFriend(id) {
             const checkbox = document.getElementById('checkbox-' + id);
@@ -1207,8 +1210,26 @@
             } else if (file.type.startsWith("video/")) {
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    document.getElementById('storyPreview').innerHTML =
-                        `<video src="${evt.target.result}" class="uploaded-media" controls muted></video>`;
+                    const frame = document.getElementById('previewFrame');
+                    const video = document.createElement('video');
+                    
+                    video.onloadedmetadata = function() {
+                        const aspectRatio = video.videoWidth / video.videoHeight;
+                        
+                        // Jika landscape atau square, gunakan dynamic frame
+                        if (aspectRatio >= 1) {
+                            frame.classList.add('dynamic');
+                            frame.style.aspectRatio = 'auto';
+                        } else {
+                            // Portrait - gunakan 9:16
+                            frame.classList.remove('dynamic');
+                            frame.style.aspectRatio = '9 / 16';
+                        }
+                        
+                        frame.innerHTML = `<video src="${evt.target.result}" class="uploaded-media" controls muted autoplay loop></video>`;
+                    };
+                    
+                    video.src = evt.target.result;
                 };
                 reader.readAsDataURL(file);
                 croppedImageBlob = file;
@@ -1223,7 +1244,7 @@
             }
 
             cropper = new Cropper(image, {
-                aspectRatio: NaN, // bebas rasio (landscape / portrait)
+                aspectRatio: 9 / 16,
                 viewMode: 1,
                 dragMode: 'move',
                 autoCropArea: 1,
@@ -1251,8 +1272,26 @@
 
             const reader = new FileReader();
             reader.onload = function(evt) {
-                document.getElementById('storyPreview').innerHTML =
-                    `<img src="${evt.target.result}" class="uploaded-media">`;
+                const frame = document.getElementById('previewFrame');
+                const img = new Image();
+                
+                img.onload = function() {
+                    const aspectRatio = img.width / img.height;
+                    
+                    // Jika landscape atau square, gunakan dynamic frame
+                    if (aspectRatio >= 1) {
+                        frame.classList.add('dynamic');
+                        frame.style.aspectRatio = 'auto';
+                    } else {
+                        // Portrait - gunakan 9:16
+                        frame.classList.remove('dynamic');
+                        frame.style.aspectRatio = '9 / 16';
+                    }
+                    
+                    frame.innerHTML = `<img src="${evt.target.result}" alt="Preview">`;
+                };
+                
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(originalImageFile);
 
@@ -1262,9 +1301,12 @@
         function applyCrop() {
             if (!cropper) return;
 
+            const cropData = cropper.getData();
+            const aspectRatio = cropData.width / cropData.height;
+
             cropper.getCroppedCanvas({
-                width: 1080,
-                height: 1920,
+                maxWidth: 1080,
+                maxHeight: 1920,
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high',
             }).toBlob((blob) => {
@@ -1272,8 +1314,23 @@
 
                 const reader = new FileReader();
                 reader.onload = function(evt) {
-                    document.getElementById('storyPreview').innerHTML =
-                        `<img src="${evt.target.result}" class="uploaded-media">`;
+                    const frame = document.getElementById('previewFrame');
+                    
+                    // Jika landscape atau square, gunakan dynamic frame
+                    if (aspectRatio >= 1) {
+                        frame.classList.add('dynamic');
+                        frame.style.aspectRatio = 'auto';
+                    } else if (aspectRatio > 0.5 && aspectRatio < 0.6) {
+                        // 9:16 portrait
+                        frame.classList.remove('dynamic');
+                        frame.style.aspectRatio = '9 / 16';
+                    } else {
+                        // Portrait lainnya
+                        frame.classList.remove('dynamic');
+                        frame.style.aspectRatio = aspectRatio;
+                    }
+                    
+                    frame.innerHTML = `<img src="${evt.target.result}" alt="Cropped Preview">`;
                 };
                 reader.readAsDataURL(blob);
 
@@ -1282,13 +1339,35 @@
             }, 'image/jpeg', 0.95);
         }
 
+        function setRatio(ratio) {
+            if (!cropper) return;
+
+            cropper.setAspectRatio(ratio);
+
+            const frame = document.getElementById("previewFrame");
+
+            // Update preview frame aspect ratio
+            if (!ratio || isNaN(ratio)) {
+                // Free crop - akan di-set saat apply
+                frame.classList.add('dynamic');
+                frame.style.aspectRatio = 'auto';
+            } else if (ratio >= 1) {
+                // Landscape atau square
+                frame.classList.add('dynamic');
+                frame.style.aspectRatio = 'auto';
+            } else {
+                // Portrait
+                frame.classList.remove('dynamic');
+                frame.style.aspectRatio = ratio;
+            }
+        }
+
         async function handleFormSubmit(e) {
             e.preventDefault();
 
             const publishBtn = document.getElementById('publishBtn');
             const originalText = publishBtn.innerHTML;
 
-            // Disable button
             publishBtn.disabled = true;
             publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengupload...';
             publishBtn.style.pointerEvents = 'none';
@@ -1300,7 +1379,6 @@
             formData.append('type', type);
             formData.append('privacy', selectedPrivacy);
 
-            /* ================= TEXT STORY ================= */
             if (type === 'text') {
                 const textContent = document.getElementById('textInput').value;
                 const background = selectedBackground;
@@ -1317,11 +1395,7 @@
                 if (caption && caption.trim()) {
                     formData.append('caption', caption);
                 }
-            }
-
-            /* ================= MEDIA STORY ================= */
-            else {
-
+            } else {
                 if (!croppedImageBlob && !originalImageFile) {
                     showNotification("Pilih gambar atau video terlebih dahulu!", 'error');
                     resetButton();
@@ -1332,9 +1406,7 @@
                 formData.append('media', croppedImageBlob || originalImageFile);
             }
 
-            /* ================= CLOSE FRIENDS ================= */
             if (selectedPrivacy === "close-friends") {
-
                 if (selectedFriends.size === 0) {
                     showNotification("Pilih minimal 1 teman untuk close friends!", 'error');
                     resetButton();
@@ -1346,9 +1418,7 @@
                 });
             }
 
-            /* ================= SEND ================= */
             try {
-
                 const csrf = document.querySelector('meta[name="csrf-token"]');
 
                 if (!csrf) {
@@ -1389,14 +1459,12 @@
                 resetButton();
             }
 
-            /* ================= HELPER ================= */
             function resetButton() {
                 publishBtn.disabled = false;
                 publishBtn.innerHTML = originalText;
                 publishBtn.style.pointerEvents = 'auto';
             }
         }
-
 
         function showNotification(msg, type = "success") {
             const notif = document.createElement("div");
